@@ -15,6 +15,6 @@ npm run dev
 
 Grid files are processed in the browser and are not uploaded. See [the PRD](docs/PRD.md) and [format notes](docs/FORMATS.md).
 
-The Peforma Units converter covers ten engineering categories at `#units`; its factors and definitions are recorded in [unit notes](docs/UNITS.md). The planned line and point tool is scoped in [the Peforma Lines chapter](docs/PRD_LINES_POINTS.md), and the planned 2D/3D seismic tool in [the Peforma Seismic chapter](docs/PRD_SEISMIC.md).
+The Peforma Units converter covers ten engineering categories at `#units`; its factors and definitions are recorded in [unit notes](docs/UNITS.md). The planned line and point tool is scoped in [the Peforma Lines chapter](docs/PRD_LINES_POINTS.md), the planned 2D/3D seismic tool in [the Peforma Seismic chapter](docs/PRD_SEISMIC.md), and the planned polygon tool in [the Peforma Polygons chapter](docs/PRD_POLYGONS.md).
 
 The exact EarthVision and IRAP/ZMAP dialects must be validated using representative Petrel and Kingdom files before relying on the converter for production exchange.
