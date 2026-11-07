@@ -2,7 +2,7 @@
 
 Peforma is the broader product family for oil-sector data exchange. Peforma Grid is its first tool; future capabilities may cover wells, seismic, contours, and other data types. Keep this PRD scoped to grid conversion.
 
-Line and point exchange is specified separately in [Peforma Lines](PRD_LINES_POINTS.md). It is a planned product and does not affect the grid scope below.
+Line and point exchange is specified separately in [Peforma Lines](PRD_LINES_POINTS.md), and 2D and 3D seismic exchange in [Peforma Seismic](PRD_SEISMIC.md). Both are planned products and do not affect the grid scope below.
 
 ## Problem
 Geoscientists exchange depth grids between interpretation applications. Petrel can export EarthVision ASCII grids, while receiving tools such as Kingdom may not import that format directly. Manual reformatting is error-prone and risks changing geometry or values.
