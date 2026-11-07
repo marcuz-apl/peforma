@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import shp from 'shpjs';
-import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, LockKeyhole, Menu, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, LockKeyhole, Menu, Moon, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, Sun, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
 import VERSION from '../VERSION?raw';
 import UnitConverter from './UnitConverter.jsx';
+import { applyTheme, readThemePreference, resolveTheme, THEME_KEY } from './theme.js';
 import './style.css';
 
 const FORMATS = {
@@ -514,22 +515,74 @@ function SuiteRail({ collapsed, onToggle, open, onClose, onNavigate, route }) {
   );
 }
 
-function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route }) {
+// Renders the family wordmark with the O replaced by a red oil drop. The lettering
+// is split around the drop so the SVG can scale with whatever font size wraps it.
+function Wordmark({ label, className = '' }) {
+  return (
+    <span
+      className={`wordmark${className ? ` ${className}` : ''}`}
+      {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' })}
+    >
+      <span aria-hidden="true">pef</span>
+      <span className="wordmark-drop" aria-hidden="true">
+        <svg viewBox="0 0 22 26" focusable="false">
+          <path d="M11 1C11 1 2 10.6 2 16.1a9 9 0 0 0 18 0C20 10.6 11 1 11 1Z" />
+          <ellipse cx="7.7" cy="16.2" rx="1.7" ry="2.4" />
+        </svg>
+      </span>
+      <span aria-hidden="true">rma</span>
+    </span>
+  );
+}
+
+// Auto is shown as a disc split into white and black halves, so the button reads
+// as "both themes" without a text label.
+function AutoThemeIcon() {
+  return (
+    <svg className="auto-theme-icon" width="17" height="17" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <circle cx="10" cy="10" r="7.1" fill="#ffffff" />
+      <path d="M10 2.9a7.1 7.1 0 0 1 0 14.2Z" fill="#000000" />
+      <circle cx="10" cy="10" r="7.1" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M10 2.9v14.2" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+const NEXT_THEME = { auto: 'light', light: 'dark', dark: 'auto' };
+
+function ThemeToggle({ preference, resolved, onChange }) {
+  const next = NEXT_THEME[preference] || 'light';
+  const description = preference === 'auto'
+    ? `Theme: auto, ${resolved} now. Activate for light.`
+    : `Theme: ${preference}. Activate for ${next}.`;
+  const Icon = preference === 'light' ? Sun : preference === 'dark' ? Moon : AutoThemeIcon;
+  return (
+    <button
+      type="button"
+      className="theme-trigger"
+      aria-label={description}
+      title={description}
+      onClick={() => onChange(next)}
+    >
+      <Icon size={17} aria-hidden="true" />
+    </button>
+  );
+}
+
+function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route, themePref, resolvedTheme, onThemeChange }) {
   const tool = route === 'units' ? 'Units' : 'Grid';
   return (
     <header className="site-header">
       <div className="topbar shell">
         <a className="brand" href={`#${route}`} aria-label={`Peforma ${tool} home`}>
-          <span className="brand-icon"><Layers3 size={19} /></span>
-          <span>peforma</span>
-          <span className="brand-version">{VERSION.trim()}</span>
+          <span className="brand-icon"><Layers3 size={19} aria-hidden="true" /></span>
+          <Wordmark />
         </a>
         <div className="top-right">
-          <span className="local-pill"><LockKeyhole size={13} /> Local processing</span>
-          <span className="top-divider" />
           <button type="button" className="help-link" onClick={onGuide}>
-            {route === 'units' ? 'Unit definitions' : 'Format guide'} <ChevronDown size={14} />
+            {route === 'units' ? 'Unit definitions' : 'Format guide'} <ChevronDown size={14} aria-hidden="true" />
           </button>
+          <ThemeToggle preference={themePref} resolved={resolvedTheme} onChange={onThemeChange} />
           <button
             ref={menuRef}
             type="button"
@@ -539,7 +592,7 @@ function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route }) {
             aria-label="Open suite navigation"
             onClick={onOpen}
           >
-            <Menu size={20} />
+            <Menu size={20} aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -549,13 +602,13 @@ function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route }) {
 
 const FOOTER_FORMATS = ['CPS-3', 'ZMAP+', 'IRAP Classic', 'EarthVision', 'Shapefile'];
 
-function AppFooter({ onGuide, route }) {
+function AppFooter({ onGuide, onAbout, aboutRef, route }) {
   return (
     <footer className="site-footer">
       <div className="footer-intro">
-        <a className="footer-mark" href={`#${route}`}>
-          <span className="footer-icon"><Layers3 size={15} /></span>
-          <span>peforma</span>
+        <a className="footer-mark" href={`#${route}`} aria-label="Peforma home">
+          <span className="footer-icon"><Layers3 size={15} aria-hidden="true" /></span>
+          <Wordmark />
         </a>
         <p>Subsurface data tools. Local-first by design.</p>
       </div>
@@ -577,10 +630,9 @@ function AppFooter({ onGuide, route }) {
           <ul>{FOOTER_FORMATS.map(name => <li key={name}><span>{name}</span></li>)}</ul>
         </div>
         <div className="footer-col">
-          <div className="footer-label">Build</div>
+          <div className="footer-label">Resources</div>
           <ul>
-            <li><span className="footer-version">{VERSION.trim()}</span></li>
-            <li><span>Local processing</span></li>
+            <li><button ref={aboutRef} type="button" onClick={onAbout}>About</button></li>
             <li><button type="button" onClick={onGuide}>{route === 'units' ? 'Unit definitions' : 'Format guide'}</button></li>
           </ul>
         </div>
@@ -593,20 +645,99 @@ function AppFooter({ onGuide, route }) {
   );
 }
 
+function AboutDialog({ onClose }) {
+  const dialogRef = useRef(null);
+  const closeRef = useRef(null);
+
+  useEffect(() => {
+    const previous = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
+    const onKey = event => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = overflow;
+      if (previous instanceof HTMLElement) previous.focus();
+    };
+  }, [onClose]);
+
+  const onDialogKeyDown = event => {
+    if (event.key !== 'Tab') return;
+    const focusable = dialogRef.current?.querySelectorAll('button, a[href]');
+    if (!focusable?.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}
+    >
+      <div
+        ref={dialogRef}
+        className="about-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="about-title"
+        onKeyDown={onDialogKeyDown}
+      >
+        <button ref={closeRef} type="button" className="about-close" onClick={onClose} aria-label="Close About">
+          <X size={17} aria-hidden="true" />
+        </button>
+        <Wordmark label="Peforma" className="about-wordmark" />
+        <h2 id="about-title">About Peforma</h2>
+        <p className="about-copy">Subsurface data tools built for the field. Convert grids and engineering units without sending your data anywhere.</p>
+        <div className="about-meta">
+          <span className="about-meta-label">Version</span>
+          <span className="about-version">{VERSION.trim()}</span>
+        </div>
+        <div className="about-privacy">
+          <LockKeyhole size={15} aria-hidden="true" />
+          <span>Grids, shapefiles, and conversions are processed in your browser. Source files never leave this device.</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const { grid, shape, error, source, format, setFormat, input, load, download, reset } = useGridFile();
   const [drag, setDrag] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [route, setRoute] = useState(() => window.location.hash === '#units' ? 'units' : 'grid');
+  const [themePref, setThemePref] = useState(readThemePreference);
+  const [resolvedTheme, setResolvedTheme] = useState(() => resolveTheme(readThemePreference()));
   const [railCollapsed, setRailCollapsed] = useState(() => {
     try { return localStorage.getItem('peforma.rail') === 'collapsed'; }
     catch { return false; }
   });
   const menuRef = useRef(null);
+  const aboutRef = useRef(null);
 
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
     requestAnimationFrame(() => menuRef.current?.focus());
+  }, []);
+
+  const closeAbout = useCallback(() => {
+    setAboutOpen(false);
+    requestAnimationFrame(() => aboutRef.current?.focus());
+  }, []);
+
+  const changeTheme = useCallback(value => {
+    setThemePref(value);
+    try { localStorage.setItem(THEME_KEY, value); } catch { /* storage is optional */ }
   }, []);
 
   const toggleRail = useCallback(() => {
@@ -635,6 +766,26 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [route]);
 
+  // Auto mode follows local clock hours: 07:00–19:00 is light, the rest dark.
+  // The inline script in index.html applies the same rule before first paint.
+  useEffect(() => {
+    let timer;
+    const update = () => {
+      const next = resolveTheme(themePref);
+      applyTheme(next);
+      setResolvedTheme(next);
+    };
+    update();
+    if (themePref === 'auto') {
+      timer = window.setInterval(update, 30_000);
+      document.addEventListener('visibilitychange', update);
+    }
+    return () => {
+      if (timer) window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', update);
+    };
+  }, [themePref]);
+
   useEffect(() => {
     if (!drawerOpen) return;
     const previous = document.body.style.overflow;
@@ -654,7 +805,16 @@ function App() {
   return (
     <>
       <a className="skip-link" href={`#${route}`}>Skip to converter</a>
-      <SiteHeader drawerOpen={drawerOpen} onOpen={() => setDrawerOpen(true)} menuRef={menuRef} onGuide={openGuide} route={route} />
+      <SiteHeader
+        drawerOpen={drawerOpen}
+        onOpen={() => setDrawerOpen(true)}
+        menuRef={menuRef}
+        onGuide={openGuide}
+        route={route}
+        themePref={themePref}
+        resolvedTheme={resolvedTheme}
+        onThemeChange={changeTheme}
+      />
       <div className={`app-shell${railCollapsed ? ' rail-collapsed' : ''}`}>
         <SuiteRail collapsed={railCollapsed} onToggle={toggleRail} open={drawerOpen} onClose={closeDrawer} onNavigate={navigate} route={route} />
         {drawerOpen && <button type="button" className="rail-backdrop" aria-label="Close suite navigation" onClick={closeDrawer} />}
@@ -697,9 +857,10 @@ function App() {
               </>
             )}
           </main>
-          <AppFooter onGuide={openGuide} route={route} />
+          <AppFooter onGuide={openGuide} onAbout={() => setAboutOpen(true)} aboutRef={aboutRef} route={route} />
         </div>
       </div>
+      {aboutOpen && <AboutDialog onClose={closeAbout} />}
     </>
   );
 }
