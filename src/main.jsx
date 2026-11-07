@@ -1,0 +1,375 @@
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import shp from 'shpjs';
+import { ArrowDownToLine, ArrowLeftRight, Check, ChevronDown, FileSpreadsheet, FileUp, Layers3, LockKeyhole, RotateCcw, TriangleAlert, Info } from 'lucide-react';
+import './style.css';
+
+const FORMATS = {
+  cps3: 'CPS-3 grid (ASCII)', earthvision: 'EarthVision grid (ASCII)', irap: 'IRAP Classic grid (ASCII)', shapefile: 'Shapefile', zmap: 'ZMAP+ grid (ASCII)'
+};
+const NULLS = { cps3: 1e31, irap: 9999900, zmap: 1e30, earthvision: 1e31 };
+// True only for tokens that are actually numeric; empty/whitespace strings coerce to 0
+// and must not be treated as valid header or grid values.
+const number = x => typeof x === 'string' ? x.trim() !== '' && Number.isFinite(Number(x)) : Number.isFinite(x);
+const splitRows = s => s.replace(/^\uFEFF/, '').split(/\r?\n/);
+function gridOf(meta, values, source, name) {
+  const { nx, ny, xmin, xmax, ymin, ymax, dx, dy, nodata = NULLS[source] ?? -99999, units = '', projection = '' } = meta;
+  if (![nx,ny,xmin,xmax,ymin,ymax].every(number) || nx < 2 || ny < 2 || !Number.isInteger(nx) || !Number.isInteger(ny)) throw Error('Grid header has invalid dimensions or coordinate bounds.');
+  if (values.length !== nx * ny) throw Error(`Grid header describes ${nx * ny} nodes but ${values.length} values were found.`);
+  return { nx,ny,xmin,xmax,ymin,ymax,dx:dx ?? (xmax-xmin)/(nx-1),dy:dy ?? (ymax-ymin)/(ny-1),nodata,values,source,name,units,projection };
+}
+function parseEarthvision(text, name) {
+  const lines=splitRows(text), get=k=>lines.find(x=>x.trim().toLowerCase().startsWith(`# ${k.toLowerCase()}:`))?.split(':').slice(1).join(':').trim();
+  const size=get('Grid_size')?.match(/(\d+)\s*x\s*(\d+)/i), space=get('Grid_space')?.split(/[ ,]+/).map(Number), fields=lines.filter(x=>/^#\s*Field:/i.test(x)).map(x=>x.split(':').slice(1).join(':').trim().toLowerCase());
+  // Field records carry an optional unit suffix (e.g. "3 z feet"), so match on the
+  // leading field number and name rather than the whole string.
+  const hasField = (num, name) => fields.some(f => new RegExp(`^${num}\\s+${name}(\\s|$)`).test(f));
+  if (!size || !space || space.length<4 || !hasField(1,'x') || !hasField(2,'y') || !hasField(3,'z')) throw Error('Unsupported EarthVision ASCII variant. Expected scattered-data header with Grid_size, Grid_space and x/y/z fields.');
+  const [nx,ny]=size.slice(1).map(Number), [xmin,xmax,ymin,ymax]=space;
+  const ix=fields.findIndex(x=>/^4\s+column/.test(x)), iy=fields.findIndex(x=>/^5\s+row/.test(x));
+  if(ix<0||iy<0) throw Error('EarthVision grid is missing column/row indices; safe node ordering cannot be established.');
+  const values=Array(nx*ny).fill(NULLS.earthvision), seen=new Uint8Array(nx*ny); let records=0;
+  for(const line of lines){if(!line.trim()||line.trim().startsWith('#'))continue;const a=line.trim().split(/[\s,]+/).map(Number);if(a.length<5||!a.every(Number.isFinite))continue;
+    // EarthVision field order: X,Y,Z,column,row. Indices in the supplied export start at 1.
+    const col=a[3]-1,row=a[4]-1;if(col<0||col>=nx||row<0||row>=ny)throw Error(`EarthVision node index ${a[3]},${a[4]} is outside the declared grid.`);
+    const idx=row*nx+col;if(seen[idx])throw Error('EarthVision input contains duplicate node indices.');seen[idx]=1;values[idx]=a[2];records++;
+  }
+  if(!records)throw Error('No EarthVision node records were found.');
+  return gridOf({nx,ny,xmin,xmax,ymin,ymax,dx:space[4],dy:space[5],nodata:NULLS.earthvision,units:get('Z_units')||'',projection:get('Projection')||''},values,'earthvision',name);
+}
+// Returns the whitespace-split tokens of the first line whose trimmed text starts with `prefix`.
+function readHeaderRecord(lines, prefix) {
+  const line = lines.find(x => x.trim().startsWith(prefix));
+  return line ? line.trim().split(/\s+/) : undefined;
+}
+
+function parseCps3(text, name) {
+  const lines = splitRows(text);
+  const limits = readHeaderRecord(lines, 'FSLIMI');
+  const size = readHeaderRecord(lines, 'FSNROW');
+  const increment = readHeaderRecord(lines, 'FSXINC');
+  if (!limits || !size || !increment) throw Error('Unsupported CPS-3 ASCII grid; expected FSASCI, FSLIMI, FSNROW and FSXINC records.');
+
+  const ny = Number(size[1]);
+  const nx = Number(size[2]);
+  const values = [];
+  let started = false;
+  for (const line of lines) {
+    const s = line.trim();
+    if (!started) {
+      if (s.startsWith('->MSMODL:')) started = true;
+      continue;
+    }
+    if (!s) continue;
+    for (const token of s.split(/\s+/)) if (number(token)) values.push(Number(token));
+  }
+
+  // The FSASCI record carries the null sentinel as its last token; fall back to the
+  // documented CPS-3 default when that token is missing or not a finite number.
+  const declaredNull = Number(lines[0].trim().split(/\s+/).at(-1));
+  const nodata = Number.isFinite(declaredNull) ? declaredNull : NULLS.cps3;
+  return gridOf({
+    nx, ny,
+    xmin: Number(limits[1]), xmax: Number(limits[2]),
+    ymin: Number(limits[3]), ymax: Number(limits[4]),
+    dx: Number(increment[1]), dy: Number(increment[2]),
+    nodata,
+  }, values, 'cps3', name);
+}
+
+function parseIrap(text, name) {
+  const lines = splitRows(text).filter(x => x.trim());
+  const header = lines.slice(0, 4).map(x => x.trim().split(/\s+/).map(Number));
+  if (header[0]?.[0] !== -996 || header.length < 4) throw Error('Unsupported IRAP Classic ASCII variant; expected the classic -996 header.');
+
+  const [first, bounds, dims] = header;
+  const ny = first[1], dx = first[2], dy = first[3];
+  const xmin = bounds[0], xmax = bounds[1], ymin = bounds[2], ymax = bounds[3];
+  const nx = dims[0];
+  const headerNumbers = [nx, ny, dx, dy, xmin, xmax, ymin, ymax];
+  if (!headerNumbers.every(Number.isFinite) || !Number.isInteger(nx) || !Number.isInteger(ny) || nx < 1 || ny < 1) {
+    throw Error('IRAP Classic header has non-numeric or invalid dimensions, increments, or coordinate bounds.');
+  }
+  const nodata = NULLS.irap;
+  const values = lines.slice(4)
+    .flatMap(x => x.trim().split(/\s+/).map(Number))
+    .filter(Number.isFinite);
+
+  return gridOf({ nx, ny, xmin, xmax, ymin, ymax, dx, dy, nodata }, values, 'irap', name);
+}
+
+function parseZmap(text, name) {
+  const lines = splitRows(text);
+  const start = lines.findIndex(x => x.trim().startsWith('@'));
+  const end = start < 0 ? -1 : lines.findIndex((x, i) => i > start && x.trim() === '@');
+  if (start < 0 || end < 0) throw Error('ZMAP+ header not found. Expected @ header, metadata records, and closing @.');
+
+  const header = lines.slice(start, end).map(x =>
+    x.trim().replace(/^@|@$/g, '').split(',').map(y => y.trim())
+  );
+  if (!/GRID/i.test(header[0]?.[1] || '')) throw Error('The @ record does not identify a ZMAP+ GRID.');
+
+  const dims = header.find(a => a.length >= 6 && a.slice(0, 2).every(number));
+  const control = header.find(a => a.length >= 2 && number(a[0]) && number(a[1]) && a.length <= 5);
+  if (!dims || !control) throw Error('ZMAP+ dimensions or null-value header record is missing.');
+
+  const nx = Number(dims[0]), ny = Number(dims[1]);
+  const xmin = Number(dims[2]), xmax = Number(dims[3]);
+  const ymin = Number(dims[4]), ymax = Number(dims[5]);
+  const nodata = Number(control[1]);
+  const values = lines.slice(end + 1)
+    .flatMap(x => x.trim().split(/[\s,]+/).filter(Boolean).map(Number))
+    .filter(Number.isFinite);
+
+  return gridOf({ nx, ny, xmin, xmax, ymin, ymax, nodata }, values, 'zmap', name);
+}
+// Single-pass min/max over values, skipping nulls. Avoids Math.min(...values), which
+// throws RangeError once a grid has more nodes than the engine's argument limit.
+function valueRange(values, nodata) {
+  let min = Infinity, max = -Infinity, count = 0;
+  for (const v of values) {
+    if (v === nodata || !Number.isFinite(v)) continue;
+    if (v < min) min = v;
+    if (v > max) max = v;
+    count++;
+  }
+  return count ? { min, max, count } : { min: 0, max: 0, count: 0 };
+}
+// Identifies an ASCII grid purely from its contents. The file extension is never used:
+// a grid renamed to .txt, .dat or anything else is still recognised.
+function detect(text){if(/^FSASCI\b/m.test(text))return'cps3';if(/^# Type: scattered data/m.test(text))return'earthvision';if(/^\s*-996\s/m.test(text))return'irap';if(/^\s*@.*?,\s*GRID\s*,/m.test(text))return'zmap';return null;}
+// Formats a value for ASCII output, substituting the target format's null sentinel.
+function formatValue(v, nodata, nullValue) {
+  const out = v === nodata ? nullValue : v;
+  return Number(out).toPrecision(10).replace(/\.0+$/, '');
+}
+// Renders a grid's rows as space-separated lines, mapping nulls to the target sentinel.
+function formatRows(rows, nodata, nullValue) {
+  return rows.map(row => row.map(v => formatValue(v, nodata, nullValue)).join(' ')).join('\n');
+}
+function exportGrid(g,fmt){const {nx,ny,values}=g, rows=Array.from({length:ny},(_,r)=>values.slice(r*nx,(r+1)*nx));if(fmt==='zmap'){const nd=NULLS.zmap;return `! Peforma Grid ZMAP+ ASCII\n@GRID FILE, GRID, 10\n10, ${nd}, , 1, 1\n${nx}, ${ny}, ${g.xmin}, ${g.xmax}, ${g.ymin}, ${g.ymax}\n0.0, 0.0, 0.0\n@\n${formatRows(rows,g.nodata,nd)}\n`;}
+ if(fmt==='irap'){return `-996 ${ny} ${g.dx} ${g.dy}\n${g.xmin} ${g.xmax} ${g.ymin} ${g.ymax}\n${nx} 0.000000 ${g.xmin} ${g.ymin}\n0 0 0 0 0 0 0\n${formatRows(rows,g.nodata,NULLS.irap)}\n`;}
+ if(fmt==='cps3'){const range=valueRange(values,g.nodata);return `FSASCI 0 1 COMPUTED 0 0.1E+31\nFSATTR 0 0\nFSLIMI ${g.xmin} ${g.xmax} ${g.ymin} ${g.ymax} ${range.min} ${range.max}\nFSNROW ${ny} ${nx}\nFSXINC ${g.dx} ${g.dy}\n->MSMODL: Converted depth grid\n${formatRows(rows,g.nodata,NULLS.cps3)}\n`;}
+ if(fmt==='earthvision'){const out=[`# Type: scattered data`,`# Version: 6`,`# Description: Converted by Peforma Grid`,`# Format: free`,`# Field: 1 x`,`# Field: 2 y`,`# Field: 3 z ${g.units||'unknown'}`,`# Field: 4 column`,`# Field: 5 row`,`# Projection: ${g.projection||'Unknown'}`,`# Units: Unknown`,`# End:`,`# Information from grid:`,`# Grid_size: ${nx} x ${ny}`,`# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`,`# Z_units: ${g.units||'unknown'}`];for(let r=0;r<ny;r++)for(let c=0;c<nx;c++){const x=g.xmin+c*g.dx,y=g.ymin+r*g.dy,v=values[r*nx+c];if(v!==g.nodata)out.push(`${x} ${y} ${v} ${c+1} ${r+1}`);}return out.join('\n')+'\n';}
+ throw Error('Shapefile is supported as a source for inspection. Converting its polygon boundary into a depth grid requires an interpolation choice; no values will be invented.');}
+async function parseShapefile(files){const needed=['.shp','.shx','.dbf','.prj'], byExt={};for(const f of files){const ext='.'+f.name.split('.').at(-1).toLowerCase();byExt[ext]=f;}const missing=needed.filter(x=>!byExt[x]);if(missing.length)throw Error(`Shapefile needs all sidecars together. Missing: ${missing.join(', ')}.`);const base=byExt['.shp'].name.replace(/\.shp$/i,'');const bundle={};for(const ext of needed)bundle[base+ext]=await byExt[ext].arrayBuffer();const fc=await shp(bundle),features=fc.features||[];if(!features.length)throw Error('No features found in this shapefile.');const bounds=[Infinity,Infinity,-Infinity,-Infinity];let withGeometry=0;for(const f of features){const coords=f?.geometry?.coordinates;if(!Array.isArray(coords))continue;const before=bounds[0];const walk=c=>{if(!Array.isArray(c))return;if(typeof c[0]==='number'){if(!Number.isFinite(c[0])||!Number.isFinite(c[1]))return;bounds[0]=Math.min(bounds[0],c[0]);bounds[1]=Math.min(bounds[1],c[1]);bounds[2]=Math.max(bounds[2],c[0]);bounds[3]=Math.max(bounds[3],c[1]);}else c.forEach(walk);};walk(coords);if(bounds[0]!==before||Number.isFinite(bounds[2]))withGeometry++;}if(!withGeometry||!Number.isFinite(bounds[0])||!Number.isFinite(bounds[2]))throw Error('No usable geometry found in this shapefile. Features are missing coordinates, so coordinate bounds cannot be determined.');return {kind:'shapefile',count:features.length,bounds,features,name:base,projection:await byExt['.prj'].text()};}
+function useGridFile() {
+  const [grid, setGrid] = useState(null);
+  const [shape, setShape] = useState(null);
+  const [error, setError] = useState('');
+  const [source, setSource] = useState('');
+  const [format, setFormat] = useState('zmap');
+  const input = useRef(null);
+
+  const load = useCallback(async files => {
+    if (!files?.length) return;
+    setError('');
+    setGrid(null);
+    setShape(null);
+    try {
+      const fs = [...files];
+      // Shapefiles are the only format that needs its extension, because the sidecars
+      // must be bundled together. Everything else is identified from its contents.
+      const shpFile = fs.find(f => /\.shp$/i.test(f.name));
+      if (shpFile) {
+        const result = await parseShapefile(fs);
+        setShape(result);
+        setSource('shapefile');
+        return;
+      }
+      // Try each selected file in turn and use the first one whose contents are a
+      // recognised grid, so the extension never decides whether a file is accepted.
+      let text = '', fmt = null, file = null;
+      for (const candidate of fs) {
+        const candidateText = await candidate.text();
+        const candidateFmt = detect(candidateText);
+        if (candidateFmt) { text = candidateText; fmt = candidateFmt; file = candidate; break; }
+      }
+      if (!fmt) throw Error('Could not identify the source format from its contents. Select a supported CPS-3, EarthVision, IRAP Classic, or ZMAP+ ASCII grid.');
+      const g = fmt === 'cps3' ? parseCps3(text, file.name)
+        : fmt === 'irap' ? parseIrap(text, file.name)
+        : fmt === 'zmap' ? parseZmap(text, file.name)
+        : parseEarthvision(text, file.name);
+      setGrid(g);
+      setSource(fmt);
+      setFormat(fmt === 'zmap' ? 'irap' : 'zmap');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }, []);
+
+  const download = () => {
+    if (!grid) return;
+    let data;
+    try {
+      data = exportGrid(grid, format);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      return;
+    }
+    const blob = new Blob([data], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${grid.name.replace(/\.[^.]+$/, '')}.${format === 'zmap' ? 'zmap' : format === 'irap' ? 'fgr' : format === 'cps3' ? 'cps3' : '2grd'}`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  };
+
+  const reset = () => {
+    setGrid(null);
+    setShape(null);
+    setError('');
+    setSource('');
+    if (input.current) input.current.value = '';
+  };
+
+  return { grid, shape, error, source, format, setFormat, input, load, download, reset };
+}
+
+function UploadPanel({ grid, shape, error, source, drag, setDrag, input, load, reset }) {
+  const values = grid?.values || [];
+  const range = valueRange(values, grid?.nodata);
+  return (
+    <>
+      <div className="panel-heading">
+        <div>
+          <div className="section-kicker">01 <span>·</span> SOURCE DATA</div>
+          <h2>Bring in your file</h2>
+        </div>
+        {(grid || shape) && <button className="reset" onClick={reset}><RotateCcw size={14} /> Start over</button>}
+      </div>
+      <div
+        className={`dropzone ${drag ? 'dragging' : ''}`}
+        onDragOver={e => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={e => { e.preventDefault(); setDrag(false); load(e.dataTransfer.files); }}
+        onClick={() => input.current?.click()}
+        role="button"
+        tabIndex="0"
+        onKeyDown={e => e.key === 'Enter' && input.current?.click()}
+      >
+        <input ref={input} type="file" multiple accept=".shp,.shx,.dbf,.prj,text/plain,*/*" onChange={e => load(e.target.files)} />
+        <span className="upload-icon"><FileUp size={23} /></span>
+        <strong>Drop a grid file here</strong>
+        <span className="drop-sub">or <button className="browse" type="button" onClick={e => { e.stopPropagation(); input.current?.click(); }}>browse files</button> from your computer</span>
+        <span className="file-hint">CPS-3 · EARTHVISION · IRAP · ZMAP+ · SHAPEFILE</span>
+      </div>
+      {grid && <GridSummary grid={grid} source={source} range={range} />}
+      {shape && <ShapeSummary shape={shape} />}
+      {error && <div className="error"><TriangleAlert size={17} /><span>{error}</span></div>}
+    </>
+  );
+}
+
+function GridSummary({ grid, source, range }) {
+  const values = grid.values;
+  return (
+    <div className="loaded">
+      <div className="loaded-file">
+        <span className="file-icon"><FileSpreadsheet size={19} /></span>
+        <div><b>{grid.name}</b><small>{FORMATS[source]} · Ready to convert</small></div>
+        <span className="ready"><Check size={13} /> READY</span>
+      </div>
+      <div className="stats">
+        <div><small>GRID SIZE</small><b>{grid.nx} <i>×</i> {grid.ny}</b><span>{(grid.nx * grid.ny).toLocaleString()} nodes</span></div>
+        <div><small>X RANGE</small><b>{grid.xmin} — {grid.xmax}</b><span>Δ {grid.dx}</span></div>
+        <div><small>Y RANGE</small><b>{grid.ymin} — {grid.ymax}</b><span>Δ {grid.dy}</span></div>
+        <div><small>VALUE RANGE</small><b>{range.min.toFixed(2)} — {range.max.toFixed(2)}</b><span>{(values.length - range.count).toLocaleString()} null nodes</span></div>
+      </div>
+    </div>
+  );
+}
+
+function ShapeSummary({ shape }) {
+  return (
+    <div className="loaded">
+      <div className="loaded-file">
+        <span className="file-icon"><FileSpreadsheet size={19} /></span>
+        <div><b>{shape.name}</b><small>Shapefile · {shape.count.toLocaleString()} boundary features</small></div>
+        <span className="ready"><Check size={13} /> READ</span>
+      </div>
+      <div className="stats">
+        <div><small>X RANGE</small><b>{shape.bounds[0].toFixed(2)} — {shape.bounds[2].toFixed(2)}</b><span>Coordinate bounds</span></div>
+        <div><small>Y RANGE</small><b>{shape.bounds[1].toFixed(2)} — {shape.bounds[3].toFixed(2)}</b><span>Coordinate bounds</span></div>
+        <div><small>CRS</small><b>Included</b><span>.prj sidecar read</span></div>
+        <div><small>TYPE</small><b>Boundary</b><span>No depth node values</span></div>
+      </div>
+      <div className="error"><Info size={17} /><span>This shapefile contains boundary geometry, not grid node values. It can be inspected here, but converting it to a depth grid would require interpolation.</span></div>
+    </div>
+  );
+}
+
+function ExportPanel({ grid, shape, format, setFormat, download }) {
+  const values = grid?.values || [];
+  // Preview the first real values rather than the leading nulls, which many grids
+  // (EarthVision exports in particular) start with and which say nothing useful.
+  const preview = grid ? values.filter(v => v !== grid.nodata).slice(0, 12) : [];
+  return (
+    <>
+      <div className="convert-row">
+        <div>
+          <div className="section-kicker">02 <span>·</span> OUTPUT FORMAT</div>
+          <h2>Choose where it’s going</h2>
+        </div>
+        <div className="format-select">
+          <select value={format} onChange={e => setFormat(e.target.value)} aria-label="Output format">
+            {Object.entries(FORMATS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+          <ChevronDown size={16} />
+        </div>
+      </div>
+      {grid && (
+        <div className="preview">
+          <div className="preview-head"><span>VALUE PREVIEW</span><span>First {preview.length} of {values.length.toLocaleString()} nodes</span></div>
+          <div className="preview-values">
+            {preview.length
+              ? preview.map((v, i) => <span key={i}>{v.toFixed(2)}</span>)
+              : <span className="null">No non-null values</span>}
+          </div>
+        </div>
+      )}
+      <button className="download" disabled={!grid || format === 'shapefile'} onClick={download}>
+        <ArrowDownToLine size={17} />
+        {shape ? 'Shapefile inspected' : grid ? `Convert & download ${FORMATS[format]}` : 'Upload a grid to continue'}
+        <ArrowLeftRight className="download-arrow" size={16} />
+      </button>
+      <div className="secure-note"><LockKeyhole size={13} /> Your files stay on this device. Nothing is uploaded.</div>
+    </>
+  );
+}
+
+function App() {
+  const { grid, shape, error, source, format, setFormat, input, load, download, reset } = useGridFile();
+  const [drag, setDrag] = useState(false);
+  return (
+    <main className="shell">
+      <header className="topbar">
+        <a className="brand" href="#"><span className="brand-icon"><Layers3 size={19} /></span><span>peforma<span className="brand-light">grid</span></span></a>
+        <div className="top-right">
+          <span className="local-pill"><LockKeyhole size={13} /> LOCAL PROCESSING</span>
+          <span className="top-divider" />
+          <button className="help-link" onClick={() => document.getElementById('format-note').scrollIntoView({ behavior: 'smooth' })}>Format guide <ChevronDown size={14} /></button>
+        </div>
+      </header>
+      <section className="hero">
+        <div className="eyebrow"><span /> GRID CONVERSION WORKSPACE</div>
+        <h1>Move your grids.<br /><em>Keep your data.</em></h1>
+        <p>Convert between five exchange formats.<br className="desktop-only" /> Simple, local, and built for the work you do.</p>
+      </section>
+      <section className="workspace">
+        <UploadPanel grid={grid} shape={shape} error={error} source={source} drag={drag} setDrag={setDrag} input={input} load={load} reset={reset} />
+        <ExportPanel grid={grid} shape={shape} format={format} setFormat={setFormat} download={download} />
+      </section>
+      <section className="bottom-info" id="format-note">
+        <div className="info-icon"><Info size={17} /></div>
+        <div>
+          <b>Format and grid integrity</b>
+          <p>All five source formats are recognized from their contents. Shapefiles describe boundaries and need interpolation to create grid nodes. Confirm row direction, units, null values, and target software import settings before operational use.</p>
+        </div>
+      </section>
+      <footer><span>© PEFORMA GRID <i /> DEPTH GRID CONVERTER</span><span>MADE FOR THE FIELD <b>·</b> BUILT FOR THE DESK</span></footer>
+    </main>
+  );
+}
+createRoot(document.getElementById('root')).render(<App/>);
