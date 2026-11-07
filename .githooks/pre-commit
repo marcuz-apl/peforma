@@ -15,4 +15,6 @@ validate_identifier "$old"
 new=$(next_identifier "$old" "$(utc_yymmdd)" "$bump") || exit 1
 
 printf '%s\n' "$new" > "$VERSION_FILE"
-git add -- "$VERSION_FILE"
+newver=$(printf '%s' "${new#v}" | sed -E 's/[+-][0-9]{6}[0-9A-Za-z]$//')
+node "$HOOKDIR/sync-manifest-version.mjs" "$newver" || exit 1
+git add -- "$VERSION_FILE" package.json package-lock.json

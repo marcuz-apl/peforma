@@ -26,3 +26,6 @@ npm-debug.log*
 
 # Sample grids (large)
 examples/
+
+# Converted output
+converted/

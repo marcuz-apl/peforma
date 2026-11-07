@@ -1,13 +1,29 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import shp from 'shpjs';
-import { ArrowDownToLine, ArrowLeftRight, Check, ChevronDown, FileSpreadsheet, FileUp, Layers3, LockKeyhole, RotateCcw, TriangleAlert, Info } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, LockKeyhole, Menu, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
+import VERSION from '../VERSION?raw';
 import './style.css';
 
 const FORMATS = {
   cps3: 'CPS-3 grid (ASCII)', earthvision: 'EarthVision grid (ASCII)', irap: 'IRAP Classic grid (ASCII)', shapefile: 'Shapefile', zmap: 'ZMAP+ grid (ASCII)'
 };
-const NULLS = { cps3: 1e31, irap: 9999900, zmap: 1e30, earthvision: 1e31 };
+const NULLS = { cps3: 1e30, irap: 9999900, zmap: 1e30, earthvision: 1e31 };
+// Product-family navigation. Only the grid suite is live; the rest are labelled
+// placeholders so the rail never offers a link that does nothing.
+const SUITES = [
+  { key: 'grid', name: 'Peforma Grid', tool: 'Grid converter', href: '#converter', icon: Grid3x3, live: true },
+  { key: 'lines', name: 'Peforma Lines', icon: Waypoints },
+  { key: 'polygons', name: 'Peforma Polygons', icon: Pentagon },
+  { key: '3d', name: 'Peforma 3D', icon: Box },
+  { key: 'seismic', name: 'Peforma Seismic', icon: AudioWaveform },
+  { key: 'coordinates', name: 'Peforma Coordinates', icon: Globe2, reference: true },
+  { key: 'units', name: 'Peforma Units', icon: Ruler, reference: true },
+];
+const SUITE_GROUPS = [
+  { label: 'Data converters', items: SUITES.filter(s => !s.reference) },
+  { label: 'Reference', items: SUITES.filter(s => s.reference) },
+];
 // True only for tokens that are actually numeric; empty/whitespace strings coerce to 0
 // and must not be treated as valid header or grid values.
 const number = x => typeof x === 'string' ? x.trim() !== '' && Number.isFinite(Number(x)) : Number.isFinite(x);
@@ -17,6 +33,24 @@ function gridOf(meta, values, source, name) {
   if (![nx,ny,xmin,xmax,ymin,ymax].every(number) || nx < 2 || ny < 2 || !Number.isInteger(nx) || !Number.isInteger(ny)) throw Error('Grid header has invalid dimensions or coordinate bounds.');
   if (values.length !== nx * ny) throw Error(`Grid header describes ${nx * ny} nodes but ${values.length} values were found.`);
   return { nx,ny,xmin,xmax,ymin,ymax,dx:dx ?? (xmax-xmin)/(nx-1),dy:dy ?? (ymax-ymin)/(ny-1),nodata,values,source,name,units,projection };
+}
+// CPS-3 and ZMAP+ list nodes column by column from the north-west corner (ymax)
+// toward the south. Convert that order to the internal row-major, ymin-first grid,
+// and back again for writing.
+function fromColumnMajor(flat, nx, ny) {
+  if (flat.length !== nx * ny) return flat;
+  const values = new Array(flat.length);
+  for (let i = 0; i < flat.length; i++) {
+    const column = Math.floor(i / ny), row = ny - 1 - (i % ny);
+    values[row * nx + column] = flat[i];
+  }
+  return values;
+}
+function toColumnMajor(values, nx, ny) {
+  const flat = [];
+  for (let column = 0; column < nx; column++)
+    for (let row = ny - 1; row >= 0; row--) flat.push(values[row * nx + column]);
+  return flat;
 }
 function parseEarthvision(text, name) {
   const lines=splitRows(text), get=k=>lines.find(x=>x.trim().toLowerCase().startsWith(`# ${k.toLowerCase()}:`))?.split(':').slice(1).join(':').trim();
@@ -52,7 +86,7 @@ function parseCps3(text, name) {
 
   const ny = Number(size[1]);
   const nx = Number(size[2]);
-  const values = [];
+  const raw = [];
   let started = false;
   for (const line of lines) {
     const s = line.trim();
@@ -61,7 +95,7 @@ function parseCps3(text, name) {
       continue;
     }
     if (!s) continue;
-    for (const token of s.split(/\s+/)) if (number(token)) values.push(Number(token));
+    for (const token of s.split(/\s+/)) if (number(token)) raw.push(Number(token));
   }
 
   // The FSASCI record carries the null sentinel as its last token; fall back to the
@@ -74,7 +108,7 @@ function parseCps3(text, name) {
     ymin: Number(limits[3]), ymax: Number(limits[4]),
     dx: Number(increment[1]), dy: Number(increment[2]),
     nodata,
-  }, values, 'cps3', name);
+  }, fromColumnMajor(raw, nx, ny), 'cps3', name);
 }
 
 function parseIrap(text, name) {
@@ -109,19 +143,36 @@ function parseZmap(text, name) {
   );
   if (!/GRID/i.test(header[0]?.[1] || '')) throw Error('The @ record does not identify a ZMAP+ GRID.');
 
-  const dims = header.find(a => a.length >= 6 && a.slice(0, 2).every(number));
-  const control = header.find(a => a.length >= 2 && number(a[0]) && number(a[1]) && a.length <= 5);
+  const dimsIndex = header.findIndex(a => a.length >= 6 && a.slice(0, 2).every(number));
+  const dims = header[dimsIndex];
+  const control = header.find((a, i) => i < dimsIndex && a.length >= 2 && number(a[0]) && number(a[1]) && a.length <= 5);
   if (!dims || !control) throw Error('ZMAP+ dimensions or null-value header record is missing.');
 
-  const nx = Number(dims[0]), ny = Number(dims[1]);
+  const [first, second] = dims.slice(0, 2).map(Number);
   const xmin = Number(dims[2]), xmax = Number(dims[3]);
   const ymin = Number(dims[4]), ymax = Number(dims[5]);
+  // The record after the dimensions carries rotation and the declared increments.
+  const increment = header.find((a, i) => i > dimsIndex && a.length >= 3 && a.slice(1, 3).every(number));
+  const xinc = increment ? Number(increment[1]) : 0;
+  const yinc = increment ? Number(increment[2]) : 0;
+  // Real ZIMS/Kingdom exports declare rows then columns, while the ZMAP+ record is
+  // often described as columns then rows. Resolve the orientation from the coordinate
+  // span and the declared increments instead of trusting either order.
+  let nx = first, ny = second;
+  if (xinc > 0 && yinc > 0) {
+    const columns = (xmax - xmin) / xinc, rows = (ymax - ymin) / yinc;
+    const declared = Math.abs(columns - (first - 1)) + Math.abs(rows - (second - 1));
+    const swapped = Math.abs(columns - (second - 1)) + Math.abs(rows - (first - 1));
+    if (swapped < declared) { nx = second; ny = first; }
+  }
+  if (!Number.isInteger(nx) || !Number.isInteger(ny) || nx < 1 || ny < 1) throw Error('ZMAP+ header has invalid dimensions.');
   const nodata = Number(control[1]);
-  const values = lines.slice(end + 1)
+  if (!Number.isFinite(nodata)) throw Error('ZMAP+ null-value header record is not numeric.');
+  const raw = lines.slice(end + 1)
     .flatMap(x => x.trim().split(/[\s,]+/).filter(Boolean).map(Number))
     .filter(Number.isFinite);
 
-  return gridOf({ nx, ny, xmin, xmax, ymin, ymax, nodata }, values, 'zmap', name);
+  return gridOf({ nx, ny, xmin, xmax, ymin, ymax, dx: xinc > 0 ? xinc : undefined, dy: yinc > 0 ? yinc : undefined, nodata }, fromColumnMajor(raw, nx, ny), 'zmap', name);
 }
 // Single-pass min/max over values, skipping nulls. Avoids Math.min(...values), which
 // throws RangeError once a grid has more nodes than the engine's argument limit.
@@ -140,18 +191,62 @@ function valueRange(values, nodata) {
 function detect(text){if(/^FSASCI\b/m.test(text))return'cps3';if(/^# Type: scattered data/m.test(text))return'earthvision';if(/^\s*-996\s/m.test(text))return'irap';if(/^\s*@.*?,\s*GRID\s*,/m.test(text))return'zmap';return null;}
 // Formats a value for ASCII output, substituting the target format's null sentinel.
 function formatValue(v, nodata, nullValue) {
-  const out = v === nodata ? nullValue : v;
-  return Number(out).toPrecision(10).replace(/\.0+$/, '');
+  if (v === nodata) return nullValue;
+  return Number(v).toPrecision(10).replace(/\.0+$/, '');
 }
-// Renders a grid's rows as space-separated lines, mapping nulls to the target sentinel.
-function formatRows(rows, nodata, nullValue) {
-  return rows.map(row => row.map(v => formatValue(v, nodata, nullValue)).join(' ')).join('\n');
+// Renders a flat value list as space-separated lines, mapping nulls to the target sentinel.
+function formatFlat(values, nodata, nullValue, perLine) {
+  const tokens = values.map(v => formatValue(v, nodata, nullValue));
+  const lines = [];
+  for (let i = 0; i < tokens.length; i += perLine) lines.push(tokens.slice(i, i + perLine).join(' '));
+  return lines.join('\n');
 }
-function exportGrid(g,fmt){const {nx,ny,values}=g, rows=Array.from({length:ny},(_,r)=>values.slice(r*nx,(r+1)*nx));if(fmt==='zmap'){const nd=NULLS.zmap;return `! Peforma Grid ZMAP+ ASCII\n! Converted with Peforma toolbox of Alfazen Inc.\n@GRID FILE, GRID, 10\n10, ${nd}, , 1, 1\n${nx}, ${ny}, ${g.xmin}, ${g.xmax}, ${g.ymin}, ${g.ymax}\n0.0, 0.0, 0.0\n@\n${formatRows(rows,g.nodata,nd)}\n`;}
- if(fmt==='irap'){return `-996 ${ny} ${g.dx} ${g.dy}\n${g.xmin} ${g.xmax} ${g.ymin} ${g.ymax}\n${nx} 0.000000 ${g.xmin} ${g.ymin}\n0 0 0 0 0 0 0\n${formatRows(rows,g.nodata,NULLS.irap)}\n! Converted with Peforma toolbox of Alfazen Inc.\n`;}
- if(fmt==='cps3'){const range=valueRange(values,g.nodata);return `FSASCI 0 1 COMPUTED 0 0.1E+31\nFSATTR 0 0\nFSLIMI ${g.xmin} ${g.xmax} ${g.ymin} ${g.ymax} ${range.min} ${range.max}\nFSNROW ${ny} ${nx}\nFSXINC ${g.dx} ${g.dy}\n->MSMODL: Converted depth grid\n${formatRows(rows,g.nodata,NULLS.cps3)}\n! Converted with Peforma toolbox of Alfazen Inc.\n`;}
- if(fmt==='earthvision'){const out=[`# Type: scattered data`,`# Version: 6`,`# Description: Converted by Peforma Grid\n# Converted with Peforma toolbox of Alfazen Inc.`,`# Format: free`,`# Field: 1 x`,`# Field: 2 y`,`# Field: 3 z ${g.units||'unknown'}`,`# Field: 4 column`,`# Field: 5 row`,`# Projection: ${g.projection||'Unknown'}`,`# Units: Unknown`,`# End:`,`# Information from grid:`,`# Grid_size: ${nx} x ${ny}`,`# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`,`# Z_units: ${g.units||'unknown'}`];for(let r=0;r<ny;r++)for(let c=0;c<nx;c++){const x=g.xmin+c*g.dx,y=g.ymin+r*g.dy,v=values[r*nx+c];if(v!==g.nodata)out.push(`${x} ${y} ${v} ${c+1} ${r+1}`);}return out.join('\n')+'\n';}
- throw Error('Shapefile is supported as a source for inspection. Converting its polygon boundary into a depth grid requires an interpolation choice; no values will be invented.');}
+function exportGrid(g, fmt) {
+  const { nx, ny, values } = g;
+  if (fmt === 'zmap') {
+    // Matches the ZIMS/Kingdom layout: rows then columns, real increments after the
+    // rotation, and nodes ordered column by column from the north-west corner.
+    return `! Peforma Grid ZMAP+ ASCII
+! Converted with Peforma toolbox of Alfazen Inc.
+@GRID FILE, GRID, 10
+15, 0.1000000E+31, , 7, 1
+${ny}, ${nx}, ${g.xmin}, ${g.xmax}, ${g.ymin}, ${g.ymax}
+0.0, ${g.dx}, ${g.dy}
+@
+${formatFlat(toColumnMajor(values, nx, ny), g.nodata, '0.1000000E+31', nx)}
+`;
+  }
+  if (fmt === 'irap') {
+    return `-996 ${ny} ${g.dx} ${g.dy}
+${g.xmin} ${g.xmax} ${g.ymin} ${g.ymax}
+${nx} 0.000000 ${g.xmin} ${g.ymin}
+0 0 0 0 0 0 0
+${formatFlat(values, g.nodata, '9999900.000000', nx)}
+! Converted with Peforma toolbox of Alfazen Inc.
+`;
+  }
+  if (fmt === 'cps3') {
+    const range = valueRange(values, g.nodata);
+    return `FSASCI 0 1 COMPUTED 0 0.1E+31
+FSATTR 0 0
+FSLIMI ${g.xmin} ${g.xmax} ${g.ymin} ${g.ymax} ${range.min} ${range.max}
+FSNROW ${ny} ${nx}
+FSXINC ${g.dx} ${g.dy}
+->MSMODL: Converted depth grid
+${formatFlat(toColumnMajor(values, nx, ny), g.nodata, '0.1E+31', nx)}
+! Converted with Peforma toolbox of Alfazen Inc.
+`;
+  }
+  if (fmt === 'earthvision') {
+    const out = [`# Type: scattered data`, `# Version: 6`, `# Description: Converted by Peforma Grid\n# Converted with Peforma toolbox of Alfazen Inc.`, `# Format: free`, `# Field: 1 x`, `# Field: 2 y`, `# Field: 3 z ${g.units || 'unknown'}`, `# Field: 4 column`, `# Field: 5 row`, `# Projection: ${g.projection || 'Unknown'}`, `# Units: Unknown`, `# End:`, `# Information from grid:`, `# Grid_size: ${nx} x ${ny}`, `# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`, `# Z_units: ${g.units || 'unknown'}`];
+    for (let r = 0; r < ny; r++) for (let c = 0; c < nx; c++) {
+      const v = values[r * nx + c];
+      if (v !== g.nodata) out.push(`${(g.xmin + c * g.dx).toFixed(6)} ${(g.ymin + r * g.dy).toFixed(6)} ${Number(v).toPrecision(10)} ${c + 1} ${r + 1}`);
+    }
+    return out.join('\n') + '\n';
+  }
+  throw Error('Shapefile is supported as a source for inspection. Converting its polygon boundary into a depth grid requires an interpolation choice; no values will be invented.');
+}
 async function parseShapefile(files){const needed=['.shp','.shx','.dbf','.prj'], byExt={};for(const f of files){const ext='.'+f.name.split('.').at(-1).toLowerCase();byExt[ext]=f;}const missing=needed.filter(x=>!byExt[x]);if(missing.length)throw Error(`Shapefile needs all sidecars together. Missing: ${missing.join(', ')}.`);const base=byExt['.shp'].name.replace(/\.shp$/i,'');const bundle={};for(const ext of needed)bundle[base+ext]=await byExt[ext].arrayBuffer();const fc=await shp(bundle),features=fc.features||[];if(!features.length)throw Error('No features found in this shapefile.');const bounds=[Infinity,Infinity,-Infinity,-Infinity];let withGeometry=0;for(const f of features){const coords=f?.geometry?.coordinates;if(!Array.isArray(coords))continue;const before=bounds[0];const walk=c=>{if(!Array.isArray(c))return;if(typeof c[0]==='number'){if(!Number.isFinite(c[0])||!Number.isFinite(c[1]))return;bounds[0]=Math.min(bounds[0],c[0]);bounds[1]=Math.min(bounds[1],c[1]);bounds[2]=Math.max(bounds[2],c[0]);bounds[3]=Math.max(bounds[3],c[1]);}else c.forEach(walk);};walk(coords);if(bounds[0]!==before||Number.isFinite(bounds[2]))withGeometry++;}if(!withGeometry||!Number.isFinite(bounds[0])||!Number.isFinite(bounds[2]))throw Error('No usable geometry found in this shapefile. Features are missing coordinates, so coordinate bounds cannot be determined.');return {kind:'shapefile',count:features.length,bounds,features,name:base,projection:await byExt['.prj'].text()};}
 function useGridFile() {
   const [grid, setGrid] = useState(null);
@@ -340,37 +435,226 @@ function ExportPanel({ grid, shape, format, setFormat, download }) {
   );
 }
 
+function SuiteRail({ collapsed, onToggle, open, onClose, onNavigate }) {
+  const closeRef = useRef(null);
+
+  useEffect(() => {
+    if (open) closeRef.current?.focus();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = event => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  return (
+    <nav
+      id="suite-rail"
+      className={`suite-rail${collapsed ? ' collapsed' : ''}${open ? ' open' : ''}`}
+      aria-label="Peforma suites"
+      role={open ? 'dialog' : undefined}
+      aria-modal={open ? 'true' : undefined}
+    >
+      <div className="rail-head">
+        <span className="rail-title">Peforma</span>
+        <button
+          type="button"
+          className="rail-collapse"
+          onClick={onToggle}
+          aria-expanded={!collapsed}
+          aria-controls="suite-rail"
+          aria-label={collapsed ? 'Expand suite navigation' : 'Collapse suite navigation'}
+          title={collapsed ? 'Expand suite navigation' : 'Collapse suite navigation'}
+        >
+          {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+        </button>
+        <button type="button" ref={closeRef} className="rail-close" onClick={onClose} aria-label="Close suite navigation">
+          <X size={18} />
+        </button>
+      </div>
+      {SUITE_GROUPS.map(group => (
+        <div className="rail-group" key={group.label}>
+          <div className="rail-label">{group.label}</div>
+          <ul className="rail-list">
+            {group.items.map(({ key, name, tool, href, icon: Icon, live }) => (
+              <li key={key}>
+                {live ? (
+                  <>
+                    <a className="rail-suite current" href={href} aria-current="page" title={name} onClick={onNavigate}>
+                      <Icon size={16} />
+                      <span className="rail-text">{name}</span>
+                      <ChevronDown className="rail-chevron" size={14} />
+                    </a>
+                    <div className="rail-tools">
+                      <div className="rail-tool current">{tool}</div>
+                    </div>
+                  </>
+                ) : (
+                  <span className="rail-suite disabled" aria-disabled="true" title={`${name} — coming soon`}>
+                    <Icon size={16} />
+                    <span className="rail-text">{name}</span>
+                    <span className="soon">Soon</span>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide }) {
+  return (
+    <header className="site-header">
+      <div className="topbar shell">
+        <a className="brand" href="#converter" aria-label="Peforma Grid home">
+          <span className="brand-icon"><Layers3 size={19} /></span>
+          <span>peforma<span className="brand-light">grid</span></span>
+          <span className="brand-version">{VERSION.trim()}</span>
+        </a>
+        <div className="top-right">
+          <span className="local-pill"><LockKeyhole size={13} /> Local processing</span>
+          <span className="top-divider" />
+          <button type="button" className="help-link" onClick={onGuide}>Format guide <ChevronDown size={14} /></button>
+          <button
+            ref={menuRef}
+            type="button"
+            className="menu-button"
+            aria-expanded={drawerOpen}
+            aria-controls="suite-rail"
+            aria-label="Open suite navigation"
+            onClick={onOpen}
+          >
+            <Menu size={20} />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+const FOOTER_FORMATS = ['CPS-3', 'ZMAP+', 'IRAP Classic', 'EarthVision', 'Shapefile'];
+
+function AppFooter({ onGuide }) {
+  return (
+    <footer className="site-footer">
+      <div className="footer-intro">
+        <a className="footer-mark" href="#converter">
+          <span className="footer-icon"><Layers3 size={15} /></span>
+          <span>peforma<span className="brand-light">grid</span></span>
+        </a>
+        <p>Subsurface data tools. Local-first by design.</p>
+      </div>
+      <div className="footer-grid">
+        <div className="footer-col">
+          <div className="footer-label">Tools</div>
+          <ul>
+            <li><a href="#converter" aria-current="page">Grid converter</a></li>
+            {SUITES.filter(s => !s.live).map(s => (
+              <li key={s.key}>
+                <span className="footer-soon">{s.name.replace('Peforma ', '')} <i>Soon</i></span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="footer-col">
+          <div className="footer-label">Formats</div>
+          <ul>{FOOTER_FORMATS.map(name => <li key={name}><span>{name}</span></li>)}</ul>
+        </div>
+        <div className="footer-col">
+          <div className="footer-label">Build</div>
+          <ul>
+            <li><span className="footer-version">{VERSION.trim()}</span></li>
+            <li><span>Local processing</span></li>
+            <li><button type="button" onClick={onGuide}>Format guide</button></li>
+          </ul>
+        </div>
+      </div>
+      <div className="footer-bottom">
+        <span>© 2026 Peforma</span>
+        <span>Peforma Grid · Made for the field</span>
+      </div>
+    </footer>
+  );
+}
+
 function App() {
   const { grid, shape, error, source, format, setFormat, input, load, download, reset } = useGridFile();
   const [drag, setDrag] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [railCollapsed, setRailCollapsed] = useState(() => {
+    try { return localStorage.getItem('peforma.rail') === 'collapsed'; }
+    catch { return false; }
+  });
+  const menuRef = useRef(null);
+
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false);
+    requestAnimationFrame(() => menuRef.current?.focus());
+  }, []);
+
+  const toggleRail = useCallback(() => {
+    setRailCollapsed(value => {
+      const next = !value;
+      try { localStorage.setItem('peforma.rail', next ? 'collapsed' : 'expanded'); } catch { /* storage is optional */ }
+      return next;
+    });
+  }, []);
+
+  const openGuide = useCallback(() => {
+    document.getElementById('format-note')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, []);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previous; };
+  }, [drawerOpen]);
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 761px)');
+    const onChange = () => { if (desktop.matches) setDrawerOpen(false); };
+    desktop.addEventListener('change', onChange);
+    return () => desktop.removeEventListener('change', onChange);
+  }, []);
+
+  const navigate = useCallback(() => { if (drawerOpen) closeDrawer(); }, [drawerOpen, closeDrawer]);
+
   return (
-    <main className="shell">
-      <header className="topbar">
-        <a className="brand" href="#"><span className="brand-icon"><Layers3 size={19} /></span><span>peforma<span className="brand-light">grid</span></span></a>
-        <div className="top-right">
-          <span className="local-pill"><LockKeyhole size={13} /> LOCAL PROCESSING</span>
-          <span className="top-divider" />
-          <button className="help-link" onClick={() => document.getElementById('format-note').scrollIntoView({ behavior: 'smooth' })}>Format guide <ChevronDown size={14} /></button>
+    <>
+      <a className="skip-link" href="#converter">Skip to converter</a>
+      <SiteHeader drawerOpen={drawerOpen} onOpen={() => setDrawerOpen(true)} menuRef={menuRef} onGuide={openGuide} />
+      <div className={`app-shell${railCollapsed ? ' rail-collapsed' : ''}`}>
+        <SuiteRail collapsed={railCollapsed} onToggle={toggleRail} open={drawerOpen} onClose={closeDrawer} onNavigate={navigate} />
+        {drawerOpen && <button type="button" className="rail-backdrop" aria-label="Close suite navigation" onClick={closeDrawer} />}
+        <div className="app-main">
+          <main id="converter" tabIndex={-1}>
+            <section className="content-head">
+              <div className="eyebrow"><span /> PEFORMA / GRID</div>
+              <h1>Move your grids.<br /><em>Keep your data.</em></h1>
+              <p>Convert between five subsurface grid formats. Local processing, no uploads.</p>
+            </section>
+            <section className="workspace">
+              <UploadPanel grid={grid} shape={shape} error={error} source={source} drag={drag} setDrag={setDrag} input={input} load={load} reset={reset} />
+              <ExportPanel grid={grid} shape={shape} format={format} setFormat={setFormat} download={download} />
+            </section>
+            <section className="bottom-info" id="format-note">
+              <div className="info-icon"><Info size={17} /></div>
+              <div>
+                <b>Format and grid integrity</b>
+                <p>All five source formats are recognized from their contents. Shapefiles describe boundaries and need interpolation to create grid nodes. Confirm row direction, units, null values, and target software import settings before operational use.</p>
+              </div>
+            </section>
+          </main>
+          <AppFooter onGuide={openGuide} />
         </div>
-      </header>
-      <section className="hero">
-        <div className="eyebrow"><span /> GRID CONVERSION WORKSPACE</div>
-        <h1>Move your grids.<br /><em>Keep your data.</em></h1>
-        <p>Convert between five exchange formats.<br className="desktop-only" /> Simple, local, and built for the work you do.</p>
-      </section>
-      <section className="workspace">
-        <UploadPanel grid={grid} shape={shape} error={error} source={source} drag={drag} setDrag={setDrag} input={input} load={load} reset={reset} />
-        <ExportPanel grid={grid} shape={shape} format={format} setFormat={setFormat} download={download} />
-      </section>
-      <section className="bottom-info" id="format-note">
-        <div className="info-icon"><Info size={17} /></div>
-        <div>
-          <b>Format and grid integrity</b>
-          <p>All five source formats are recognized from their contents. Shapefiles describe boundaries and need interpolation to create grid nodes. Confirm row direction, units, null values, and target software import settings before operational use.</p>
-        </div>
-      </section>
-      <footer><span>© PEFORMA GRID <i /> DEPTH GRID CONVERTER</span><span>MADE FOR THE FIELD <b>·</b> BUILT FOR THE DESK</span></footer>
-    </main>
+      </div>
+    </>
   );
 }
 createRoot(document.getElementById('root')).render(<App/>);
