@@ -2,9 +2,17 @@
 HOOKDIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$HOOKDIR/versionlib.sh"
 
+bump=build
+msgfile=$(git rev-parse --git-path COMMIT_EDITMSG 2>/dev/null || true)
+if [ -n "$msgfile" ] && [ -f "$msgfile" ]; then
+  rawmsg=$(sed -n '/^[^#]/ {p;q;}' "$msgfile")
+  cleanmsg=$(printf '%s' "$rawmsg" | sed -E 's/^v[0-9]+\.[0-9]+\.[0-9]+[+-][0-9]{6}[0-9a-zA-Z] //')
+  bump=$(detect_bump_type "$cleanmsg")
+fi
+
 old=$(read_version)
 validate_identifier "$old"
-new=$(next_identifier "$old" "$(utc_yymmdd)") || exit 1
+new=$(next_identifier "$old" "$(utc_yymmdd)" "$bump") || exit 1
 
 printf '%s\n' "$new" > "$VERSION_FILE"
 git add -- "$VERSION_FILE"

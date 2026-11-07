@@ -4,6 +4,7 @@ HOOKDIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 msgfile=$1
 [ -f "$msgfile" ] || exit 0
+
 ver=$(read_version) || exit 1
 validate_identifier "$ver"
 
