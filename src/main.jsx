@@ -459,7 +459,7 @@ function SuiteRail({ collapsed, onToggle, open, onClose, onNavigate, route }) {
       aria-modal={open ? 'true' : undefined}
     >
       <div className="rail-head">
-        <span className="rail-title">Peforma</span>
+        <span className="rail-title">Suites</span>
         <button
           type="button"
           className="rail-collapse"
@@ -521,7 +521,7 @@ function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route }) {
       <div className="topbar shell">
         <a className="brand" href={`#${route}`} aria-label={`Peforma ${tool} home`}>
           <span className="brand-icon"><Layers3 size={19} /></span>
-          <span>peforma<span className="brand-light">{route === 'units' ? 'units' : 'grid'}</span></span>
+          <span>peforma</span>
           <span className="brand-version">{VERSION.trim()}</span>
         </a>
         <div className="top-right">
@@ -555,7 +555,7 @@ function AppFooter({ onGuide, route }) {
       <div className="footer-intro">
         <a className="footer-mark" href={`#${route}`}>
           <span className="footer-icon"><Layers3 size={15} /></span>
-          <span>peforma<span className="brand-light">{route === 'units' ? 'units' : 'grid'}</span></span>
+          <span>peforma</span>
         </a>
         <p>Subsurface data tools. Local-first by design.</p>
       </div>
@@ -573,7 +573,7 @@ function AppFooter({ onGuide, route }) {
           </ul>
         </div>
         <div className="footer-col">
-          <div className="footer-label">Formats</div>
+          <div className="footer-label">Grid formats</div>
           <ul>{FOOTER_FORMATS.map(name => <li key={name}><span>{name}</span></li>)}</ul>
         </div>
         <div className="footer-col">
@@ -587,7 +587,7 @@ function AppFooter({ onGuide, route }) {
       </div>
       <div className="footer-bottom">
         <span>© 2026 Peforma</span>
-        <span>Peforma {route === 'units' ? 'Units' : 'Grid'} · Made for the field</span>
+        <span>Peforma · Made for the field</span>
       </div>
     </footer>
   );
