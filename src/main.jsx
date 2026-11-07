@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import shp from 'shpjs';
 import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, LockKeyhole, Menu, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
 import VERSION from '../VERSION?raw';
+import UnitConverter from './UnitConverter.jsx';
 import './style.css';
 
 const FORMATS = {
@@ -18,7 +19,7 @@ const SUITES = [
   { key: '3d', name: 'Peforma 3D', icon: Box },
   { key: 'seismic', name: 'Peforma Seismic', icon: AudioWaveform },
   { key: 'coordinates', name: 'Peforma Coordinates', icon: Globe2, reference: true },
-  { key: 'units', name: 'Peforma Units', icon: Ruler, reference: true },
+  { key: 'units', name: 'Peforma Units', tool: 'Unit converter', href: '#units', icon: Ruler, reference: true, live: true },
 ];
 const SUITE_GROUPS = [
   { label: 'Data converters', items: SUITES.filter(s => !s.reference) },
@@ -435,7 +436,7 @@ function ExportPanel({ grid, shape, format, setFormat, download }) {
   );
 }
 
-function SuiteRail({ collapsed, onToggle, open, onClose, onNavigate }) {
+function SuiteRail({ collapsed, onToggle, open, onClose, onNavigate, route }) {
   const closeRef = useRef(null);
 
   useEffect(() => {
@@ -482,13 +483,19 @@ function SuiteRail({ collapsed, onToggle, open, onClose, onNavigate }) {
               <li key={key}>
                 {live ? (
                   <>
-                    <a className="rail-suite current" href={href} aria-current="page" title={name} onClick={onNavigate}>
+                    <a
+                      className={`rail-suite${key === route ? ' current' : ''}`}
+                      href={href}
+                      aria-current={key === route ? 'page' : undefined}
+                      title={name}
+                      onClick={onNavigate}
+                    >
                       <Icon size={16} />
                       <span className="rail-text">{name}</span>
                       <ChevronDown className="rail-chevron" size={14} />
                     </a>
                     <div className="rail-tools">
-                      <div className="rail-tool current">{tool}</div>
+                      <div className={`rail-tool${key === route ? ' current' : ''}`}>{tool}</div>
                     </div>
                   </>
                 ) : (
@@ -507,19 +514,22 @@ function SuiteRail({ collapsed, onToggle, open, onClose, onNavigate }) {
   );
 }
 
-function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide }) {
+function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route }) {
+  const tool = route === 'units' ? 'Units' : 'Grid';
   return (
     <header className="site-header">
       <div className="topbar shell">
-        <a className="brand" href="#converter" aria-label="Peforma Grid home">
+        <a className="brand" href={`#${route}`} aria-label={`Peforma ${tool} home`}>
           <span className="brand-icon"><Layers3 size={19} /></span>
-          <span>peforma<span className="brand-light">grid</span></span>
+          <span>peforma<span className="brand-light">{route === 'units' ? 'units' : 'grid'}</span></span>
           <span className="brand-version">{VERSION.trim()}</span>
         </a>
         <div className="top-right">
           <span className="local-pill"><LockKeyhole size={13} /> Local processing</span>
           <span className="top-divider" />
-          <button type="button" className="help-link" onClick={onGuide}>Format guide <ChevronDown size={14} /></button>
+          <button type="button" className="help-link" onClick={onGuide}>
+            {route === 'units' ? 'Unit definitions' : 'Format guide'} <ChevronDown size={14} />
+          </button>
           <button
             ref={menuRef}
             type="button"
@@ -539,13 +549,13 @@ function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide }) {
 
 const FOOTER_FORMATS = ['CPS-3', 'ZMAP+', 'IRAP Classic', 'EarthVision', 'Shapefile'];
 
-function AppFooter({ onGuide }) {
+function AppFooter({ onGuide, route }) {
   return (
     <footer className="site-footer">
       <div className="footer-intro">
-        <a className="footer-mark" href="#converter">
+        <a className="footer-mark" href={`#${route}`}>
           <span className="footer-icon"><Layers3 size={15} /></span>
-          <span>peforma<span className="brand-light">grid</span></span>
+          <span>peforma<span className="brand-light">{route === 'units' ? 'units' : 'grid'}</span></span>
         </a>
         <p>Subsurface data tools. Local-first by design.</p>
       </div>
@@ -553,7 +563,8 @@ function AppFooter({ onGuide }) {
         <div className="footer-col">
           <div className="footer-label">Tools</div>
           <ul>
-            <li><a href="#converter" aria-current="page">Grid converter</a></li>
+            <li><a href="#converter" aria-current={route === 'grid' ? 'page' : undefined}>Grid converter</a></li>
+            <li><a href="#units" aria-current={route === 'units' ? 'page' : undefined}>Unit converter</a></li>
             {SUITES.filter(s => !s.live).map(s => (
               <li key={s.key}>
                 <span className="footer-soon">{s.name.replace('Peforma ', '')} <i>Soon</i></span>
@@ -570,13 +581,13 @@ function AppFooter({ onGuide }) {
           <ul>
             <li><span className="footer-version">{VERSION.trim()}</span></li>
             <li><span>Local processing</span></li>
-            <li><button type="button" onClick={onGuide}>Format guide</button></li>
+            <li><button type="button" onClick={onGuide}>{route === 'units' ? 'Unit definitions' : 'Format guide'}</button></li>
           </ul>
         </div>
       </div>
       <div className="footer-bottom">
         <span>© 2026 Peforma</span>
-        <span>Peforma Grid · Made for the field</span>
+        <span>Peforma {route === 'units' ? 'Units' : 'Grid'} · Made for the field</span>
       </div>
     </footer>
   );
@@ -586,6 +597,7 @@ function App() {
   const { grid, shape, error, source, format, setFormat, input, load, download, reset } = useGridFile();
   const [drag, setDrag] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [route, setRoute] = useState(() => window.location.hash === '#units' ? 'units' : 'grid');
   const [railCollapsed, setRailCollapsed] = useState(() => {
     try { return localStorage.getItem('peforma.rail') === 'collapsed'; }
     catch { return false; }
@@ -606,8 +618,22 @@ function App() {
   }, []);
 
   const openGuide = useCallback(() => {
-    document.getElementById('format-note')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const id = route === 'units' ? 'unit-note' : 'format-note';
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [route]);
+
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash === '#units' ? 'units' : 'grid');
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  useEffect(() => {
+    document.title = route === 'units'
+      ? 'Peforma Units — Engineering Unit Converter'
+      : 'Peforma Grid — Subsurface Grid Converter';
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [route]);
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -627,31 +653,51 @@ function App() {
 
   return (
     <>
-      <a className="skip-link" href="#converter">Skip to converter</a>
-      <SiteHeader drawerOpen={drawerOpen} onOpen={() => setDrawerOpen(true)} menuRef={menuRef} onGuide={openGuide} />
+      <a className="skip-link" href={`#${route}`}>Skip to converter</a>
+      <SiteHeader drawerOpen={drawerOpen} onOpen={() => setDrawerOpen(true)} menuRef={menuRef} onGuide={openGuide} route={route} />
       <div className={`app-shell${railCollapsed ? ' rail-collapsed' : ''}`}>
-        <SuiteRail collapsed={railCollapsed} onToggle={toggleRail} open={drawerOpen} onClose={closeDrawer} onNavigate={navigate} />
+        <SuiteRail collapsed={railCollapsed} onToggle={toggleRail} open={drawerOpen} onClose={closeDrawer} onNavigate={navigate} route={route} />
         {drawerOpen && <button type="button" className="rail-backdrop" aria-label="Close suite navigation" onClick={closeDrawer} />}
         <div className="app-main">
-          <main id="converter" tabIndex={-1}>
-            <section className="content-head">
-              <div className="eyebrow"><span /> PEFORMA / GRID</div>
-              <h1>Move your grids.<br /><em>Keep your data.</em></h1>
-              <p>Convert between five subsurface grid formats. Local processing, no uploads.</p>
-            </section>
-            <section className="workspace">
-              <UploadPanel grid={grid} shape={shape} error={error} source={source} drag={drag} setDrag={setDrag} input={input} load={load} reset={reset} />
-              <ExportPanel grid={grid} shape={shape} format={format} setFormat={setFormat} download={download} />
-            </section>
-            <section className="bottom-info" id="format-note">
-              <div className="info-icon"><Info size={17} /></div>
-              <div>
-                <b>Format and grid integrity</b>
-                <p>All five source formats are recognized from their contents. Shapefiles describe boundaries and need interpolation to create grid nodes. Confirm row direction, units, null values, and target software import settings before operational use.</p>
-              </div>
-            </section>
+          <main id={route} tabIndex={-1}>
+            {route === 'units' ? (
+              <>
+                <section className="content-head">
+                  <div className="eyebrow"><span /> PEFORMA / UNITS</div>
+                  <h1>Change units.<br /><em>Keep the value.</em></h1>
+                  <p>Convert ten engineering categories with exact factors. Local processing, no uploads.</p>
+                </section>
+                <UnitConverter />
+                <section className="bottom-info" id="unit-note">
+                  <div className="info-icon"><Info size={17} /></div>
+                  <div>
+                    <b>Conversion definitions</b>
+                    <p>Ton is the metric tonne (1,000 kg). Month is the mean Gregorian month (2,629,746 s) and year is 365.2425 days; quarter, decade, and century follow that year. Barrel is 42 US gallons, ppg is pound per US gallon, and atmosphere is 101,325 Pa. Temperature conversions use exact offset formulas.</p>
+                  </div>
+                </section>
+              </>
+            ) : (
+              <>
+                <section className="content-head">
+                  <div className="eyebrow"><span /> PEFORMA / GRID</div>
+                  <h1>Move your grids.<br /><em>Keep your data.</em></h1>
+                  <p>Convert between five subsurface grid formats. Local processing, no uploads.</p>
+                </section>
+                <section className="workspace">
+                  <UploadPanel grid={grid} shape={shape} error={error} source={source} drag={drag} setDrag={setDrag} input={input} load={load} reset={reset} />
+                  <ExportPanel grid={grid} shape={shape} format={format} setFormat={setFormat} download={download} />
+                </section>
+                <section className="bottom-info" id="format-note">
+                  <div className="info-icon"><Info size={17} /></div>
+                  <div>
+                    <b>Format and grid integrity</b>
+                    <p>All five source formats are recognized from their contents. Shapefiles describe boundaries and need interpolation to create grid nodes. Confirm row direction, units, null values, and target software import settings before operational use.</p>
+                  </div>
+                </section>
+              </>
+            )}
           </main>
-          <AppFooter onGuide={openGuide} />
+          <AppFooter onGuide={openGuide} route={route} />
         </div>
       </div>
     </>
