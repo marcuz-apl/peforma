@@ -319,6 +319,7 @@ function ExportPanel({ grid, shape, format, setFormat, download }) {
           <ChevronDown size={16} />
         </div>
       </div>
+      {format === 'shapefile' && <div className="secure-note">Shapefile is source-only: exporting a grid to Shapefile would require interpolation and is not supported.</div>}
       {grid && (
         <div className="preview">
           <div className="preview-head"><span>VALUE PREVIEW</span><span>First {preview.length} of {values.length.toLocaleString()} nodes</span></div>
