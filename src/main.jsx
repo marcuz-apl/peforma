@@ -7,6 +7,7 @@ import LinePoints from './LinePoints.jsx';
 import Polygon from './Polygon.jsx';
 import Shapefile from './Shapefile.jsx';
 import Mesh3D from './Mesh3D.jsx';
+import Seismic from './Seismic.jsx';
 import Docs from './Docs.jsx';
 import Landing from './Landing.jsx';
 import { Wordmark, ThemeToggle, AppFooter } from './chrome.jsx';
@@ -38,7 +39,14 @@ const SUITES = [
       { key: '3d-solids', name: 'Geobodies & solids', href: '#3d-solids', live: true },
     ],
   },
-  { key: 'seismic', name: 'Peforma Seismic', icon: AudioWaveform },
+  {
+    key: 'seismic', name: 'Peforma Seismic', icon: AudioWaveform,
+    children: [
+      { key: 'seismic-navigation', name: 'Navigation', href: '#seismic-navigation', live: true },
+      { key: 'seismic-2d', name: '2D lines', href: '#seismic-2d', live: true },
+      { key: 'seismic-3d', name: '3D cube', href: '#seismic-3d', live: true },
+    ],
+  },
   { key: 'coordinates', name: 'Peforma Coordinates', icon: Globe2, reference: true },
   { key: 'units', name: 'Peforma Units', tool: 'Unit converter', href: '#units', icon: Ruler, reference: true, live: true },
 ];
@@ -760,6 +768,9 @@ function PrivacyDialog({ onClose }) {
 // keep route === 'home' so native anchor scrolling is not interrupted.
 function routeFromHash(hash) {
   if (hash === '#units') return 'units';
+  if (hash === '#seismic-navigation') return 'seismic-navigation';
+  if (hash === '#seismic-2d') return 'seismic-2d';
+  if (hash === '#seismic-3d') return 'seismic-3d';
   if (hash === '#culture') return 'culture';
   if (hash === '#culture-polygon') return 'culture-polygon';
   if (hash === '#3d-surfaces') return '3d-surfaces';
@@ -833,7 +844,13 @@ function App() {
       ? 'Peforma — Subsurface Data Exchange Toolbox'
       : route === 'units'
         ? 'Peforma Units — Engineering Unit Converter'
-        : route === 'culture'
+        : route === 'seismic-navigation'
+          ? 'Peforma Seismic Navigation — P1/90, P1/11, P6/11'
+          : route === 'seismic-2d'
+            ? 'Peforma Seismic 2D — Seismic Line Converter'
+            : route === 'seismic-3d'
+              ? 'Peforma Seismic 3D — Seismic Cube Converter'
+              : route === 'culture'
           ? 'Peforma Culture — Vector Data Converter'
           : route === 'culture-polygon'
             ? 'Peforma Culture Polygon — Closed-Ring Converter'
@@ -986,6 +1003,70 @@ function App() {
                   <div>
                     <b>Format and bundle integrity</b>
                     <p>A shapefile is a set: .shp geometry and .dbf attributes, with an .shx index and an optional .prj definition. Record order, vertex order, attribute values, and Z values are preserved. When a source mixes geometry types, each type is written as its own set inside the ZIP. Ring closure and ring orientation follow the target convention and are reported. Confirm the target application’s handling of CRS, field types, and deleted records before operational use.</p>
+                  </div>
+                </section>
+              </>
+            ) : route === 'seismic-navigation' || route === 'seismic-2d' || route === 'seismic-3d' ? (
+              <>
+                <section className="content-head">
+                  <div className="eyebrow">
+                    <span /> {route === 'seismic-navigation' ? 'PEFORMA / SEISMIC · NAVIGATION' : route === 'seismic-2d' ? 'PEFORMA / SEISMIC · 2D LINES' : 'PEFORMA / SEISMIC · 3D CUBE'}
+                  </div>
+                  {route === 'seismic-navigation' ? (
+                    <>
+                      <h1>Move your navigation.<br /><em>Keep every position.</em></h1>
+                      <p>Read UKOOA P1/90, OGP P1/11, and OGP P6/11; write CSV, P1/11, or P1/90.</p>
+                    </>
+                  ) : route === 'seismic-2d' ? (
+                    <>
+                      <h1>Move your 2D lines.<br /><em>Keep every trace.</em></h1>
+                      <p>Read SEG-Y rev 0, 1, 2.0, and 2.1 line files and write a normalised rev 2.0 file.</p>
+                    </>
+                  ) : (
+                    <>
+                      <h1>Move your cubes.<br /><em>Keep every bin.</em></h1>
+                      <p>Read SEG-Y rev 0, 1, 2.0, and 2.1 cubes, inspect the grid, and write a normalised rev 2.0 file.</p>
+                    </>
+                  )}
+                  <nav className="seismic-tabs" aria-label="Peforma Seismic tools">
+                    <a
+                      className={`seismic-tab${route === 'seismic-navigation' ? ' active' : ''}`}
+                      href="#seismic-navigation"
+                      aria-current={route === 'seismic-navigation' ? 'page' : undefined}
+                    >
+                      Navigation
+                    </a>
+                    <a
+                      className={`seismic-tab${route === 'seismic-2d' ? ' active' : ''}`}
+                      href="#seismic-2d"
+                      aria-current={route === 'seismic-2d' ? 'page' : undefined}
+                    >
+                      2D lines
+                    </a>
+                    <a
+                      className={`seismic-tab${route === 'seismic-3d' ? ' active' : ''}`}
+                      href="#seismic-3d"
+                      aria-current={route === 'seismic-3d' ? 'page' : undefined}
+                    >
+                      3D cube
+                    </a>
+                  </nav>
+                </section>
+                <Seismic tab={route} />
+                <section className="bottom-info" id={route === 'seismic-navigation' ? 'seismic-navigation-note' : route === 'seismic-2d' ? 'seismic-2d-note' : 'seismic-3d-note'}>
+                  <div className="info-icon"><Info size={17} /></div>
+                  <div>
+                    {route === 'seismic-navigation' ? (
+                      <>
+                        <b>Navigation record integrity</b>
+                        <p>P1/90 is read by fixed column, P1/11 and P6/11 by comma-separated record. Position order, point numbers, line names, times, and blank fields are preserved as written. P1/11 output uses WGS 84 geographic 2D (EPSG 4326) and reports every record the target cannot carry. P1/90 output writes N/A for projection and datum headers the source did not declare. No coordinate is reprojected or re-derived.</p>
+                      </>
+                    ) : (
+                      <>
+                        <b>Trace and header integrity</b>
+                        <p>SEG-Y is read from the binary header, not the extension. The textual header, every trace header, and every sample byte are copied unchanged; only the binary-header revision, fixed-length flag, byte-order marker, trace count, and first-trace offset are normalised. Samples are never decoded, rescaled, or interpolated. Trace order stays as read unless inline-major order is explicitly requested. Missing bins and zero-valued header fields are reported, never filled.</p>
+                      </>
+                    )}
                   </div>
                 </section>
               </>

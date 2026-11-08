@@ -1,8 +1,8 @@
 # Peforma Seismic — 2D Lines and 3D Cube Data Exchange
 
-Status: planned. This chapter defines the product and the intended format scope. No seismic converter is implemented yet, and nothing here should be read as a claim of current support.
+Status: shipped Tier 1. Peforma Seismic is live at `#seismic-navigation`, `#seismic-2d`, and `#seismic-3d`. This chapter records the product decisions and the format scope that shipped; formats listed as later tiers are not supported.
 
-Peforma Seismic is the suite member for 2D seismic lines and 3D seismic cubes. Peforma Horizon/Grid handles regularly sampled surfaces; Peforma Seismic handles the seismic traces, trace headers, and survey geometry that arrive with them. Polyline and point navigation belong to the separate Peforma Culture Lines/Points converter; this chapter covers the data itself.
+Peforma Seismic is the suite member for 2D seismic lines, 3D seismic cubes, and their navigation sidecars. Peforma Horizon/Grid handles regularly sampled surfaces; Peforma Seismic handles the seismic traces, trace headers, and survey geometry that arrive with them. Navigation files (UKOOA P1/90, OGP P1/11, OGP P6/11) are read by the Navigation tab of this tool; they are positions and bin grids, not trace data.
 
 ## Problem
 
@@ -14,9 +14,9 @@ When a geoscientist moves a cube between applications, one of three things happe
 
 ## Goal
 
-Provide a small browser tool that reads and writes supported 2D and 3D seismic exchange formats, shows exactly what was found in the trace headers and survey geometry, and writes a target format without altering sample values, sample count, trace order, or header metadata.
+Provide a small browser tool that reads supported seismic exchange formats, shows exactly what was found in the trace headers and survey geometry, and writes a target format without altering sample values, sample count, trace order, or header metadata.
 
-The tool must be honest about size. A 500-gigabyte cube will not load in a browser. For large data the tool must work from a streaming or file-backed representation, expose a small preview, and refuse to fake in-memory completion.
+The tool must be honest about size. A 500-gigabyte cube will not load in a browser. Tier 1 reads files up to 256 MB in full and rejects a larger file with its size stated; it never truncates a file or reports a partial result as complete.
 
 ## Users
 
@@ -24,21 +24,23 @@ Oil and gas geoscientists and geophysicists who need to move 2D lines or 3D cube
 
 ## Scope
 
-### In scope for the first release
+### In scope for the shipped tier
 
-- Read SEG-Y revisions 0, 1, and 2.1 for both 2D lines and 3D cubes, including the 240-byte trace header and extended textual headers.
-- Read OpenZGY and Schlumberger ZGY cubes, using a publicly available implementation of the container layout.
-- Write SEG-Y 2.1 for 2D and 3D with trace order and header metadata preserved.
-- Write OpenZGY cubes where the source data and geometry support the layout.
-- Show file-level facts: record count, sample count, sample interval, sample format, byte order, header revision, inline/crossline ranges, and the header fields actually present.
-- Extract and display navigation embedded in trace headers (source, receiver, CDP, and inline/crossline identifiers) as a lightweight geometry summary.
-- Read IOGP P6/11 bin-grid metadata when it is embedded in an extended textual header.
-- Process small files fully in the browser. For large files, use a file-backed streaming path with a hard preview limit and an explicit size warning.
-- Preserve sample values, sample ordering, trace ordering, header bytes, and the vertical reference when present.
+- Read SEG-Y revisions 0, 1, 2.0, and 2.1 for both 2D lines and 3D cubes, including the 240-byte trace header, additional trace headers, extended textual headers, and revision-2 trace counts, first-trace offsets, and trailer stanzas.
+- Write SEG-Y rev 2.0 for 2D and 3D. The textual header, every trace header, every sample byte, and the trailer are copied unchanged; only the binary-header fields that describe the output layout are normalised.
+- Detect geometry from the inline and crossline trace-header fields, report inline and crossline ranges, the expected bin count, and missing bins, and optionally re-sort traces into inline-then-crossline order while moving each trace as a whole.
+- Show file-level facts: trace count, sample count, sample interval, sample format, byte order, header revision, extended-header count, trailer count, textual-header lines, coordinate bounds, and the header fields actually used.
+- Read and write UKOOA P1/90 as 80-column records, including common headers, S/G/Q/A position records, R receiver records, and EOF.
+- Read OGP P1/11 identification, HC header, and P1/S1 position records; write P1/11 with CRS A and CRS B carried verbatim.
+- Read OGP P6/11 header, B6 bin-node, and M6 perimeter records; write a delimited table.
+- Write delimited CSV for every navigation source, preserving blank fields as blank.
+- Process files fully in the browser, with no network request carrying source data.
 - No telemetry and no upload.
 
 ### Out of scope
 
+- OpenZGY and vendor ZGY cubes, SEG-D, Seismic Unix, and SEG-Y ASCII. These need a container implementation or a sample-decoding path that Tier 1 does not ship.
+- Embedded P1/11 or P6/11 blocks inside SEG-Y extended textual headers; a standalone navigation file is required.
 - Vendor project databases and binary project stores for Petrel, OpenWorks, Kingdom, Petra, RMS, SKUA, JewelSuite, and GeoGraphix.
 - Seismic processing. No filters, deconvolution, migration, amplitude scaling, gain adjustment, phase rotation, or interpolation.
 - Arbitrary line extraction from a 3D cube. That is a processing operation; only the cube itself and its regular grid geometry are in scope.
@@ -61,7 +63,7 @@ Peforma Seismic uses one internal model with two shapes.
 | Vertical unit | Time, depth, or unknown | Carried as metadata; no time-to-depth conversion |
 | Byte order | Native or swapped | Detected and reported; no silent swap |
 
-A 2D line is a flat sequence of traces. A 3D cube is a 3D array of traces indexed by inline, crossline, and sample, and the export layout must match the source layout. The tool never reorders traces to "fix" gaps; gaps are reported as such.
+A 2D line is a flat sequence of traces. A 3D cube is a 3D array of traces indexed by inline, crossline, and sample, and the export layout matches the source layout unless the user explicitly requests inline-major order. The tool never reorders traces to "fix" gaps; gaps are reported as such.
 
 ## Format landscape
 
@@ -71,16 +73,17 @@ Seismic exchange travels through a smaller set of formats than line and point da
 
 | Format | Steward or origin | Carries | Reading | Writing | Notes |
 | --- | --- | --- | --- | --- | --- |
-| SEG-Y rev 0 | SEG, 1975 | 2D and 3D traces with 240-byte headers | Yes | Yes | Original format; many legacy files; header meaning is fixed but sparse |
-| SEG-Y rev 1 | SEG | Repeats extended textual headers, clarifies trace header | Yes | Yes | Common in mid-2000s workflows |
-| SEG-Y rev 2.0 | SEG, 2017 | OGP P6/11 bin-grid reference, clarified headers | Yes | Yes | Introduces P6/11 embedding |
-| SEG-Y rev 2.1 | SEG, October 2023 | Extended textual header clarification, P-format embedding | Yes | Yes | Current preferred format for new exchange; most modern tools target it |
+| SEG-Y rev 0 | SEG, 1975 | 2D and 3D traces with 240-byte headers | Yes | Writes rev 2.0 | Original format; many legacy files; header meaning is fixed but sparse |
+| SEG-Y rev 1 | SEG | Repeats extended textual headers, clarifies trace header | Yes | Writes rev 2.0 | Common in mid-2000s workflows |
+| SEG-Y rev 2.0 | SEG, 2017 | OGP P6/11 bin-grid reference, clarified headers | Yes | Yes | Introduces the byte-order constant and explicit trace count and offset fields |
+| SEG-Y rev 2.1 | SEG, October 2023 | Extended textual header clarification, P-format embedding | Yes | Writes rev 2.0 | Current preferred format for new exchange; the rev 2.x header layout is read |
 | SEG-D rev 3.x | SEG | Field acquisition data | No | No | Acquisition format, not interpretation exchange |
-| OpenZGY / ZGY | Schlumberger Petrel lineage; maintained publicly | 3D cube with compressed trace layout and header model | Yes | Yes | OpenZGY is the public implementation; Petrel ZGY files are the common production case |
-| IOGP P6/11 | IOGP Geomatics Committee, v2.0 | 3D bin-grid geometry and survey metadata | Yes | Later | Often embedded in SEG-Y extended textual headers; also a standalone reporting format |
-| IOGP P1/11 | IOGP Geomatics Committee, v2.0 | Marine positioning and navigation | Later | Later | Navigation sidecar; covered by Peforma Culture Lines/Points, not by this tool |
-| Seismic Unix (SU) | CWP/Seismic Unix | 240-byte header plus trace data in a binary container | Later | Later | Common in open processing chains; header mapping to SEG-Y is documented |
-| SEG-Y ASCII | Informal | 2D traces as whitespace-delimited samples with a text header | Yes | Yes | Produced by SEG-Y to ASCII conversion tools and often seen in teaching data |
+| OpenZGY / ZGY | Schlumberger Petrel lineage; maintained publicly | 3D cube with compressed trace layout and header model | No | No | Needs a container and compression implementation; Tier 2 |
+| IOGP P6/11 | IOGP Geomatics Committee, v2.0 | 3D bin-grid geometry and survey metadata | Yes | CSV table | Standalone reader and table writer ship in the Navigation tab |
+| IOGP P1/11 | IOGP Geomatics Committee, v2.0 | Marine positioning and navigation | Yes | Yes | Navigation sidecar; read and written in the Navigation tab |
+| IOGP P1/90 | UKOOA, 1990 | 80-column marine positioning | Yes | Yes | Navigation sidecar; read and written in the Navigation tab |
+| Seismic Unix (SU) | CWP/Seismic Unix | 240-byte header plus trace data in a binary container | No | No | Later tier; header mapping to SEG-Y is documented |
+| SEG-Y ASCII | Informal | 2D traces as whitespace-delimited samples with a text header | No | No | Later tier; needs a sample-decoding path |
 | RESQML SeismicCubeRepresentation | Energistics | Seismic cube as part of an EPC earth model | No | No | Different problem domain; out of scope |
 
 ### Vendor ecosystems
@@ -95,57 +98,57 @@ Seismic exchange travels through a smaller set of formats than line and point da
 | DUG | DUG Insight | Import and export of 2D and 3D SEG-Y; coordinate mapping from survey to ENSEMBLE X/Y; interpolation on resample | Confirms SEG-Y 2D/3D as the practical lingua franca; interpolation behavior is out of scope for Peforma |
 | OpenSource community | OpenZGY, segyio, ResInsight | Public readers/writers for SEG-Y and OpenZGY; ResInsight ZGY and SEG-Y support | Public implementations make browser-side SEG-Y and OpenZGY reading feasible with a WASM or Web Worker backend |
 
-Two conclusions follow. First, for 2D and 3D seismic the public exchange surface is SEG-Y (all revisions in use) plus OpenZGY for 3D, with IOGP P1/11 and P6/11 as documented sidecars. Second, interpolation, resampling, arbitrary-line extraction, and processing are consistently outside the documented public surface of every tool surveyed.
+Two conclusions follow. First, for 2D and 3D seismic the public exchange surface is SEG-Y (all revisions in use) plus OpenZGY for 3D, with IOGP P1/90, P1/11, and P6/11 as documented sidecars. Second, interpolation, resampling, arbitrary-line extraction, and processing are consistently outside the documented public surface of every tool surveyed.
 
-## Proposed support tiers
-
-The tiers separate what can be built with confidence from what needs a representative file set and a stable container implementation.
+## Shipped support tiers
 
 | Tier | Formats | Direction | Rationale |
 | --- | --- | --- | --- |
-| 1 — first release | SEG-Y rev 0, 1, 2.0, and 2.1 | Import and export | Covers the documented trace header and extended textual header; revisions are well specified |
-| 1 — first release | OpenZGY 3D cubes | Import and export | Public container with a stable layout; widely used for 3D distribution |
-| 1 — first release | 2D SEG-Y ASCII | Import and export | Small, common, and straightforward; useful for teaching and inspection |
-| 2 — after validation | IOGP P6/11 embedded or standalone | Import | Required for complete survey geometry; a stable reader exists in the standard |
-| 2 — after validation | IOGP P1/11 sidecar | Import | Navigation sidecar; useful context, not seismic data |
-| 2 — after validation | Seismic Unix container | Import and export | Open processing chain; header mapping is documented |
+| 1 — shipped | SEG-Y rev 0, 1, 2.0, and 2.1 | Read; write rev 2.0 | Header and sample bytes are carried without decoding, so every defined sample-format code survives |
+| 1 — shipped | UKOOA P1/90 | Read and write | Fixed 80-column layout with a stable point and header definition |
+| 1 — shipped | OGP P1/11 | Read and write | Documented position record with CRS A, B, and C fields |
+| 1 — shipped | OGP P6/11 | Read; write CSV | Bin-grid geometry is not a position list, so it has no P1/11 or P1/90 output |
+| 2 | OpenZGY / ZGY 3D cubes | Read and write | Needs a stable, producer-independent container and compression implementation |
+| 2 | Embedded P1/11 and P6/11 in SEG-Y extended headers | Read | A standalone sidecar is the current contract |
+| 2 | Seismic Unix container | Read and write | Open processing chain; header mapping is documented |
+| 2 | SEG-Y ASCII | Read and write | Needs sample decoding, which the byte-preserving Tier 1 does not do |
 | 3 — out of scope | Vendor project stores and binary project files | None | No public, stable, safe contract |
 | 3 — out of scope | Processing, interpolation, arbitrary lines | None | Different problem domain |
 
 A format moves from tier 2 to tier 1 only after the parser has been checked against representative files from more than one producer and the assumptions are written down.
 
-## Size and streaming model
+## Size model
 
-A seismic cube does not fit in a browser tab the way a grid or a point file does. The design separates a small in-browser summary from the large data body.
+A seismic cube does not fit in a browser tab the way a grid or a point file does.
 
-- Small files (target: under 256 MB) are read fully into memory and previewed.
-- Large files are streamed from the file system in chunks, with a hard preview limit on trace count.
-- Header and geometry summaries are built from the first N traces plus the extended textual headers, not from every trace.
-- Export writes trace by trace with a fixed output layout and progress reporting.
-- The UI must show the file size, the estimated memory requirement, and whether a preview is partial before any conversion begins.
-- A file that cannot be streamed in the target browser is rejected with the reason, not truncated.
+- Files up to 256 MB are read fully into memory. A larger file is rejected with its size stated and is never truncated.
+- The summary is computed over every trace, not a sample of traces, because the trace loop is cheap once the bytes are in memory.
+- Export writes one contiguous output buffer. The UI reports the file size, the sample-memory estimate, and the read cap before conversion.
+- A file that cannot be read is rejected with the reason. A partial result is never presented as a complete conversion.
 
 ## User experience outline
 
-1. Drop or choose one file. Identify the format from the binary header, not only from the extension.
-2. Show the detected revision, record count, sample count, sample interval, sample encoding, byte order, and the header fields that are populated.
-3. For 3D, show inline and crossline ranges, the corner trace coordinates, and the P6/11 bin-grid reference when present.
-4. For 2D, show line identifiers, shot and CDP ranges, and coordinate availability.
-5. Let the user choose an output format and confirm the target revision, byte order, sample encoding, and trace layout.
-6. Download the result with a clear file name and extension, and report any header fields that the target format cannot carry.
+1. Choose a tab: Navigation, 2D lines, or 3D cube. A SEG-Y on the Navigation tab and a navigation file on a SEG-Y tab are both rejected with a direction to the right tab.
+2. Drop or choose one file. Identify the format from the binary header or record contents, not only from the extension.
+3. Show the detected revision, trace count, sample count, sample interval, sample encoding, byte order, extended-header and trailer counts, and the textual-header lines.
+4. For 3D, show inline and crossline ranges, distinct-value counts, expected bins, missing bins, CDP range, and which coordinate header fields were used.
+5. For 2D, show CDP and field-record ranges, coordinate availability, and the CDP or source bounds.
+6. For navigation, show the position and receiver counts, line count, point-number range, reference system, extent, record mix, and line names.
+7. On a SEG-Y tab, write a rev 2.0 file; on the 3D tab, optionally request inline-major trace order.
+8. On the Navigation tab, choose CSV, P1/11, or P1/90. P6/11 offers CSV only.
+9. Download the result with a clear file name and extension, and report every field or record the target cannot carry.
 
-Warnings must be specific: which revision was detected, which header fields were empty in the source, which geometry was inferred versus copied, and what the user can do about it.
+Warnings must be specific: which revision was detected, which header fields were empty in the source, which geometry was copied versus measured, and what the user can do about it.
 
 ## Validation and errors
 
-- Reject files whose binary header does not match a known revision rather than guessing.
-- Reject byte-order inconsistencies between header and sample data.
-- Report a sample count of zero as a structural error, not a zero-length trace.
-- Reject inline/crossline values that are non-monotonic in a 3D cube when the source layout claims regularity; the user must confirm the layout before writing.
-- Report extended textual header blocks that are truncated or have mismatched stanza terminators.
-- Detect a sample encoding that the target format does not support and stop, not silently convert.
-- For OpenZGY, validate the container layout before opening the data body and report the exact missing field.
-- Bound memory use with a hard preview limit, and report which preview was built.
+- Reject a file whose binary header does not contain a defined sample-format code and revision rather than guessing.
+- Reject byte-swapped 16-bit ordering and a contradictory byte-order constant.
+- Reject a partial trace, a sample count of zero with no binary-header fallback, and a first-trace offset beyond the file.
+- Read non-monotonic inline or crossline order as written and report that the file is not inline-major; source byte order is preserved.
+- Reject a negative extended textual header count, which signals a variable-length extended-header block the reader does not locate.
+- Report extended textual headers, trailer stanzas, and trailing bytes with the values involved.
+- Carry every defined sample-format code, including obsolete fixed point with gain, and say that the bytes are not decoded.
 - Never crash the page on malformed input; keep the previous result intact.
 
 ## Interoperability cautions
@@ -153,19 +156,18 @@ Warnings must be specific: which revision was detected, which header fields were
 - Header meaning changes across revisions. A field that is a source coordinate in rev 1 may be reserved in rev 0. The detected revision is part of every report.
 - Byte order and sample encoding are properties of the file, not of the application. No implicit swap or conversion is allowed.
 - Inline and crossline numbers are identifiers, not coordinates. A cube with missing corner coordinates is not re-projected; it is flagged.
-- P6/11 bin grids describe a regular grid; a survey that is not regular will not fit and must be rejected.
+- P6/11 bin grids describe a regular grid and never become position records. A bin grid is exported as a table with its own coordinate pairs.
 - 2D line files may or may not carry coordinates. When they do not, the tool must say so, not fill in a default.
 - Time and depth units are not interchangeable. A cube in time is not silently treated as a cube in depth.
-- OpenZGY containers have a defined layout but differ across producer versions. A reader that assumes a single layout will misparse cubes from other producers; the reader must record which layout it used.
 - Output compatibility must be confirmed in the target application, including revision, byte order, sample encoding, trace layout, and header assumptions.
 
 ## Acceptance criteria
 
-- A user can load a supported SEG-Y or OpenZGY file, see the detected revision and the populated header fields, and download a supported output without changing sample values.
-- A large file that cannot be previewed in full shows the size, the preview limit, and which preview was built before any write begins.
-- The exported file has the same record count, sample count, trace order, header revision target, and sample encoding as confirmed by the user.
-- Inline, crossline, CDP, source, and receiver identifiers are copied verbatim when present and reported as missing when absent.
-- No reprojection, no resampling, no interpolation, and no amplitude scaling occur.
+- A user can load a supported SEG-Y file, see the detected revision and the populated header facts, and download a rev 2.0 file whose trace headers and sample bytes are identical to the source.
+- A 3D cube can be re-sorted into inline-major order with each trace moved as a whole and the change reported.
+- Navigation files can be read and written as P1/90, P1/11, or CSV, with blank source fields preserved as blank.
+- A P1/90 file written by Peforma is exactly 80 columns per record.
+- A SEG-Y dropped on the Navigation tab, or a navigation file dropped on a SEG-Y tab, produces a readable cross-tab message.
 - Invalid or unsupported files produce a readable error without crashing the page, and the previous result remains available.
 - The interface works on desktop and narrow screens and is keyboard accessible, with labelled controls, visible focus, and announced results.
 - All parsing, preview, and export run in the browser, with no network request carrying source data.
@@ -173,11 +175,10 @@ Warnings must be specific: which revision was detected, which header fields were
 
 ## Open questions
 
-- Which OpenZGY producer version should anchor the first release? The public OpenZGY layout and Petrel ZGY files may differ in field placement.
-- Should SEG-Y rev 2.1 writing ship in the first release, or should the first release be rev 2.0 and 2.1 reading only?
-- What is the hard preview trace limit for a 4-gigabyte cube in a browser tab, and how is that communicated without a misleading "success" state?
-- Is a P6/11 standalone reader part of the first release, or only the embedded P6/11 in extended textual headers?
-- How should the tool behave when a 3D cube has missing corner traces: refuse, warn and continue, or fill with a declared default?
+- Which OpenZGY producer version should anchor Tier 2? The public OpenZGY layout and Petrel ZGY files may differ in field placement.
+- Should Tier 2 add SEG-Y rev 2.1 writing for the revised extended-textual-header fields, or keep rev 2.0 as the normalised target?
+- Should embedded P1/11 and P6/11 blocks in SEG-Y extended textual headers be extracted automatically in Tier 2, or remain a separate sidecar workflow?
+- How should a 3D cube with a missing bin be surfaced when the target application will not accept a gapped grid: warn and continue, or block the export?
 
 ## Sources
 

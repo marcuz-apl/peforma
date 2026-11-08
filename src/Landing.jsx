@@ -40,6 +40,11 @@ const LIVE_SUITES = [
     formats: ['SHP', 'DBF', 'PRJ', 'GeoJSON'],
   },
   {
+    key: 'seismic', icon: AudioWaveform, name: 'Peforma Seismic', href: '#seismic-navigation',
+    blurb: 'SEG-Y cubes, 2D lines, and UKOOA/IOGP navigation moved with every trace header and sample byte left untouched.',
+    formats: ['SEG-Y', 'P1/90', 'P1/11', 'P6/11'],
+  },
+  {
     key: 'units', icon: Ruler, name: 'Peforma Units', href: '#units',
     blurb: 'Ten engineering categories on exact factors — pressure, volume, density, temperature, and the rest.',
     formats: ['10 categories', 'Exact factors'],
@@ -47,7 +52,6 @@ const LIVE_SUITES = [
 ];
 
 const ROADMAP = [
-  { key: 'seismic', icon: AudioWaveform, name: 'Peforma Seismic' },
   { key: 'coordinates', icon: Globe2, name: 'Peforma Coordinates' },
 ];
 
@@ -60,7 +64,7 @@ const GUARANTEES = [
 
 const STATS = [
   { value: '4', label: 'grid dialects' },
-  { value: '5', label: 'live tools' },
+  { value: '6', label: 'live tools' },
   { value: '10', label: 'unit categories' },
   { value: '0', label: 'values lost' },
 ];

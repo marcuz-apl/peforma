@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowUp, BookOpen, Box, Check, Copy, Files, FileText, Grid3x3, Info, LockKeyhole, Ruler, ShieldCheck, TriangleAlert, Waypoints } from 'lucide-react';
+import { ArrowUp, AudioWaveform, BookOpen, Box, Check, Copy, Files, FileText, Grid3x3, Info, LockKeyhole, Ruler, ShieldCheck, TriangleAlert, Waypoints } from 'lucide-react';
 
 // In-page navigation. The hash router owns top-level routes (#grid, #units,
 // #culture, #docs), so these anchors never change the hash: clicking one scrolls the
@@ -49,6 +49,16 @@ const TOC = [
       { id: 'mesh-ply', label: 'PLY' },
       { id: 'mesh-tsurf', label: 'GOCAD TSurf' },
       { id: 'mesh-integrity', label: 'Mesh integrity' },
+    ],
+  },
+  {
+    id: 'seismic-formats', label: 'Seismic', icon: AudioWaveform, children: [
+      { id: 'seismic-navigation', label: 'Navigation files' },
+      { id: 'seismic-p190', label: 'UKOOA P1/90' },
+      { id: 'seismic-p111', label: 'OGP P1/11' },
+      { id: 'seismic-p611', label: 'OGP P6/11' },
+      { id: 'seismic-segy', label: 'SEG-Y' },
+      { id: 'seismic-integrity', label: 'Seismic integrity' },
     ],
   },
   {
@@ -259,7 +269,7 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
-            <p>Five tools are live today. <b>Peforma Horizon/Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points/Fault-sticks converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma 3D</b> moves triangulated surfaces and geobody shells between STL, OBJ, PLY, and GOCAD TSurf. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. Seismic and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Six tools are live today. <b>Peforma Horizon/Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points/Fault-sticks converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma 3D</b> moves triangulated surfaces and geobody shells between STL, OBJ, PLY, and GOCAD TSurf. <b>Peforma Seismic</b> normalises SEG-Y trace files and converts UKOOA P1/90, OGP P1/11, and OGP P6/11 navigation. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. Coordinates are planned and labelled as such in the suite rail.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
@@ -658,6 +668,81 @@ roads.cpg   text encoding, when present`} />
               </ul>
               <Callout tone="caution" title="Confirm in the receiving software before operational use">
                 <p>Closure, normal direction, and group names are properties of the file, not of the tool that reads it. A target format may not carry groups, vertex normals, face normals, CRS, or units; every such loss is counted and reported. Compare vertex count, face count, bounds, orientation, and normals in the target application before relying on an exchange.</p>
+              </Callout>
+            </Sub>
+          </section>
+
+          <section className="docs-section" id="seismic-formats">
+            <div className="section-head">
+              <span className="section-glyph"><AudioWaveform size={20} aria-hidden="true" /></span>
+              <div><h2>Seismic</h2><p className="section-sub">SEG-Y traces &amp; IOGP navigation · Peforma Seismic</p></div>
+            </div>
+            <p>Peforma Seismic has three pages that share one summary. <b>Navigation</b> at <code className="inline-code">#seismic-navigation</code> reads UKOOA P1/90, OGP P1/11, and OGP P6/11 position files. <b>2D lines</b> at <code className="inline-code">#seismic-2d</code> and <b>3D cube</b> at <code className="inline-code">#seismic-3d</code> read SEG-Y and write SEG-Y rev 2.0. SEG-Y is treated as a byte container: samples are never decoded, so the tool reports header and geometry facts instead of drawing amplitudes.</p>
+
+            <Sub id="seismic-navigation" title="Navigation files">
+              <p>A navigation sidecar is a list of positions, not a volume of traces. Peforma reads it as records and keeps blank fields blank, so a missing coordinate stays missing rather than becoming zero.</p>
+              <Table
+                caption="Where a navigation object belongs."
+                head={['Record', 'Meaning', 'Peforma Seismic handling']}
+                rows={[
+                  ['P1/90 S, G, Q, A', 'Source, group, and auxiliary positions', 'Read; written to P1/90 and converted to P1/11 rows'],
+                  ['P1/90 R', 'Receiver group offsets on a 3D line', 'Counted and reported; not carried into P1/11'],
+                  ['P1/11 P1, S1', 'Position with CRS A, B, and C coordinates', 'Read with CRS A and B verbatim; written to P1/90 as decimal degrees'],
+                  ['P6/11 B6, M6', 'Bin-grid nodes and perimeter', 'Converted to a delimited table only'],
+                ]}
+              />
+            </Sub>
+
+            <Sub id="seismic-p190" title="UKOOA P1/90">
+              <p>P1/90 is fixed width: every record is exactly 80 columns. A common header is <code className="inline-code">H</code>, a two-digit record type, a one-digit continuation, a 28-character description, and a 48-character value. Peforma reads H01–H20 and H26, then writes them back with a value the source declared; a field the source did not declare is written as <code className="inline-code">N/A</code>, never invented.</p>
+              <ul className="doc-list">
+                <li>A position record carries the line name, point number, latitude and longitude in degrees, minutes, and seconds with hemisphere, easting, northing, water depth, day of year, and time. Peforma writes 80 columns and keeps the record type it read.</li>
+                <li>Projection, zone, spheroid, datum, grid units, and vertical datum are free text. They are reported as written and never mapped to an EPSG code.</li>
+                <li><code className="inline-code">R</code> receiver records are counted. They are not positions, so no P1/11 row is invented for them.</li>
+                <li>Grid easting and northing are carried only when the source is P1/90. A P1/11 source has no P1/90 grid columns, so those fields are written blank and the omission is stated.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="seismic-p111" title="OGP P1/11">
+              <p>P1/11 is comma separated. The identification record <code className="inline-code">OGP,OGP P1,1,…</code> declares format code 1; <code className="inline-code">HC</code> records carry the survey header, units, and reference system; <code className="inline-code">P1</code> and <code className="inline-code">S1</code> records carry the positions.</p>
+              <ul className="doc-list">
+                <li>CRS A and CRS B are copied as written. A position that another system stored as decimal degrees is not reformatted into degrees and minutes, and no coordinate is reprojected.</li>
+                <li>A P1/90 source declares no projected CRS that P1/11 can reference. Peforma therefore writes both CRS fields as WGS 84 geographic 2D (EPSG 4326) and says so in the tool.</li>
+                <li>Receivers, non-position records, and P1/90 grid values have no P1/11 home; every omission is counted and reported.</li>
+                <li>Delimited CSV output carries one row per parsed record with the source fields in order, so values that P1/11 cannot express remain available.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="seismic-p611" title="OGP P6/11">
+              <p>P6/11 describes a bin grid rather than a position list. <code className="inline-code">B6</code> records are bin nodes with coordinates in two reference systems, <code className="inline-code">M6</code> records outline the perimeter, and <code className="inline-code">H6</code> and <code className="inline-code">HC</code> records carry the header and reference system.</p>
+              <ul className="doc-list">
+                <li>Bin nodes and perimeter records become rows in a delimited table with the source CRS fields retained.</li>
+                <li>A bin grid has no P1/11 or P1/90 output. Writing bin nodes as shot positions would invent a survey geometry the file never declared.</li>
+                <li>The role of the file is stated in the tool before any conversion.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="seismic-segy" title="SEG-Y">
+              <p>Peforma reads the 3200-byte textual header, the 400-byte binary header, and every 240-byte trace header. Revision 0, revision 1, and revision 2.x layouts are recognised. Endianness comes from the revision-2 byte-order constant when it is present; older files are resolved from the sample-format code and revision bytes. Byte-swapped 16-bit ordering is rejected rather than guessed.</p>
+              <ul className="doc-list">
+                <li>All sixteen defined sample-format codes are accepted and carried, including IBM float, IEEE float, integer, and obsolete fixed-point-with-gain. The bytes are copied, not decoded, so no value is rounded, scaled, or interpolated.</li>
+                <li>Trace geometry comes from the field-record, CDP, source-X/Y, CDP-X/Y, inline, and crossline header fields. Coordinate scalars are applied to the reported bounds only; the stored integers are untouched.</li>
+                <li>A file is a 3D cube when both inline and crossline carry more than one distinct value. The missing-bin count compares written trace pairs with inline × crossline; it does not judge whether the survey was meant to be full.</li>
+                <li>Revision-2 trace counts and first-trace offsets are read and checked against the file length. Extended textual headers and data trailer stanzas are located and carried through.</li>
+                <li>Output is always revision 2.0 with a fixed-length flag, the byte-order constant, the trace count, the first-trace offset, and the trailer count written to match the file. Textual headers, trace headers, samples, and trailers are copied byte for byte.</li>
+                <li>The 3D page can re-sort traces into inline-then-crossline order. Each trace moves as a whole, so its headers and samples stay together; a reorder is reported.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="seismic-integrity" title="Seismic integrity">
+              <ul className="doc-list">
+                <li>Files up to 256 MB are read. A larger file is rejected with its size stated and is never truncated.</li>
+                <li>A partial trace, an unknown sample-format code, a contradictory byte-order marker, and a first-trace offset beyond the file are errors, not warnings.</li>
+                <li>Trace counts that disagree with the header, assumed sample counts, and ignored trailing bytes are reported with the values involved.</li>
+                <li>No coordinate is reprojected, no CRS is inferred, and no navigation value is filled in. Blank source fields remain blank in CSV.</li>
+              </ul>
+              <Callout tone="caution" title="Confirm in the receiving software before operational use">
+                <p>SEG-Y sample encoding, coordinate scalars, CRS records, and navigation conventions vary between acquisition systems. Peforma reports the header facts it finds and copies bytes without reinterpretation. Compare trace count, sample interval, coordinate ranges, CRS, and position values in the target application before relying on an exchange.</p>
               </Callout>
             </Sub>
           </section>

@@ -1,8 +1,8 @@
 # Peforma Culture — Vector Data Exchange
 
-Status: both Culture converters are implemented. **Lines/Points** reads and writes delimited text with an explicit column mapping, Petrel-style ASCII points and lines where the columns are unambiguous, GOCAD ASCII `.pl` and `.vs`, and GeoJSON `Point`, `MultiPoint`, `LineString`, and `MultiLineString`. **Polygon** reads and writes GeoJSON `Polygon` and `MultiPolygon` and closed GOCAD PLINE curves. Esri Shapefile is implemented as its own Peforma Shapefile tool, specified in [PRD_SHAPEFILE.md](PRD_SHAPEFILE.md). Navigation, SEG-Y headers, RESQML, DXF, KML, WITSML, and the vendor polygon dialects (IESX, CPS-3 Lines, Kingdom `.plg`, ZMAP `@FALT`) remain planned, and no line below should be read as a claim of support for them.
+Status: both Culture converters are implemented. **Lines/Points** reads and writes delimited text with an explicit column mapping, Petrel-style ASCII points and lines where the columns are unambiguous, GOCAD ASCII `.pl` and `.vs`, and GeoJSON `Point`, `MultiPoint`, `LineString`, and `MultiLineString`. **Polygon** reads and writes GeoJSON `Polygon` and `MultiPolygon` and closed GOCAD PLINE curves. Esri Shapefile is implemented as its own Peforma Shapefile tool, specified in [PRD_SHAPEFILE.md](PRD_SHAPEFILE.md). UKOOA P1/90, OGP P1/11, and OGP P6/11 navigation are implemented in Peforma Seismic, specified in [PRD_SEISMIC.md](PRD_SEISMIC.md). RESQML, DXF, KML, WITSML, and the vendor polygon dialects (IESX, CPS-3 Lines, Kingdom `.plg`, ZMAP `@FALT`) remain planned, and no line below should be read as a claim of support for them.
 
-Peforma Culture is the suite member for vector geometry: ordered coordinates, closed rings, and the attributes that travel with them. Peforma Horizon/Grid handles regularly sampled surfaces; Culture handles everything that is not a grid — fault sticks, contour lines, culture lines, seismic navigation, well trajectories, well picks, fault polygons, horizon boundaries, prospect outlines, and other point, line, and polygon sets.
+Peforma Culture is the suite member for vector geometry: ordered coordinates, closed rings, and the attributes that travel with them. Peforma Horizon/Grid handles regularly sampled surfaces; Culture handles everything that is not a grid or a seismic volume — fault sticks, contour lines, culture lines, well trajectories, well picks, fault polygons, horizon boundaries, prospect outlines, and other point, line, and polygon sets. Seismic navigation is a separate Peforma Seismic concern.
 
 Culture is one product with two live geometry converters. **Lines/Points** handles open geometry. **Polygon** handles closed area geometry. Esri Shapefile is a container that can hold any of the three geometry kinds, so it is not a geometry converter; the live **Peforma Shapefile** tool owns the shapefile bundle itself, including its DBF attributes and `.prj` sidecar.
 
@@ -93,7 +93,7 @@ A polygon that arrives closed in one format may arrive open in another because t
 
 - Vendor project databases and binary project files, including Petrel, OpenWorks, DecisionSpace, Kingdom, Petra, Roxar RMS, JewelSuite, GeoGraphix, and PaleoScan project stores.
 - Fault planes and other triangulated surfaces, which belong to Peforma 3D, and structural-framework fault pillars, which are reservoir-grid objects rather than exchange polylines.
-- Reading or writing seismic trace data. Seismic amplitudes belong to Peforma Seismic; Culture reads only navigation stored in SEG-Y headers, and that reader is planned.
+- Reading or writing seismic trace data, trace headers, or acquisition navigation. Those belong to Peforma Seismic, including UKOOA P1/90, OGP P1/11, and OGP P6/11.
 - Well log curves (LAS, DLIS, LIS) and petrophysical interpretation objects.
 - Topological operations: union, intersection, difference, buffer, dissolve, validity repair, self-intersection fixing, and area computation.
 - Interpolation, smoothing, densification, simplification, snapping, node adjustment, and Z recalculation.
@@ -118,12 +118,12 @@ Vector data travels through three families of formats: open exchange standards, 
 | Esri Shapefile | Esri technical description | Point, multipoint, polyline, and polygon features with DBF attributes and `.prj` | Implemented by Peforma Shapefile | Implemented by Peforma Shapefile | Requires `.shp` and `.dbf`; `.shx`, `.prj`, and `.cpg` are optional; geometry order and record order are preserved |
 | DXF | Autodesk, documented | 2D and 3D polylines, points, closed entities, blocks | Later | Later | Version drift and block references make full support unrealistic; only simple entities are candidates |
 | KML | OGC | Points, line strings, and polygon placemarks for display | Later | Later | WGS 84 longitude/latitude; styling and folders are not preserved as data |
-| UKOOA P1/90 | Legacy UKOOA/IOGP | Marine navigation lines, shot points, source and receiver positions | Later | Later | Fixed-width records; widely used legacy exchange |
-| IOGP P1/11 | IOGP Geomatics Committee, v2.0 user guide | Geophysical position data with richer metadata | Later | Later | Successor to P1/90; binary and ASCII encodings exist, so only the documented text form is in scope |
+| UKOOA P1/90 | Legacy UKOOA/IOGP | Marine navigation lines, shot points, source and receiver positions | Peforma Seismic | Peforma Seismic | Navigation is implemented in the Peforma Seismic Navigation tab |
+| IOGP P1/11 | IOGP Geomatics Committee, v2.0 user guide | Geophysical position data with richer metadata | Peforma Seismic | Peforma Seismic | Text form; implemented in the Peforma Seismic Navigation tab |
 | P2/11 | IOGP Geomatics Committee | Positioning data for non-seismic operations | Later | Later | Adjacent standard; evaluate only if users ask for it |
-| P6/11 | IOGP Geomatics Committee | Seismic bin-grid geometry | No | No | Bin grids are a grid concern, not a vector concern |
+| P6/11 | IOGP Geomatics Committee | Seismic bin-grid geometry | Peforma Seismic | CSV only | A bin grid is not a vector list, so Peforma Seismic writes it as a table |
 | SEG-UKOOA ADS | SEG and UKOOA | Acquisition data storage metafile | No | No | Defines field-tape metadata rather than an interpretation exchange file |
-| SEG-Y rev 2.1 | SEG | Seismic traces with a 240-byte trace header | Navigation fields only, later | No | Trace headers carry source and receiver coordinates, line and shot identifiers, and CDP information; amplitudes remain out of scope |
+| SEG-Y rev 2.1 | SEG | Seismic traces with a 240-byte trace header | Peforma Seismic | Peforma Seismic | Trace data and trace-header navigation are handled by the Peforma Seismic tabs; amplitudes are never altered |
 | SEG-D rev 3.x | SEG | Field seismic records | No | No | Acquisition format; out of scope |
 | RESQML 2.2 | Energistics | Earth-model objects, including polyline, point-set, and fault-set representations | Later | Later | Packaged as an EPC container with XML parts; a subset reader is feasible, a full implementation is not |
 | WITSML 2.x | Energistics | Well, wellbore, and trajectory objects | Later | Later | XML objects; useful for well trajectories but not a general vector format |
@@ -173,8 +173,7 @@ The tiers separate what can be built with confidence from what needs a published
 | 1 — implemented | Polygon | GeoJSON `Polygon` and `MultiPolygon` | Import and export | Precise specification and unambiguous ring rules |
 | 1 — implemented | Polygon | GOCAD closed curves | Import and export | Documented closed-curve structure |
 | 1 — implemented | Shapefile | Point, multipoint, polyline, and polygon bundles | Import and export | Standard GIS delivery, delivered by Peforma Shapefile |
-| 2 — after validation | Lines/Points | UKOOA P1/90 and IOGP P1/11 | Import, then export | Valuable for seismic navigation but record layouts need representative files |
-| 2 — after validation | Lines/Points | SEG-Y navigation headers | Import | Read-only extraction of trace-header coordinates and line identifiers |
+| 1 — implemented | Seismic | UKOOA P1/90, OGP P1/11, and OGP P6/11 navigation | Import; P1/90 and P1/11 export | Delivered by Peforma Seismic, not by the Culture converters |
 | 2 — after validation | Polygon | Petrel IESX, CPS-3 Lines, Kingdom `.plg`, ZMAP `@FALT` | Import, then export | Real dialects, partially documented; need representative files |
 | 2 — after validation | All | RESQML 2.2 vector subsets | Import, then export | Standards-based but requires EPC package handling and careful subsetting |
 | 2 — after validation | All | DXF and KML simple geometry | Import, then export | Useful for GIS and CAD users, with a deliberately small entity set |
@@ -227,7 +226,6 @@ Warnings must be specific and actionable in both converters: which record or rin
 - Reject coordinates that are not finite numbers; do not coerce text to zero. GeoJSON coordinates must be JSON numbers, not numeric strings.
 - Treat a declared CRS that contradicts the coordinate range as a warning, not a silent correction.
 - Detect truncated shapefile bundles, missing `.dbf` files, and unreadable `.prj` files.
-- Detect unsupported SEG-Y revisions and non-textual P1/11 encodings rather than parsing them as text.
 - Detect self-intersecting rings and duplicate first/last vertices, and report them; never repair them automatically.
 - Bound memory use for large files and report when a file is too large for an in-browser preview.
 - Never crash the page on malformed input; surface a readable error and keep the previous result intact.
@@ -243,8 +241,6 @@ Warnings must be specific and actionable in both converters: which record or rin
 - Shapefile attribute names are limited to ten characters and may be truncated. Preserve the stored names and warn when a name cannot be written back exactly.
 - GOCAD headers may declare a coordinate reference system in a free-text field. Preserve the text and do not interpret it as an EPSG code.
 - GOCAD PLINE has no hole or multipart structure. A closed curve is one polygon, holes are separate closed curves, and per-vertex properties and per-object attributes other than the name cannot be carried; the writer reports each loss.
-- Navigation formats describe acquisition geometry, not interpreted horizons. Shot-point order and line direction must be preserved even when they look irregular.
-- SEG-Y trace headers are not guaranteed to be populated consistently. Report which header fields were used and let the user confirm the coordinate convention.
 - Vendor IESX and `.plg` dialects carry attributes that are named differently by different producers. A field that means "fault type" in one export may be unnamed in another; the mapping is explicit, never by position alone.
 - A "polygon" in a fault-polygon export is a closed interpretation ring, not a validated topological surface. Do not treat it as a watertight solid.
 - RESQML and WITSML objects carry explicit units and CRS; a partial reader must either honor them or refuse the object.
@@ -271,7 +267,6 @@ Warnings must be specific and actionable in both converters: which record or rin
 - GOCAD has no hole linkage. Should closed curves sharing a name be treated as one polygon with holes, or stay separate polygons unless the user says otherwise?
 - Should GeoJSON export offer a choice to keep stored ring orientation for projected coordinates, or always apply the RFC 7946 convention?
 - Should Culture Polygon accept shapefile Polygon records from Peforma Shapefile, or keep the two tools fully independent?
-- Should UKOOA P1/90 import ship next, given how often seismic navigation is the actual exchange need?
 - Is a map preview required, or is a numeric summary and a ring table enough?
 - How should very large navigation files be handled in a browser: a hard size limit, a streaming summary, or a worker with progress?
 

@@ -526,7 +526,7 @@ a.rail-tool:hover { color: var(--ink-soft); }
   background-clip: text;
 }
 .content-head p { max-width: 52ch; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
-.culture-tabs, .mesh-tabs {
+.culture-tabs, .mesh-tabs, .seismic-tabs {
   display: inline-flex;
   gap: 4px;
   margin-top: 18px;
@@ -535,7 +535,7 @@ a.rail-tool:hover { color: var(--ink-soft); }
   border-radius: 9px;
   background: var(--surface-muted);
 }
-.culture-tab, .mesh-tab {
+.culture-tab, .mesh-tab, .seismic-tab {
   padding: 7px 14px;
   border-radius: 6px;
   color: var(--muted);
@@ -543,8 +543,8 @@ a.rail-tool:hover { color: var(--ink-soft); }
   text-decoration: none;
   transition: background .2s, color .2s;
 }
-.culture-tab:hover, .mesh-tab:hover { color: var(--ink); background: var(--surface); }
-.culture-tab.active, .mesh-tab.active {
+.culture-tab:hover, .mesh-tab:hover, .seismic-tab:hover { color: var(--ink); background: var(--surface); }
+.culture-tab.active, .mesh-tab.active, .seismic-tab.active {
   background: var(--surface);
   color: var(--ink);
   font-weight: 600;
@@ -768,6 +768,25 @@ a.rail-tool:hover { color: var(--ink-soft); }
   font: 500 12px 'DM Sans', sans-serif;
 }
 .preview-values span.null { background: var(--null-bg); color: var(--faint); }
+.seismic-order { position: relative; display: inline-flex; }
+.seismic-order select {
+  padding: 8px 30px 8px 11px;
+  border: 1px solid var(--control-line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--control-ink);
+  font: 500 12px var(--font);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.seismic-order svg {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: var(--muted);
+  pointer-events: none;
+}
 
 .download {
   display: flex;

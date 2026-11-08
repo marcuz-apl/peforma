@@ -1,6 +1,6 @@
 # Peforma Horizon/Grid
 
-Peforma Horizon/Grid is the first data-exchange tool in the broader Peforma product direction. It focuses on oil and gas subsurface grid formats — 2D map surfaces in depth or time — with room for future tools for wells, seismic, contours, and other sector data.
+Peforma Horizon/Grid is the grid data-exchange tool in the broader Peforma product family. It focuses on oil and gas subsurface grid formats — 2D map surfaces in depth or time — alongside sibling tools for vectors, meshes, seismic, shapefiles, and units.
 
 This browser-based app inspects and converts supported subsurface grid formats. “Peforma” is the product family; “Grid” is the current tool.
 
@@ -13,8 +13,8 @@ npm install
 npm run dev
 ```
 
-Grid files are processed in the browser and are not uploaded. See [the PRD](docs/PRD.md) and [format notes](docs/FORMATS.md).
+Grid files are processed in the browser. See [the PRD](docs/PRD.md) and [format notes](docs/FORMATS.md).
 
-The Peforma Units converter covers ten engineering categories at `#units`; its factors and definitions are recorded in [unit notes](docs/UNITS.md). Peforma Culture is live at `#culture` for vector lines and points and at `#culture-polygon` for closed polygon rings, with both converters specified in [the Peforma Culture chapter](docs/PRD_CULTURE.md). Peforma Shapefile is live at `#shapefile`, reading and writing Esri Shapefile bundles and GeoJSON features with attributes and CRS intact; it is specified in [the Peforma Shapefile chapter](docs/PRD_SHAPEFILE.md). Peforma 3D is live at `#3d-surfaces` for triangulated surfaces and at `#3d-solids` for geobodies and solids, reading and writing ASCII and binary STL, Wavefront OBJ, PLY, and GOCAD TSurf with vertex and face order preserved; it is specified in [the Peforma 3D chapter](docs/PRD_3D.md). The planned 2D/3D seismic tool is scoped in [the Peforma Seismic chapter](docs/PRD_SEISMIC.md).
+The Peforma Units converter covers ten engineering categories at `#units`; its factors and definitions are recorded in [unit notes](docs/UNITS.md). Peforma Culture is live at `#culture` for vector lines and points and at `#culture-polygon` for closed polygon rings, with both converters specified in [the Peforma Culture chapter](docs/PRD_CULTURE.md). Peforma Shapefile is live at `#shapefile`, reading and writing Esri Shapefile bundles and GeoJSON features with attributes and CRS intact; it is specified in [the Peforma Shapefile chapter](docs/PRD_SHAPEFILE.md). Peforma 3D is live at `#3d-surfaces` for triangulated surfaces and at `#3d-solids` for geobodies and solids, reading and writing ASCII and binary STL, Wavefront OBJ, PLY, and GOCAD TSurf with vertex and face order preserved; it is specified in [the Peforma 3D chapter](docs/PRD_3D.md). Peforma Seismic is live at `#seismic-2d` and `#seismic-3d` for SEG-Y trace files and at `#seismic-navigation` for UKOOA P1/90, OGP P1/11, and OGP P6/11 navigation; it is specified in [the Peforma Seismic chapter](docs/PRD_SEISMIC.md).
 
 The exact EarthVision and IRAP/ZMAP dialects must be validated using representative Petrel and Kingdom files before relying on the converter for production exchange.
