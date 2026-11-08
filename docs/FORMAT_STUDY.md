@@ -36,7 +36,7 @@ fileIndex = r * nx + c
 
 EarthVision scatters the same nodes but carries explicit 1-based column and row indices, so no order needs to be inferred.
 
-Peforma Grid/2D-Map stores grids internally in the IRAP/EarthVision order: row-major from `ymin`. CPS-3 and ZMAP+ are reordered on import and reordered again on export.
+Peforma Grid stores grids internally in the IRAP/EarthVision order: row-major from `ymin`. CPS-3 and ZMAP+ are reordered on import and reordered again on export.
 
 ## Format details
 
@@ -56,7 +56,7 @@ Peforma Grid/2D-Map stores grids internally in the IRAP/EarthVision order: row-m
 - The null control record is `<width>, <null>, <blank>, <decimals>, <flag>`. The example is `15, 0.1000000E+31, , 7, 1`.
 - The null marker in the control record and in the data is `0.1000000E+31`, which is 1e30.
 - Node values follow the closing `@` in the same column-major north-west to south order as CPS-3.
-- Some writers declare columns first. Peforma Grid/2D-Map resolves the orientation by matching the coordinate spans to the declared increments, and falls back to the declared order only when the increments are missing or zero. This keeps both header conventions readable without guessing from file names.
+- Some writers declare columns first. Peforma Grid resolves the orientation by matching the coordinate spans to the declared increments, and falls back to the declared order only when the increments are missing or zero. This keeps both header conventions readable without guessing from file names.
 
 ### IRAP Classic ASCII
 
@@ -73,7 +73,7 @@ Peforma Grid/2D-Map stores grids internally in the IRAP/EarthVision order: row-m
 - `Grid_size: <columns> x <rows>` gives columns then rows; the example is `152 x 252`.
 - Each node record is `x y z column row` with 1-based column and row indices.
 - Null nodes are omitted rather than written with a sentinel.
-- Peforma Grid/2D-Map restores the regular grid from the explicit indices and fills missing nodes with an internal null value.
+- Peforma Grid restores the regular grid from the explicit indices and fills missing nodes with an internal null value.
 
 ### Shapefile
 

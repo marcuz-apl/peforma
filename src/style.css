@@ -578,6 +578,8 @@ a.rail-suite.current:hover { background: var(--rail-current-hover); }
   transition: border-color .18s, background .18s;
 }
 .dropzone:hover, .dropzone.dragging { border-color: var(--drop-hover-line); background: var(--drop-hover-bg); }
+.dropzone:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.dropzone input:focus-visible { outline: none; }
 /* Rendered but visually hidden: a display:none file input won't open its picker via .click() in some browsers. */
 .dropzone input {
   position: absolute;

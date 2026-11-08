@@ -2,7 +2,7 @@
 
 Status: tier-1 open formats are implemented in the app. Delimited text with an explicit column mapping, Petrel-style unambiguous ASCII, GOCAD ASCII `.pl` and `.vs`, GeoJSON points and lines, and Esri Shapefile points and polylines are supported for import and export. The tier-2 navigation, SEG-Y header, RESQML, DXF, KML, and WITSML formats remain planned, and no shape should be read as a claim of support for them.
 
-Peforma Lines/Points is the suite member for polyline and point geometry. Peforma Grid/2D-Map handles regularly sampled surfaces; Peforma Lines/Points handles ordered coordinates that are not a grid: fault sticks, contour lines, culture lines, seismic navigation, well trajectories, well picks, and other point sets. Polygon topology and boundary cleanup belong to the separate Peforma Polygons tool and are not part of this scope.
+Peforma Lines/Points is the suite member for polyline and point geometry. Peforma Grid handles regularly sampled surfaces; Peforma Lines/Points handles ordered coordinates that are not a grid: fault sticks, contour lines, culture lines, seismic navigation, well trajectories, well picks, and other point sets. Polygon topology and boundary cleanup belong to the separate Peforma Polygons tool and are not part of this scope.
 
 ## Problem
 
@@ -104,7 +104,7 @@ The table records how each vendor's tools exchange line and point geometry in pu
 | Baker Hughes | JewelSuite, JewelSuite Geomechanics | JewelSuite documents GOCAD `.vs`, JOA ASCII point sets, and JOA XML point sets; WITSML and SEG-Y cover well and seismic exchange | GOCAD point sets are a realistic shared format; JOA formats are candidates |
 | S&P Global | Kingdom, Petra | Kingdom exports culture and interpretation data to text and shapefile; Petra exports well and interpretation data to ASCII; Kingdom uses a planimeter polygon text format | Support shapefile and plain text; treat undocumented Kingdom and Petra text dialects as later work |
 | Emerson | GOCAD, Roxar RMS, SKUA | GOCAD ASCII `.pl`, `.vs`, and `.ts` are documented and read by third-party tools; RMS and SKUA project stores are proprietary | GOCAD ASCII is a strong interchange target |
-| Dynamic Graphics | EarthVision | EarthVision grids and its own project data; interchange often goes through ASCII and GIS | Grids are already covered by Peforma Grid/2D-Map; lines are not a documented public strength |
+| Dynamic Graphics | EarthVision | EarthVision grids and its own project data; interchange often goes through ASCII and GIS | Grids are already covered by Peforma Grid; lines are not a documented public strength |
 | LMKR | GeoGraphix | Project database with ASCII and shapefile exchange for well and culture data | Generic ASCII and shapefile coverage is sufficient initially |
 | DUG | DUG Insight | Imports and exports columnar text, UKOOA navigation, Kingdom polygon files, shapefiles, and SEG-Y; well paths use a simple ASCII layout | Confirms that columnar text, P1/90, and shapefile are the practical lingua franca |
 | OpenSpirit / TIBCO | Multi-vendor connector | Extracts well paths, position logs, and point sets from Petrel, OpenWorks, and other stores into other applications | A model for what users expect, not a file format Peforma can consume |

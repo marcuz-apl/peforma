@@ -20,7 +20,7 @@ const NAV_LINKS = [
 
 const LIVE_SUITES = [
   {
-    key: 'grid', icon: Grid3x3, name: 'Peforma Grid/2D-Map', href: '#converter',
+    key: 'grid', icon: Grid3x3, name: 'Peforma Grid', href: '#grid',
     blurb: 'Depth or time grid surfaces moved between the four ASCII dialects interpretation packages actually read.',
     formats: ['CPS-3', 'EarthVision', 'IRAP Classic', 'ZMAP+'],
   },
@@ -122,7 +122,7 @@ function LandingNav({ themePref, resolvedTheme, onThemeChange, scrolled, active,
           <a key={link.id} href={`#${link.id}`} className="lp-mobile-link" onClick={close}>{link.label}</a>
         ))}
         <a href="#docs" className="lp-mobile-link" onClick={close}>Docs</a>
-        <a href="#converter" className="lp-cta" onClick={close}>Open the toolbox <ArrowDown size={16} aria-hidden="true" /></a>
+        <a href="#grid" className="lp-cta" onClick={close}>Open the toolbox <ArrowDown size={16} aria-hidden="true" /></a>
       </div>
     </header>
   );
@@ -171,7 +171,7 @@ function Hero() {
             locally, and losslessly.
           </p>
           <div className="lp-hero-actions lp-reveal">
-            <a className="lp-cta" href="#converter">Open the toolbox <ArrowDown size={17} aria-hidden="true" /></a>
+            <a className="lp-cta" href="#grid">Open the toolbox <ArrowDown size={17} aria-hidden="true" /></a>
             <a className="lp-ghost" href="#services">Explore the suites <ChevronDown size={16} aria-hidden="true" /></a>
           </div>
           <dl className="lp-stats lp-reveal">
@@ -507,7 +507,7 @@ function Contact() {
             <h3>Ready to move your data?</h3>
             <p>Open a converter and bring a file — the first conversion takes seconds.</p>
           </div>
-          <a className="lp-cta" href="#converter">Open the toolbox <ArrowDown size={17} aria-hidden="true" /></a>
+          <a className="lp-cta" href="#grid">Open the toolbox <ArrowDown size={17} aria-hidden="true" /></a>
         </div>
       </div>
     </section>

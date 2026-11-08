@@ -19,7 +19,7 @@ const NULLS = { cps3: 1e30, irap: 9999900, zmap: 1e30, earthvision: 1e31 };
 // Product-family navigation. Only the grid suite is live; the rest are labelled
 // placeholders so the rail never offers a link that does nothing.
 const SUITES = [
-  { key: 'grid', name: 'Peforma Grid/2D-Map', tool: 'Grid & 2D-map converter', href: '#converter', icon: Grid3x3, live: true },
+  { key: 'grid', name: 'Peforma Grid', tool: 'Grid & 2D-map converter', href: '#grid', icon: Grid3x3, live: true },
   { key: 'lines', name: 'Peforma Lines/Points', tool: 'Line & point converter', href: '#lines', icon: Waypoints, live: true },
   { key: 'polygons', name: 'Peforma Polygons', icon: Pentagon },
   { key: '3d', name: 'Peforma 3D', icon: Box },
@@ -213,7 +213,7 @@ function exportGrid(g, fmt) {
   if (fmt === 'zmap') {
     // Matches the ZIMS/Kingdom layout: rows then columns, real increments after the
     // rotation, and nodes ordered column by column from the north-west corner.
-    return `! Peforma Grid/2D-Map ZMAP+ ASCII
+    return `! Peforma Grid ZMAP+ ASCII
 ! Converted with Peforma toolbox of Alfazen Inc.
 @GRID FILE, GRID, 10
 15, 0.1000000E+31, , 7, 1
@@ -245,7 +245,7 @@ ${formatFlat(toColumnMajor(values, nx, ny), g.nodata, '0.1E+31', nx)}
 `;
   }
   if (fmt === 'earthvision') {
-    const out = [`# Type: scattered data`, `# Version: 6`, `# Description: Converted by Peforma Grid/2D-Map\n# Converted with Peforma toolbox of Alfazen Inc.`, `# Format: free`, `# Field: 1 x`, `# Field: 2 y`, `# Field: 3 z ${g.units || 'unknown'}`, `# Field: 4 column`, `# Field: 5 row`, `# Projection: ${g.projection || 'Unknown'}`, `# Units: Unknown`, `# End:`, `# Information from grid:`, `# Grid_size: ${nx} x ${ny}`, `# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`, `# Z_units: ${g.units || 'unknown'}`];
+    const out = [`# Type: scattered data`, `# Version: 6`, `# Description: Converted by Peforma Grid\n# Converted with Peforma toolbox of Alfazen Inc.`, `# Format: free`, `# Field: 1 x`, `# Field: 2 y`, `# Field: 3 z ${g.units || 'unknown'}`, `# Field: 4 column`, `# Field: 5 row`, `# Projection: ${g.projection || 'Unknown'}`, `# Units: Unknown`, `# End:`, `# Information from grid:`, `# Grid_size: ${nx} x ${ny}`, `# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`, `# Z_units: ${g.units || 'unknown'}`];
     for (let r = 0; r < ny; r++) for (let c = 0; c < nx; c++) {
       const v = values[r * nx + c];
       if (v !== g.nodata) out.push(`${(g.xmin + c * g.dx).toFixed(6)} ${(g.ymin + r * g.dy).toFixed(6)} ${Number(v).toPrecision(10)} ${c + 1} ${r + 1}`);
@@ -328,22 +328,18 @@ function UploadPanel({ grid, error, source, drag, setDrag, input, load, reset })
         </div>
         {grid && <button className="reset" onClick={reset}><RotateCcw size={14} /> Start over</button>}
       </div>
-      <div
+      <label
         className={`dropzone ${drag ? 'dragging' : ''}`}
         onDragOver={e => { e.preventDefault(); setDrag(true); }}
         onDragLeave={() => setDrag(false)}
         onDrop={e => { e.preventDefault(); setDrag(false); load(e.dataTransfer.files); }}
-        onClick={() => input.current?.click()}
-        role="button"
-        tabIndex="0"
-        onKeyDown={e => e.key === 'Enter' && input.current?.click()}
       >
-        <input ref={input} type="file" multiple accept="text/plain,*/*" tabIndex={-1} aria-hidden="true" onChange={e => load(e.target.files)} />
+        <input ref={input} type="file" multiple accept="text/plain,*/*" aria-label="Choose a grid file" onChange={e => load(e.target.files)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); input.current?.click(); } }} />
         <span className="upload-icon"><FileUp size={23} /></span>
         <strong>Drop a grid file here</strong>
-        <span className="drop-sub">or <button className="browse" type="button" onClick={e => { e.stopPropagation(); input.current?.click(); }}>browse files</button> from your computer</span>
+        <span className="drop-sub">or <span className="browse">browse files</span> from your computer</span>
         <span className="file-hint">CPS-3 · EARTHVISION · IRAP · ZMAP+</span>
-      </div>
+      </label>
       {grid && <GridSummary grid={grid} source={source} range={range} />}
       {error && <div className="error"><TriangleAlert size={17} /><span>{error}</span></div>}
     </>
@@ -721,7 +717,7 @@ function routeFromHash(hash) {
   if (hash === '#units') return 'units';
   if (hash === '#lines') return 'lines';
   if (hash === '#docs') return 'docs';
-  if (hash === '#converter' || hash === '#grid') return 'grid';
+  if (hash === '#grid') return 'grid';
   return 'home';
 }
 
@@ -792,7 +788,7 @@ function App() {
           ? 'Peforma Lines/Points — Line & Point Converter'
           : route === 'docs'
             ? 'Peforma Docs — Format Reference & Guides'
-            : 'Peforma Grid/2D-Map — Subsurface Grid Converter';
+            : 'Peforma Grid — Subsurface Grid Converter';
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [route]);
 
@@ -900,7 +896,7 @@ function App() {
             ) : (
               <>
                 <section className="content-head">
-                  <div className="eyebrow"><span /> PEFORMA / GRID-2D-MAP</div>
+                  <div className="eyebrow"><span /> PEFORMA / GRID</div>
                   <h1>Move your grids.<br /><em>Keep your data.</em></h1>
                   <p>Convert depth or time grid surfaces between four subsurface formats.</p>
                 </section>

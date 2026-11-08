@@ -141,22 +141,18 @@ function LineSourcePanel({ pending, model, error, drag, setDrag, input, load, re
         </div>
         {(pending || model || error) && <button className="reset" onClick={reset}><RotateCcw size={14} /> Start over</button>}
       </div>
-      <div
+      <label
         className={`dropzone ${drag ? 'dragging' : ''}`}
         onDragOver={e => { e.preventDefault(); setDrag(true); }}
         onDragLeave={() => setDrag(false)}
         onDrop={e => { e.preventDefault(); setDrag(false); load(e.dataTransfer.files); }}
-        onClick={() => input.current?.click()}
-        role="button"
-        tabIndex="0"
-        onKeyDown={e => e.key === 'Enter' && input.current?.click()}
       >
-        <input ref={input} type="file" accept=".csv,.tsv,.xyz,.dat,.txt,.pl,.vs,.ts,.geojson,.json" onChange={e => load(e.target.files)} />
+        <input ref={input} type="file" accept=".csv,.tsv,.xyz,.dat,.txt,.pl,.vs,.ts,.geojson,.json" aria-label="Choose a line or point file" onChange={e => load(e.target.files)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); input.current?.click(); } }} />
         <span className="upload-icon"><FileUp size={23} /></span>
         <strong>Drop a line or point file here</strong>
-        <span className="drop-sub">or <button className="browse" type="button" onClick={e => { e.stopPropagation(); input.current?.click(); }}>browse files</button> from your computer</span>
+        <span className="drop-sub">or <span className="browse">browse files</span> from your computer</span>
         <span className="file-hint">CSV · TSV · XYZ · GEOJSON · GOCAD .PL / .VS</span>
-      </div>
+      </label>
 
       {pending && (
         <div className="loaded">

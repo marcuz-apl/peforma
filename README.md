@@ -1,8 +1,8 @@
-# Peforma Grid/2D-Map
+# Peforma Grid
 
-Peforma Grid/2D-Map is the first data-exchange tool in the broader Peforma product direction. It focuses on oil and gas subsurface grid formats — 2D map surfaces in depth or time — with room for future tools for wells, seismic, contours, and other sector data.
+Peforma Grid is the first data-exchange tool in the broader Peforma product direction. It focuses on oil and gas subsurface grid formats — 2D map surfaces in depth or time — with room for future tools for wells, seismic, contours, and other sector data.
 
-This browser-based app inspects and converts supported subsurface grid formats. “Peforma” is the product family; “Grid/2D-Map” is the current tool.
+This browser-based app inspects and converts supported subsurface grid formats. “Peforma” is the product family; “Grid” is the current tool.
 
 ## Development
 

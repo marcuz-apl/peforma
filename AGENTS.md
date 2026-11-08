@@ -1,9 +1,9 @@
-# Peforma Grid/2D-Map
+# Peforma Grid
 
 ## Product naming
 - Product family: Peforma.
-- Current tool: Peforma Grid/2D-Map.
-- Use “Peforma Grid/2D-Map” in user-facing docs and app chrome. Avoid the retired “Petro Gridr” name.
+- Current tool: Peforma Grid.
+- Use “Peforma Grid” in user-facing docs and app chrome. Avoid the retired “Petro Gridr” name.
 - Keep future oil-sector tools under the Peforma family without implying they exist yet.
 
 ## Project guidance

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowUp, BookOpen, Check, Copy, FileText, Grid3x3, Info, LockKeyhole, Ruler, ShieldCheck, TriangleAlert, Waypoints } from 'lucide-react';
 
-// In-page navigation. The hash router owns top-level routes (#converter, #units,
+// In-page navigation. The hash router owns top-level routes (#grid, #units,
 // #lines, #docs), so these anchors never change the hash: clicking one scrolls the
 // article and moves focus, leaving the route intact.
 const TOC = [
@@ -234,7 +234,7 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
-            <p>Three tools are live today. <b>Peforma Grid/2D-Map</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Lines/Points</b> converts open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Units</b> converts ten engineering categories with exact factors. Polygons, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Three tools are live today. <b>Peforma Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Lines/Points</b> converts open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Units</b> converts ten engineering categories with exact factors. Polygons, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
@@ -248,9 +248,9 @@ export default function Docs() {
           <section className="docs-section" id="grid-formats">
             <div className="section-head">
               <span className="section-glyph"><Grid3x3 size={20} aria-hidden="true" /></span>
-              <div><h2>Grid formats</h2><p className="section-sub">Depth &amp; time surfaces · Peforma Grid/2D-Map</p></div>
+              <div><h2>Grid formats</h2><p className="section-sub">Depth &amp; time surfaces · Peforma Grid</p></div>
             </div>
-            <p>Peforma Grid/2D-Map reads four ASCII grid dialects and writes the same four. Internally every grid is stored once, in a single canonical order, and each exporter reorders from that model. This is why a CPS-3 file and an EarthVision file of the same surface produce identical node values after conversion. The Z values may be depth, two-way time, or another sampled attribute; they are copied verbatim and never rescaled, so a time horizon converts exactly like a depth structure map.</p>
+            <p>Peforma Grid reads four ASCII grid dialects and writes the same four. Internally every grid is stored once, in a single canonical order, and each exporter reorders from that model. This is why a CPS-3 file and an EarthVision file of the same surface produce identical node values after conversion. The Z values may be depth, two-way time, or another sampled attribute; they are copied verbatim and never rescaled, so a time horizon converts exactly like a depth structure map.</p>
 
             <Table
               caption="The four grid inputs at a glance. Every dialect is both read and written as a node grid."
