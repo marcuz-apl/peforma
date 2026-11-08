@@ -20,8 +20,14 @@ const NULLS = { cps3: 1e30, irap: 9999900, zmap: 1e30, earthvision: 1e31 };
 // placeholders so the rail never offers a link that does nothing.
 const SUITES = [
   { key: 'grid', name: 'Peforma Grid', tool: 'Grid & 2D-map converter', href: '#grid', icon: Grid3x3, live: true },
-  { key: 'lines', name: 'Peforma Lines/Points', tool: 'Line & point converter', href: '#lines', icon: Waypoints, live: true },
-  { key: 'polygons', name: 'Peforma Polygons', icon: Pentagon },
+  {
+    key: 'culture', name: 'Peforma Culture', icon: Waypoints,
+    children: [
+      { key: 'culture', name: 'Lines/Points', href: '#culture', live: true },
+      { key: 'culture-polygon', name: 'Polygon' },
+    ],
+  },
+  { key: 'shapefile', name: 'Peforma Shapefile', icon: Pentagon },
   { key: '3d', name: 'Peforma 3D', icon: Box },
   { key: 'seismic', name: 'Peforma Seismic', icon: AudioWaveform },
   { key: 'coordinates', name: 'Peforma Coordinates', icon: Globe2, reference: true },
@@ -446,9 +452,39 @@ function SuiteRail({ collapsed, onToggle, open, onClose, onNavigate, route }) {
         <div className="rail-group" key={group.label}>
           <div className="rail-label">{group.label}</div>
           <ul className="rail-list">
-            {group.items.map(({ key, name, tool, href, icon: Icon, live }) => (
+            {group.items.map(({ key, name, tool, href, icon: Icon, live, children }) => (
               <li key={key}>
-                {live ? (
+                {children ? (
+                  <>
+                    <a
+                      className={`rail-suite${children.some(c => c.key === route) ? ' current' : ''}`}
+                      href={children.find(c => c.live)?.href}
+                      title={name}
+                      onClick={onNavigate}
+                    >
+                      <Icon size={16} />
+                      <span className="rail-text">{name}</span>
+                      <ChevronDown className="rail-chevron" size={14} />
+                    </a>
+                    <div className="rail-tools">
+                      {children.map(child => child.live ? (
+                        <a
+                          key={child.key}
+                          className={`rail-tool${child.key === route ? ' current' : ''}`}
+                          href={child.href}
+                          aria-current={child.key === route ? 'page' : undefined}
+                          onClick={onNavigate}
+                        >
+                          {child.name}
+                        </a>
+                      ) : (
+                        <span key={child.key} className="rail-tool planned" aria-disabled="true">
+                          {child.name}<span className="soon">Soon</span>
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                ) : live ? (
                   <>
                     <a
                       className={`rail-suite${key === route ? ' current' : ''}`}
@@ -715,7 +751,7 @@ function PrivacyDialog({ onClose }) {
 // keep route === 'home' so native anchor scrolling is not interrupted.
 function routeFromHash(hash) {
   if (hash === '#units') return 'units';
-  if (hash === '#lines') return 'lines';
+  if (hash === '#culture') return 'culture';
   if (hash === '#docs') return 'docs';
   if (hash === '#grid') return 'grid';
   return 'home';
@@ -784,8 +820,8 @@ function App() {
       ? 'Peforma — Subsurface Data Exchange Toolbox'
       : route === 'units'
         ? 'Peforma Units — Engineering Unit Converter'
-        : route === 'lines'
-          ? 'Peforma Lines/Points — Line & Point Converter'
+        : route === 'culture'
+          ? 'Peforma Culture — Vector Data Converter'
           : route === 'docs'
             ? 'Peforma Docs — Format Reference & Guides'
             : 'Peforma Grid — Subsurface Grid Converter';
@@ -877,19 +913,19 @@ function App() {
                   </div>
                 </section>
               </>
-            ) : route === 'lines' ? (
+            ) : route === 'culture' ? (
               <>
                 <section className="content-head">
-                  <div className="eyebrow"><span /> PEFORMA / LINES-POINTS</div>
-                  <h1>Move your lines.<br /><em>Keep the geometry.</em></h1>
-                  <p>Convert points and polylines between CSV, GeoJSON, and GOCAD ASCII.</p>
+                  <div className="eyebrow"><span /> PEFORMA / CULTURE</div>
+                  <h1>Move your vectors.<br /><em>Keep the geometry.</em></h1>
+                  <p>Convert point and polyline data between CSV, GeoJSON, and GOCAD ASCII.</p>
                 </section>
                 <LinePoints />
-                <section className="bottom-info" id="line-note">
+                <section className="bottom-info" id="culture-note">
                   <div className="info-icon"><Info size={17} /></div>
                   <div>
                     <b>Format and geometry integrity</b>
-                    <p>CSV, GeoJSON, and GOCAD PLINE/VSET are recognised from contents. Vertex order, attributes, missing-Z distinctions, and CRS/units labels are preserved exactly. Delimited files without a header require an explicit column mapping; polygons belong to Peforma Polygons. Shapefile export is handled by the polygon tool.</p>
+                    <p>CSV, GeoJSON, and GOCAD PLINE/VSET are recognised from contents. Vertex order, attributes, missing-Z distinctions, and CRS/units labels are preserved exactly. Delimited files without a header require an explicit column mapping. Polygon geometry belongs to Peforma Culture Polygon and shapefile interchange to Peforma Shapefile; both are planned, not yet offered.</p>
                   </div>
                 </section>
               </>

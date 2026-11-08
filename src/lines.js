@@ -1,4 +1,4 @@
-// Peforma Lines/Points — tier-1 open-format parsing and writing.
+// Peforma Culture Lines/Points — tier-1 open-format parsing and writing.
 //
 // Every format is identified from its contents or the file extension; nothing is
 // ever sent to a server. The internal model keeps two geometry kinds (point set,
@@ -16,7 +16,7 @@ export const LINE_SOURCE_LABELS = {
 
 // Writable target formats. Shapefile writing is deferred to the polygon tool so
 // point, line, and polygon exports share one implementation; it is therefore
-// not offered as a Lines/Points output here.
+// not offered as a Culture Lines/Points output here.
 export const LINE_TARGETS = {
   csv: 'Delimited text (CSV)',
   geojson: 'GeoJSON',
@@ -212,7 +212,7 @@ function pickAttrs(row, mapping, headers) {
 // Parse a GeoJSON document into the internal model. Point, MultiPoint,
 // LineString, and MultiLineString are supported; Polygon, MultiPolygon, and
 // GeometryCollection members are skipped with a count, since closed polygon
-// topology belongs to the Peforma Polygons tool.
+// topology belongs to the Culture Polygon converter.
 export function parseGeoJson(text, fileName) {
   let doc;
   try { doc = JSON.parse(text); } catch (e) { throw Error('This is not valid GeoJSON: ' + e.message); }
@@ -235,7 +235,7 @@ export function parseGeoJson(text, fileName) {
     if (!built) { skipped++; continue; }
     objects.push(built);
   }
-  if (objects.length === 0) throw Error('No supported point or line geometry in this GeoJSON (polygons are a Peforma Polygons case).');
+  if (objects.length === 0) throw Error('No supported point or line geometry in this GeoJSON (polygon geometry belongs to the Culture Polygon converter).');
 
   return {
     kind: objects.every(o => o.kind === 'point') ? 'point' : 'mixed',

@@ -30,12 +30,12 @@ The replacement example is a real ZMAP+ grid: an `@Grid HEADER, GRID, 5` record,
 
 File dialects and node traversal conventions vary by application. Compare converted grids in the target software, including orientation, null nodes, coordinates, units, and CRS, before operational use. No reprojection or vertical unit conversion is performed.
 
-## Lines/Points (Peforma Lines/Points)
+## Culture Lines/Points (Peforma Culture)
 
-Peforma Lines/Points handles open line and point formats. Delimited text (CSV, TSV, XYZ), GeoJSON, and GOCAD ASCII `PLINE`/`VSET` are recognised from their contents or the selected file extension; a `.geojson`/`.json` file is parsed as GeoJSON, and a `UP TO`/`PLINE`/`VSET` marker near the top selects GOCAD.
+Peforma Culture is the vector tool; its Lines/Points converter handles open line and point formats. Delimited text (CSV, TSV, XYZ), Petrel-style ASCII points and lines, GeoJSON, and GOCAD ASCII `PLINE`/`VSET` are recognised from their contents or the selected file extension; a `.geojson`/`.json` file is parsed as GeoJSON, and a `UP TO`/`PLINE`/`VSET` marker near the top selects GOCAD.
 
 Vertex order, attribute values, the distinction between a missing and a zero Z coordinate, and CRS/units labels are preserved exactly as read. No reprojection or unit conversion is performed.
 
 A delimited file with a header has its column mapping pre-seeded from labels that clearly name each axis; a file without a header has anonymous columns, so the user must assign the X and Y columns explicitly before the rows are treated as geometry. In line mode, consecutive rows are grouped into one polyline, split whenever the mapped Name column changes.
 
-Closed polygon topology (GeoJSON Polygon/MultiPolygon, shapefile polygons) belongs to Peforma Polygons, and shapefile writing is shared with that tool, so neither is offered as a Lines/Points case.
+Closed polygon geometry (GeoJSON Polygon/MultiPolygon, closed GOCAD curves, fault-polygon dialects) belongs to the planned Culture Polygon converter. Esri Shapefile bundles belong to the planned Peforma Shapefile tool. Neither is offered as a Lines/Points case.

@@ -460,6 +460,10 @@ a.rail-suite.current:hover { background: var(--rail-current-hover); }
 }
 .rail-tool { padding: 5px 0; color: var(--muted); font-size: 12.5px; line-height: 1.4; }
 .rail-tool.current { color: var(--ink); font-weight: 600; }
+a.rail-tool { display: block; text-decoration: none; }
+a.rail-tool:hover { color: var(--ink-soft); }
+.rail-tool.planned { display: flex; align-items: center; }
+.rail-tool.planned .soon { margin-left: auto; }
 
 .suite-rail.collapsed .rail-title,
 .suite-rail.collapsed .rail-label,

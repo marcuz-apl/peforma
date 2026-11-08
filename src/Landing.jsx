@@ -25,8 +25,8 @@ const LIVE_SUITES = [
     formats: ['CPS-3', 'EarthVision', 'IRAP Classic', 'ZMAP+'],
   },
   {
-    key: 'lines', icon: Waypoints, name: 'Peforma Lines/Points', href: '#lines',
-    blurb: 'Points and polylines exchanged with vertex order, attributes, and missing-Z distinctions left intact.',
+    key: 'culture', icon: Waypoints, name: 'Peforma Culture', href: '#culture',
+    blurb: 'Point and polyline vectors exchanged with vertex order, attributes, and missing-Z distinctions left intact.',
     formats: ['CSV', 'GeoJSON', 'GOCAD'],
   },
   {
@@ -37,7 +37,8 @@ const LIVE_SUITES = [
 ];
 
 const ROADMAP = [
-  { key: 'polygons', icon: Pentagon, name: 'Peforma Polygons' },
+  { key: 'culture-polygon', icon: Pentagon, name: 'Peforma Culture — Polygon' },
+  { key: 'shapefile', icon: Layers3, name: 'Peforma Shapefile' },
   { key: '3d', icon: Box, name: 'Peforma 3D' },
   { key: 'seismic', icon: AudioWaveform, name: 'Peforma Seismic' },
   { key: 'coordinates', icon: Globe2, name: 'Peforma Coordinates' },

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowUp, BookOpen, Check, Copy, FileText, Grid3x3, Info, LockKeyhole, Ruler, ShieldCheck, TriangleAlert, Waypoints } from 'lucide-react';
 
 // In-page navigation. The hash router owns top-level routes (#grid, #units,
-// #lines, #docs), so these anchors never change the hash: clicking one scrolls the
+// #culture, #docs), so these anchors never change the hash: clicking one scrolls the
 // article and moves focus, leaving the route intact.
 const TOC = [
   { id: 'overview', label: 'Overview' },
@@ -19,7 +19,7 @@ const TOC = [
     ],
   },
   {
-    id: 'line-formats', label: 'Lines & Points', icon: Waypoints, children: [
+    id: 'line-formats', label: 'Culture', icon: Waypoints, children: [
       { id: 'lines-delimited', label: 'Delimited text' },
       { id: 'lines-geojson', label: 'GeoJSON' },
       { id: 'lines-gocad', label: 'GOCAD ASCII' },
@@ -234,7 +234,7 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
-            <p>Three tools are live today. <b>Peforma Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Lines/Points</b> converts open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Units</b> converts ten engineering categories with exact factors. Polygons, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Three tools are live today. <b>Peforma Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Units</b> converts ten engineering categories with exact factors. Culture Polygon, Shapefile, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
@@ -388,9 +388,9 @@ EarthVision    (explicit 1-based column / row indices):
           <section className="docs-section" id="line-formats">
             <div className="section-head">
               <span className="section-glyph"><Waypoints size={20} aria-hidden="true" /></span>
-              <div><h2>Lines & Points</h2><p className="section-sub">Open line and point geometry · Peforma Lines/Points</p></div>
+              <div><h2>Culture — Lines &amp; Points</h2><p className="section-sub">Open line and point geometry · Peforma Culture</p></div>
             </div>
-            <p>Peforma Lines/Points handles open geometry — point sets and polylines — across three formats. Closed polygon topology belongs to the planned Peforma Polygons tool, and shapefile writing is shared with it, so neither is offered here.</p>
+            <p>The Culture Lines/Points converter handles open geometry — point sets and polylines — across three formats. Closed polygon geometry belongs to the planned Culture Polygon converter, and shapefile interchange belongs to the planned Peforma Shapefile tool, so neither is offered here.</p>
 
             <Sub id="lines-delimited" title="Delimited text">
               <p>Comma, semicolon, tab, and whitespace-separated files (CSV, TSV, XYZ) are all read. The delimiter is detected from the first line. The first row decides whether a header is present:</p>
@@ -411,14 +411,14 @@ EarthVision    (explicit 1-based column / row indices):
             <Sub id="lines-geojson" title="GeoJSON">
               <p>A <code className="inline-code">.geojson</code> or <code className="inline-code">.json</code> file is parsed as JSON. Feature, FeatureCollection, and bare geometry objects are all accepted.</p>
               <Table
-                caption="GeoJSON geometry support in Lines/Points."
+                caption="GeoJSON geometry support in Culture Lines/Points."
                 head={['Geometry', 'Treatment']}
                 rows={[
                   ['Point', 'One point'],
                   ['MultiPoint', 'A point set'],
                   ['LineString', 'One open polyline'],
                   ['MultiLineString', 'Several polylines'],
-                  ['Polygon / MultiPolygon', 'Skipped — a Peforma Polygons case'],
+                  ['Polygon / MultiPolygon', 'Skipped — Culture Polygon handles these'],
                   ['GeometryCollection', 'Skipped with a count'],
                 ]}
               />
