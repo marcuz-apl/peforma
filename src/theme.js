@@ -22,9 +22,9 @@ export function readThemePreference() {
 }
 
 export function applyTheme(theme) {
-  const root = document.documentElement;
-  root.dataset.theme = theme;
-  root.style.colorScheme = theme;
+  const body = document.body;
+  body.classList.toggle('light', theme === 'light');
+  document.documentElement.style.colorScheme = theme;
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', theme === 'dark' ? '#111112' : '#f5f6f3');
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b0e14' : '#eef1f6');
 }

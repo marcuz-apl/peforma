@@ -1,138 +1,161 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
+/* Base (dark) palette — borrowed from the lomora app: deep navy ground with a
+   blue→purple accent pair and a soft radial glow. The light theme is a class
+   override on <body>, so these values stay the source of truth for dark. */
 :root {
-  --bg: #f5f6f3;
-  --surface: #ffffff;
-  --surface-muted: #f8f9f6;
-  --ink: #193b32;
-  --ink-soft: #40544d;
-  --muted: #5f7169;
-  --faint: #64726b;
-  --line: #e3e8e1;
-  --line-soft: #edf0eb;
-  --accent: #9dc553;
-  --accent-strong: #244e3d;
-  --accent-soft: #edf3e4;
-  --warn-bg: #fff6ee;
-  --warn: #985728;
-  --focus: #6f9a3f;
-  --header-bg: rgba(245, 246, 243, .94);
-  --skip-bg: #193b32;
-  --skip-ink: #ffffff;
-  --brand-bg: #1b463b;
-  --brand-ink: #b3dd60;
-  --drop-red: #d3432e;
-  --rail-hover: #f1f5ea;
-  --rail-current-hover: #e6efdb;
-  --rail-current-ink: #4f7133;
-  --overlay: rgba(20, 35, 30, .35);
-  --drawer-shadow: rgba(20, 35, 30, .2);
-  --modal-shadow: rgba(25, 59, 50, .24);
-  --halo: #e9f0d9;
-  --hero-accent: #75944d;
-  --card-shadow: 0 8px 30px rgba(36, 59, 48, .03);
-  --kicker-dot: #b9c1ba;
-  --drop-line: #cbd5c9;
-  --drop-hover-line: #8cae5c;
-  --drop-hover-bg: #f7f9f2;
-  --icon-accent: #50733d;
-  --strong-ink: #314a40;
-  --link: #53793a;
-  --file-bg: #f0f4e9;
-  --file-ink: #678747;
-  --loaded-ink: #34483f;
-  --ready: #4f7d3d;
-  --stats-ink: #364d42;
-  --stats-mult: #a6b09f;
-  --control-line: #dce3db;
-  --control-ink: #31473c;
-  --preview-line: #e8ece5;
-  --preview-bg: #f4f6f1;
-  --preview-ink: #526a55;
-  --null-bg: #f5f5f3;
-  --cta-bg: #244e3d;
+  color-scheme: dark;
+  --bg: #0b0e14;
+  --surface: rgba(22, 26, 38, .72);
+  --surface-muted: rgba(10, 13, 20, .6);
+  --ink: #e6ecf5;
+  --ink-soft: #c4cbd8;
+  --muted: #8a93a6;
+  --faint: #6b7385;
+  --line: rgba(255, 255, 255, .08);
+  --line-soft: rgba(255, 255, 255, .05);
+  --accent: #5b8cff;
+  --accent-strong: #9db8ff;
+  --accent-soft: rgba(91, 140, 255, .12);
+  --warn-bg: rgba(245, 158, 11, .12);
+  --warn: #f59e0b;
+  --focus: #5b8cff;
+  --header-bg: rgba(11, 14, 20, .92);
+  --skip-bg: #e6ecf5;
+  --skip-ink: #0b0e14;
+  --brand-bg: linear-gradient(135deg, #5b8cff, #7c5cff);
+  --brand-ink: #ffffff;
+  --drop-red: #ff5a44;
+  --rail-hover: rgba(255, 255, 255, .05);
+  --rail-current-hover: rgba(91, 140, 255, .14);
+  --rail-current-ink: #9db8ff;
+  --overlay: rgba(4, 6, 12, .6);
+  --drawer-shadow: rgba(0, 0, 0, .5);
+  --modal-shadow: rgba(0, 0, 0, .55);
+  --halo: rgba(91, 140, 255, .28);
+  --glow-1: rgba(91, 140, 255, .18);
+  --glow-2: rgba(124, 92, 255, .14);
+  --hero-accent: #9db8ff;
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  --kicker-dot: #3a4050;
+  --drop-line: rgba(255, 255, 255, .10);
+  --drop-hover-line: rgba(91, 140, 255, .45);
+  --drop-hover-bg: rgba(91, 140, 255, .10);
+  --icon-accent: #9db8ff;
+  --strong-ink: #e6ecf5;
+  --link: #9db8ff;
+  --file-bg: rgba(91, 140, 255, .12);
+  --file-ink: #9db8ff;
+  --loaded-ink: #e6ecf5;
+  --ready: #34d399;
+  --stats-ink: #e6ecf5;
+  --stats-mult: #8a93a6;
+  --control-line: rgba(255, 255, 255, .10);
+  --control-ink: #e6ecf5;
+  --preview-line: rgba(255, 255, 255, .06);
+  --preview-bg: rgba(10, 13, 20, .6);
+  --preview-ink: #c4cbd8;
+  --null-bg: rgba(255, 255, 255, .04);
+  --cta-bg: linear-gradient(135deg, #5b8cff, #7c5cff);
   --cta-ink: #ffffff;
-  --cta-hover: #193e30;
-  --cta-arrow: #c5dc94;
-  --btn-disabled-bg: #d9e0d7;
-  --btn-disabled-ink: #829087;
-  --chip-line-hover: #c3d0bd;
-  --chip-line-active: #b9d48b;
-  --info-icon: #809663;
-  --info-title: #52634e;
+  --cta-hover: linear-gradient(135deg, #6f9cff, #8f71ff);
+  --cta-arrow: #e6ecf5;
+  --btn-disabled-bg: rgba(255, 255, 255, .06);
+  --btn-disabled-ink: #6b7385;
+  --chip-line-hover: rgba(255, 255, 255, .16);
+  --chip-line-active: rgba(91, 140, 255, .55);
+  --info-icon: #5b8cff;
+  --info-title: #c4cbd8;
   font-family: 'DM Sans', sans-serif;
   color: var(--ink);
-  background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
 
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #111112;
-  --surface: #1a1a1b;
-  --surface-muted: #212122;
-  --ink: #ececec;
-  --ink-soft: #c8c8c8;
-  --muted: #a0a0a0;
-  --faint: #858585;
-  --line: #313132;
-  --line-soft: #272728;
-  --accent: #a9cf63;
-  --accent-strong: #cfe6a5;
-  --accent-soft: #22321f;
-  --warn-bg: #2c2118;
-  --warn: #f2b487;
-  --focus: #b7d979;
-  --header-bg: rgba(17, 17, 18, .92);
-  --skip-bg: #ececec;
-  --skip-ink: #111112;
-  --brand-bg: #234f41;
-  --brand-ink: #c6e88a;
-  --drop-red: #e8563f;
-  --rail-hover: #232324;
-  --rail-current-hover: #2a3a24;
-  --rail-current-ink: #b7d979;
-  --overlay: rgba(0, 0, 0, .55);
-  --drawer-shadow: rgba(0, 0, 0, .45);
-  --modal-shadow: rgba(0, 0, 0, .6);
-  --halo: rgba(169, 207, 99, .16);
-  --hero-accent: #a9cf63;
-  --card-shadow: 0 8px 30px rgba(0, 0, 0, .28);
-  --kicker-dot: #565657;
-  --drop-line: #3c3c3d;
-  --drop-hover-line: #7da34e;
-  --drop-hover-bg: #1f2a22;
-  --icon-accent: #b7d979;
-  --strong-ink: #e4e4e4;
-  --link: #b7d979;
-  --file-bg: #26301f;
-  --file-ink: #b7d979;
-  --loaded-ink: #ececec;
-  --ready: #8fc06f;
-  --stats-ink: #e4e4e4;
-  --stats-mult: #8a8a8a;
-  --control-line: #3a3a3b;
-  --control-ink: #ececec;
-  --preview-line: #2e2e2f;
-  --preview-bg: #222223;
-  --preview-ink: #d8e2ce;
-  --null-bg: #1c1c1d;
-  --cta-bg: #a9cf63;
-  --cta-ink: #10231a;
-  --cta-hover: #bde07a;
-  --cta-arrow: #22412d;
-  --btn-disabled-bg: #2a2a2b;
-  --btn-disabled-ink: #8f8f8f;
-  --chip-line-hover: #454546;
-  --chip-line-active: #5d7d3d;
-  --info-icon: #a9cf63;
-  --info-title: #e4e4e4;
+/* Light theme — pale blue-grey ground, same accent pair. Applied by the class
+   the theme control toggles on <body>; dark is the default. */
+body.light {
+  color-scheme: light;
+  --bg: #eef1f6;
+  --surface: rgba(255, 255, 255, .86);
+  --surface-muted: #f5f7fb;
+  --ink: #1a2233;
+  --ink-soft: #33405a;
+  --muted: #5c6575;
+  --faint: #8b93a5;
+  --line: rgba(15, 23, 42, .10);
+  --line-soft: rgba(15, 23, 42, .06);
+  --accent: #3b6fff;
+  --accent-strong: #2450d6;
+  --accent-soft: rgba(91, 140, 255, .14);
+  --warn-bg: rgba(245, 158, 11, .12);
+  --warn: #b45309;
+  --focus: #3b6fff;
+  --header-bg: rgba(238, 241, 246, .94);
+  --skip-bg: #1a2233;
+  --skip-ink: #ffffff;
+  --brand-bg: linear-gradient(135deg, #5b8cff, #7c5cff);
+  --brand-ink: #ffffff;
+  --drop-red: #d3432e;
+  --rail-hover: rgba(15, 23, 42, .04);
+  --rail-current-hover: rgba(59, 111, 255, .12);
+  --rail-current-ink: #2450d6;
+  --overlay: rgba(15, 23, 42, .4);
+  --drawer-shadow: rgba(15, 23, 42, .2);
+  --modal-shadow: rgba(15, 23, 42, .18);
+  --halo: rgba(91, 140, 255, .22);
+  --hero-accent: #2450d6;
+  --card-shadow: 0 10px 30px rgba(15, 23, 42, .10);
+  --kicker-dot: #b9c1ba;
+  --drop-line: rgba(15, 23, 42, .14);
+  --drop-hover-line: rgba(59, 111, 255, .4);
+  --drop-hover-bg: rgba(59, 111, 255, .06);
+  --icon-accent: #3b6fff;
+  --strong-ink: #1a2233;
+  --link: #3b6fff;
+  --file-bg: rgba(91, 140, 255, .12);
+  --file-ink: #2450d6;
+  --loaded-ink: #1a2233;
+  --ready: #16a34a;
+  --stats-ink: #1a2233;
+  --stats-mult: #8b93a5;
+  --control-line: rgba(15, 23, 42, .14);
+  --control-ink: #1a2233;
+  --preview-line: rgba(15, 23, 42, .08);
+  --preview-bg: #ffffff;
+  --preview-ink: #33405a;
+  --null-bg: rgba(15, 23, 42, .05);
+  --cta-bg: linear-gradient(135deg, #3b6fff, #6d5cff);
+  --cta-ink: #ffffff;
+  --cta-hover: linear-gradient(135deg, #2f5ef5, #5f4dff);
+  --cta-arrow: #ffffff;
+  --btn-disabled-bg: rgba(15, 23, 42, .08);
+  --btn-disabled-ink: #9aa2b5;
+  --chip-line-hover: rgba(15, 23, 42, .18);
+  --chip-line-active: rgba(59, 111, 255, .45);
+  --info-icon: #3b6fff;
+  --info-title: #33405a;
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 84px; }
-body { margin: 0; background: var(--bg); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, var(--glow-1), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, var(--glow-2), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+body.light {
+  --glow-1: rgba(91, 140, 255, .12);
+  --glow-2: rgba(124, 92, 255, .09);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, var(--glow-1), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, var(--glow-2), transparent 60%),
+    var(--bg);
+}
 button, select { font: inherit; color: inherit; }
 a { color: inherit; }
 ul { list-style: none; margin: 0; padding: 0; }

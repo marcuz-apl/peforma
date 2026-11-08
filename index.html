@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="theme-color" content="#f5f6f3"/><title>Peforma Grid — Subsurface Grid Converter</title><script>
   // Apply the saved theme before first paint. Auto mode is light from 07:00 to
-  // 19:00 local time, matching the in-app theme control.
+  // 19:00 local time, matching the in-app theme control. Dark is the default;
+  // the light theme is a <body> class override, so we only add the class.
   (function () {
     var now = new Date();
     var minutes = now.getHours() * 60 + now.getMinutes();
@@ -10,9 +11,13 @@
       var pref = localStorage.getItem('peforma.theme');
       if (pref === 'light' || pref === 'dark') theme = pref;
     } catch (error) { /* storage is optional */ }
-    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'light') {
+      var setClass = function () { document.body.classList.add('light'); };
+      if (document.body) setClass();
+      else document.addEventListener('DOMContentLoaded', setClass);
+    }
     document.documentElement.style.colorScheme = theme;
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'dark' ? '#111112' : '#f5f6f3');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b0e14' : '#eef1f6');
   })();
 </script></head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
