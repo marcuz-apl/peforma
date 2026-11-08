@@ -270,12 +270,12 @@ ul { list-style: none; margin: 0; padding: 0; }
   gap: 36px;
   align-items: start;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 32px;
 }
 .app-shell.rail-collapsed { grid-template-columns: 64px minmax(0, 1fr); }
-.app-main { min-width: 0; width: 100%; max-width: 860px; }
+.app-main { min-width: 0; width: 100%; }
 
 /* Suite rail */
 .suite-rail {
