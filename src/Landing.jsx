@@ -353,7 +353,7 @@ function Contact() {
   );
 }
 
-export default function Landing({ themePref, resolvedTheme, onThemeChange, onAbout, onDisclaimer, aboutRef, disclaimerRef }) {
+export default function Landing({ themePref, resolvedTheme, onThemeChange, onAbout, onDisclaimer, onPrivacy, aboutRef, disclaimerRef, privacyRef }) {
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState('top');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -423,7 +423,7 @@ export default function Landing({ themePref, resolvedTheme, onThemeChange, onAbo
       </main>
       <div className="lp-footer">
         <div className="shell">
-          <AppFooter onAbout={onAbout} onDisclaimer={onDisclaimer} aboutRef={aboutRef} disclaimerRef={disclaimerRef} />
+          <AppFooter onAbout={onAbout} onDisclaimer={onDisclaimer} onPrivacy={onPrivacy} aboutRef={aboutRef} disclaimerRef={disclaimerRef} privacyRef={privacyRef} />
         </div>
       </div>
     </div>

@@ -173,6 +173,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 body {
   margin: 0;
   min-height: 100vh;
+  color: var(--ink);
   background:
     radial-gradient(1200px 600px at 10% -10%, var(--glow-1), transparent 60%),
     radial-gradient(900px 500px at 100% 0%, var(--glow-2), transparent 60%),
@@ -533,6 +534,7 @@ a.rail-suite.current:hover { background: var(--rail-current-hover); }
 .reset:hover { color: var(--ink); }
 
 .dropzone {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -547,7 +549,18 @@ a.rail-suite.current:hover { background: var(--rail-current-hover); }
   transition: border-color .18s, background .18s;
 }
 .dropzone:hover, .dropzone.dragging { border-color: var(--drop-hover-line); background: var(--drop-hover-bg); }
-.dropzone input { display: none; }
+/* Rendered but visually hidden: a display:none file input won't open its picker via .click() in some browsers. */
+.dropzone input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
 .upload-icon {
   display: grid;
   place-items: center;
@@ -973,6 +986,28 @@ a.rail-suite.current:hover { background: var(--rail-current-hover); }
 }
 .about-version { color: var(--ink); font: 500 12px 'DM Sans', sans-serif; }
 
+/* Privacy & integrity dialog */
+.privacy-dialog {
+  width: min(640px, 100%);
+  max-height: min(88vh, 780px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+.privacy-dialog::-webkit-scrollbar { width: 8px; }
+.privacy-dialog::-webkit-scrollbar-track { background: transparent; }
+.privacy-dialog::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 999px; }
+.privacy-dialog::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+.privacy-label {
+  margin: 18px 0 10px;
+  color: var(--muted);
+  font: 600 11px 'DM Sans', sans-serif;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+.privacy-dialog .doc-principles { margin: 0 0 16px; }
+.privacy-contract { margin: 0; }
+
 /* Tablet: keep the rail as icons so the workspace keeps its width. */
 @media (min-width: 761px) and (max-width: 1023px) {
   .app-shell { grid-template-columns: 64px minmax(0, 1fr); gap: 28px; }
@@ -1051,6 +1086,7 @@ a.rail-suite.current:hover { background: var(--rail-current-hover); }
   .stats { grid-template-columns: 1fr 1fr; row-gap: 14px; }
   .stats div:nth-child(3) { padding-left: 0; border: 0; }
   .bottom-info { flex-wrap: wrap; }
+  .site-footer { margin: 14px -18px 0; padding: 10px 18px 12px; }
   .footer-legal { grid-template-columns: 1fr; gap: 12px; }
   .footer-legal-copy { text-align: left; }
   .footer-social { justify-content: flex-start; }

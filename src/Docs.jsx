@@ -32,7 +32,6 @@ const TOC = [
       { id: 'units-definitions', label: 'Definitions' },
     ],
   },
-  { id: 'integrity', label: 'Data integrity', icon: ShieldCheck },
 ];
 
 const FLAT_IDS = TOC.flatMap(entry => [entry.id, ...(entry.children || []).map(c => c.id)]);
@@ -488,22 +487,6 @@ VSET 1 WELL_01
                 <p>Ton is the metric tonne (1,000 kg). Month is the mean Gregorian month (2,629,746 s) and year is 365.2425 days; quarter, decade, and century follow that year. Barrel is 42 US gallons, ppg is pound per US gallon, and atmosphere is 101,325 Pa. These definitions are fixed so a conversion means the same thing every time.</p>
               </Callout>
             </Sub>
-          </section>
-
-          <section className="docs-section" id="integrity">
-            <div className="section-head">
-              <span className="section-glyph"><ShieldCheck size={20} aria-hidden="true" /></span>
-              <div><h2>Data integrity</h2><p className="section-sub">What every conversion guarantees</p></div>
-            </div>
-            <p>Peforma changes the file format, never the data. These guarantees hold across every tool and every supported dialect.</p>
-            <div className="doc-principles">
-              <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>No silent guessing</b><p>Unsupported variants are rejected with a clear message rather than producing a plausible but wrong file.</p></div>
-              <div className="principle"><span className="principle-icon"><FileText size={18} aria-hidden="true" /></span><b>Values preserved</b><p>Node values, ordering, bounds, and nulls are copied verbatim — no interpolation, reprojection, or rescaling.</p></div>
-              <div className="principle"><span className="principle-icon"><Check size={18} aria-hidden="true" /></span><b>Verify before use</b><p>Always confirm converted files in the receiving application — orientation, units, datum, and null conventions — before production.</p></div>
-            </div>
-            <Callout tone="integrity" title="The contract">
-              <p>Peforma morphs the container, not the content. If a conversion would require inventing data — interpolating a boundary into nodes, reprojecting coordinates, or rescaling values — the tool stops and tells you instead of guessing.</p>
-            </Callout>
           </section>
         </article>
       </div>

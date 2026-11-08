@@ -67,13 +67,14 @@ export function LinkedinIcon({ size = 16 }) {
   );
 }
 
-export function AppFooter({ onAbout, onDisclaimer, aboutRef, disclaimerRef }) {
+export function AppFooter({ onAbout, onDisclaimer, onPrivacy, aboutRef, disclaimerRef, privacyRef }) {
   return (
     <footer className="site-footer">
       <div className="footer-legal">
         <div className="footer-legal-links">
           <button ref={aboutRef} type="button" onClick={onAbout}>About</button>
           <button ref={disclaimerRef} type="button" onClick={onDisclaimer}>Disclaimer</button>
+          <button ref={privacyRef} type="button" onClick={onPrivacy}>Privacy</button>
         </div>
         <div className="footer-legal-copy">© 2026 Peforma, an Alfazen product. All rights reserved.</div>
         <div className="footer-social">

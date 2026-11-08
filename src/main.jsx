@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, BookOpen, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, Menu, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, BookOpen, Box, Check, ChevronDown, FileSpreadsheet, FileText, FileUp, Globe2, Grid3x3, Layers3, Menu, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, ShieldCheck, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
 import VERSION from '../VERSION?raw';
 import UnitConverter from './UnitConverter.jsx';
 import LinePoints from './LinePoints.jsx';
@@ -338,7 +338,7 @@ function UploadPanel({ grid, error, source, drag, setDrag, input, load, reset })
         tabIndex="0"
         onKeyDown={e => e.key === 'Enter' && input.current?.click()}
       >
-        <input ref={input} type="file" multiple accept="text/plain,*/*" onChange={e => load(e.target.files)} />
+        <input ref={input} type="file" multiple accept="text/plain,*/*" tabIndex={-1} aria-hidden="true" onChange={e => load(e.target.files)} />
         <span className="upload-icon"><FileUp size={23} /></span>
         <strong>Drop a grid file here</strong>
         <span className="drop-sub">or <button className="browse" type="button" onClick={e => { e.stopPropagation(); input.current?.click(); }}>browse files</button> from your computer</span>
@@ -640,6 +640,80 @@ function DisclaimerDialog({ onClose }) {
   );
 }
 
+function PrivacyDialog({ onClose }) {
+  const dialogRef = useRef(null);
+  const closeRef = useRef(null);
+
+  useEffect(() => {
+    const previous = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
+    const onKey = event => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = overflow;
+      if (previous instanceof HTMLElement) previous.focus();
+    };
+  }, [onClose]);
+
+  const onDialogKeyDown = event => {
+    if (event.key !== 'Tab') return;
+    const focusable = dialogRef.current?.querySelectorAll('button, a[href]');
+    if (!focusable?.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}
+    >
+      <div
+        ref={dialogRef}
+        className="about-dialog privacy-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="privacy-title"
+        onKeyDown={onDialogKeyDown}
+      >
+        <button ref={closeRef} type="button" className="about-close" onClick={onClose} aria-label="Close privacy and integrity">
+          <X size={17} aria-hidden="true" />
+        </button>
+        <Wordmark label="Peforma" className="about-wordmark" />
+        <h2 id="privacy-title">Privacy &amp; integrity</h2>
+        <p className="about-copy">
+          Peforma runs entirely in your browser. The files you convert are read and written on your
+          own machine and never leave it — there are no accounts, no telemetry, and no server-side
+          storage.
+        </p>
+        <p className="privacy-label">What every conversion guarantees</p>
+        <div className="doc-principles">
+          <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>No silent guessing</b><p>Unsupported variants are rejected with a clear message rather than producing a plausible but wrong file.</p></div>
+          <div className="principle"><span className="principle-icon"><FileText size={18} aria-hidden="true" /></span><b>Values preserved</b><p>Node values, ordering, bounds, and nulls are copied verbatim — no interpolation, reprojection, or rescaling.</p></div>
+          <div className="principle"><span className="principle-icon"><Check size={18} aria-hidden="true" /></span><b>Verify before use</b><p>Always confirm converted files in the receiving application — orientation, units, datum, and null conventions — before production.</p></div>
+        </div>
+        <aside className="doc-callout integrity privacy-contract">
+          <span className="callout-icon"><ShieldCheck size={17} aria-hidden="true" /></span>
+          <div className="callout-body">
+            <b>The contract</b>
+            <p>Peforma morphs the container, not the content. If a conversion would require inventing data — interpolating a boundary into nodes, reprojecting coordinates, or rescaling values — the tool stops and tells you instead of guessing.</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
 // The bare origin and any landing anchor (#home, #top, #services, #contact) resolve
 // to the marketing page; tool hashes resolve to their converter. Landing anchors
 // keep route === 'home' so native anchor scrolling is not interrupted.
@@ -657,6 +731,7 @@ function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [disclaimerOpen, setDisclaimerOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [route, setRoute] = useState(() => routeFromHash(window.location.hash));
   const [themePref, setThemePref] = useState(readThemePreference);
   const [resolvedTheme, setResolvedTheme] = useState(() => resolveTheme(readThemePreference()));
@@ -667,6 +742,7 @@ function App() {
   const menuRef = useRef(null);
   const aboutRef = useRef(null);
   const disclaimerRef = useRef(null);
+  const privacyRef = useRef(null);
 
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
@@ -681,6 +757,11 @@ function App() {
   const closeDisclaimer = useCallback(() => {
     setDisclaimerOpen(false);
     requestAnimationFrame(() => disclaimerRef.current?.focus());
+  }, []);
+
+  const closePrivacy = useCallback(() => {
+    setPrivacyOpen(false);
+    requestAnimationFrame(() => privacyRef.current?.focus());
   }, []);
 
   const changeTheme = useCallback(value => {
@@ -761,8 +842,10 @@ function App() {
           onThemeChange={changeTheme}
           onAbout={() => setAboutOpen(true)}
           onDisclaimer={() => setDisclaimerOpen(true)}
+          onPrivacy={() => setPrivacyOpen(true)}
           aboutRef={aboutRef}
           disclaimerRef={disclaimerRef}
+          privacyRef={privacyRef}
         />
       ) : (
       <>
@@ -839,14 +922,17 @@ function App() {
         <AppFooter
           onAbout={() => setAboutOpen(true)}
           onDisclaimer={() => setDisclaimerOpen(true)}
+          onPrivacy={() => setPrivacyOpen(true)}
           aboutRef={aboutRef}
           disclaimerRef={disclaimerRef}
+          privacyRef={privacyRef}
         />
       </div>
       </>
       )}
       {aboutOpen && <AboutDialog onClose={closeAbout} />}
       {disclaimerOpen && <DisclaimerDialog onClose={closeDisclaimer} />}
+      {privacyOpen && <PrivacyDialog onClose={closePrivacy} />}
     </>
   );
 }
