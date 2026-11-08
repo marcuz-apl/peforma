@@ -6,6 +6,8 @@ Line and point exchange is specified in [Peforma Lines/Points](PRD_LINES_POINTS.
 
 The app ships an in-app Docs page (`#docs`, linked from the header beside the theme toggle) that documents every live tool in detail: grid header records, node storage order, null conventions, line and point geometry rules, and exact unit factors. It is written and updated alongside each feature so the format knowledge gathered during implementation stays available to users, and it replaces the former per-tool header help link.
 
+The bare root (`/`, also `#home`) presents a Peforma family landing page — Hero, Services, and Contact with an embedded Calgary map — that links into the live tools at `#converter` (grid), `#lines`, `#units`, and `#docs`; the converters themselves are unchanged and still process files locally in the browser.
+
 ## Problem
 Geoscientists exchange depth and time grids — 2D map surfaces such as horizons — between interpretation applications. Petrel can export EarthVision ASCII grids, while receiving tools such as Kingdom may not import that format directly. Manual reformatting is error-prone and risks changing geometry or values.
 

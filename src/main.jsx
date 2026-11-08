@@ -1,12 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, BookOpen, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, Mail, Menu, Moon, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, Sun, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, BookOpen, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, Menu, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
 import VERSION from '../VERSION?raw';
 import UnitConverter from './UnitConverter.jsx';
 import LinePoints from './LinePoints.jsx';
 import Docs from './Docs.jsx';
+import Landing from './Landing.jsx';
+import { Wordmark, ThemeToggle, AppFooter } from './chrome.jsx';
 import { applyTheme, readThemePreference, resolveTheme, THEME_KEY } from './theme.js';
 import './style.css';
+// Loaded after style.css so landing paddings win ties against shared .shell rules.
+import './landing.css';
 
 const FORMATS = {
   cps3: 'CPS-3 grid (ASCII)', earthvision: 'EarthVision grid (ASCII)', irap: 'IRAP Classic grid (ASCII)', zmap: 'ZMAP+ grid (ASCII)'
@@ -481,66 +485,11 @@ function SuiteRail({ collapsed, onToggle, open, onClose, onNavigate, route }) {
   );
 }
 
-// Renders the family wordmark with the O replaced by a red oil drop. The lettering
-// is split around the drop so the SVG can scale with whatever font size wraps it.
-function Wordmark({ label, className = '' }) {
-  return (
-    <span
-      className={`wordmark${className ? ` ${className}` : ''}`}
-      {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' })}
-    >
-      <span aria-hidden="true">pef</span>
-      <span className="wordmark-drop" aria-hidden="true">
-        <svg viewBox="0 0 22 26" focusable="false">
-          <path d="M11 1C11 1 2 10.6 2 16.1a9 9 0 0 0 18 0C20 10.6 11 1 11 1Z" />
-          <ellipse cx="7.7" cy="16.2" rx="1.7" ry="2.4" />
-        </svg>
-      </span>
-      <span aria-hidden="true">rma</span>
-    </span>
-  );
-}
-
-// Auto is shown as a disc split into white and black halves, so the button reads
-// as "both themes" without a text label.
-function AutoThemeIcon() {
-  return (
-    <svg className="auto-theme-icon" width="17" height="17" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <circle cx="10" cy="10" r="7.1" fill="#ffffff" />
-      <path d="M10 2.9a7.1 7.1 0 0 1 0 14.2Z" fill="#000000" />
-      <circle cx="10" cy="10" r="7.1" fill="none" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M10 2.9v14.2" stroke="currentColor" strokeWidth="1.6" />
-    </svg>
-  );
-}
-
-const NEXT_THEME = { auto: 'light', light: 'dark', dark: 'auto' };
-
-function ThemeToggle({ preference, resolved, onChange }) {
-  const next = NEXT_THEME[preference] || 'light';
-  const description = preference === 'auto'
-    ? `Theme: auto, ${resolved} now. Activate for light.`
-    : `Theme: ${preference}. Activate for ${next}.`;
-  const Icon = preference === 'light' ? Sun : preference === 'dark' ? Moon : AutoThemeIcon;
-  return (
-    <button
-      type="button"
-      className="theme-trigger"
-      aria-label={description}
-      title={description}
-      onClick={() => onChange(next)}
-    >
-      <Icon size={17} aria-hidden="true" />
-    </button>
-  );
-}
-
 function SiteHeader({ drawerOpen, onOpen, menuRef, route, themePref, resolvedTheme, onThemeChange }) {
-  const tool = route === 'units' ? 'Units' : route === 'lines' ? 'Lines/Points' : route === 'docs' ? 'Docs' : 'Grid/2D-Map';
   return (
     <header className="site-header">
       <div className="topbar shell">
-        <a className="brand" href={`#${route}`} aria-label={`Peforma ${tool} home`}>
+        <a className="brand" href="#home" aria-label="Peforma home">
           <span className="brand-icon"><Layers3 size={24} aria-hidden="true" /></span>
           <span className="brand-text">
             <Wordmark />
@@ -566,40 +515,6 @@ function SiteHeader({ drawerOpen, onOpen, menuRef, route, themePref, resolvedThe
         </div>
       </div>
     </header>
-  );
-}
-
-function AppFooter({ onAbout, onDisclaimer, aboutRef, disclaimerRef }) {
-  return (
-    <footer className="site-footer">
-      <div className="footer-legal">
-        <div className="footer-legal-links">
-          <button ref={aboutRef} type="button" onClick={onAbout}>About</button>
-          <button ref={disclaimerRef} type="button" onClick={onDisclaimer}>Disclaimer</button>
-        </div>
-        <div className="footer-legal-copy">© 2026 Peforma, an Alfazen product. All rights reserved.</div>
-        <div className="footer-social">
-          <a href="https://www.alfazen.org" target="_blank" rel="noreferrer" aria-label="Peforma on the web">
-            <Globe2 size={16} aria-hidden="true" />
-          </a>
-          <a href="mailto:info@alfazen.org" aria-label="Email Alfazen">
-            <Mail size={16} aria-hidden="true" />
-          </a>
-          <a href="https://www.linkedin.com/in/marcuszou" target="_blank" rel="noreferrer" aria-label="Alfazen on LinkedIn">
-            <LinkedinIcon size={16} />
-          </a>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-// lucide-react has no brand icon, so LinkedIn is a self-drawn monochrome mark.
-function LinkedinIcon({ size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-      <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S.02 4.88.02 3.5 1.13 1 2.5 1s2.48 1.12 2.48 2.5ZM.5 8h4V24h-4V8Zm7.5 0h3.8v2.18h.05c.53-.99 1.83-2.05 3.75-2.05 4 0 4.75 2.63 4.75 6.04V24h-4v-8.5c0-2.03-.04-4.63-2.82-4.63-2.82 0-3.25 2.2-3.25 4.47V24H8V8Z" />
-    </svg>
   );
 }
 
@@ -725,18 +640,24 @@ function DisclaimerDialog({ onClose }) {
   );
 }
 
+// The bare origin and any landing anchor (#home, #top, #services, #contact) resolve
+// to the marketing page; tool hashes resolve to their converter. Landing anchors
+// keep route === 'home' so native anchor scrolling is not interrupted.
+function routeFromHash(hash) {
+  if (hash === '#units') return 'units';
+  if (hash === '#lines') return 'lines';
+  if (hash === '#docs') return 'docs';
+  if (hash === '#converter' || hash === '#grid') return 'grid';
+  return 'home';
+}
+
 function App() {
   const { grid, error, source, format, setFormat, input, load, download, reset } = useGridFile();
   const [drag, setDrag] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [disclaimerOpen, setDisclaimerOpen] = useState(false);
-  const [route, setRoute] = useState(() => {
-    if (window.location.hash === '#units') return 'units';
-    if (window.location.hash === '#lines') return 'lines';
-    if (window.location.hash === '#docs') return 'docs';
-    return 'grid';
-  });
+  const [route, setRoute] = useState(() => routeFromHash(window.location.hash));
   const [themePref, setThemePref] = useState(readThemePreference);
   const [resolvedTheme, setResolvedTheme] = useState(() => resolveTheme(readThemePreference()));
   const [railCollapsed, setRailCollapsed] = useState(() => {
@@ -776,24 +697,21 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const onHash = () => {
-      if (window.location.hash === '#units') setRoute('units');
-      else if (window.location.hash === '#lines') setRoute('lines');
-      else if (window.location.hash === '#docs') setRoute('docs');
-      else setRoute('grid');
-    };
+    const onHash = () => setRoute(routeFromHash(window.location.hash));
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
   useEffect(() => {
-    document.title = route === 'units'
-      ? 'Peforma Units — Engineering Unit Converter'
-      : route === 'lines'
-        ? 'Peforma Lines/Points — Line & Point Converter'
-        : route === 'docs'
-          ? 'Peforma Docs — Format Reference & Guides'
-          : 'Peforma Grid/2D-Map — Subsurface Grid Converter';
+    document.title = route === 'home'
+      ? 'Peforma — Subsurface Data Exchange Toolbox'
+      : route === 'units'
+        ? 'Peforma Units — Engineering Unit Converter'
+        : route === 'lines'
+          ? 'Peforma Lines/Points — Line & Point Converter'
+          : route === 'docs'
+            ? 'Peforma Docs — Format Reference & Guides'
+            : 'Peforma Grid/2D-Map — Subsurface Grid Converter';
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [route]);
 
@@ -835,7 +753,19 @@ function App() {
 
   return (
     <>
-      <a className="skip-link" href={`#${route}`}>{route === 'docs' ? 'Skip to documentation' : 'Skip to converter'}</a>
+      <a className="skip-link" href={route === 'home' ? '#main' : `#${route}`}>{route === 'home' ? 'Skip to content' : route === 'docs' ? 'Skip to documentation' : 'Skip to converter'}</a>
+      {route === 'home' ? (
+        <Landing
+          themePref={themePref}
+          resolvedTheme={resolvedTheme}
+          onThemeChange={changeTheme}
+          onAbout={() => setAboutOpen(true)}
+          onDisclaimer={() => setDisclaimerOpen(true)}
+          aboutRef={aboutRef}
+          disclaimerRef={disclaimerRef}
+        />
+      ) : (
+      <>
       <SiteHeader
         drawerOpen={drawerOpen}
         onOpen={() => setDrawerOpen(true)}
@@ -913,6 +843,8 @@ function App() {
           disclaimerRef={disclaimerRef}
         />
       </div>
+      </>
+      )}
       {aboutOpen && <AboutDialog onClose={closeAbout} />}
       {disclaimerOpen && <DisclaimerDialog onClose={closeDisclaimer} />}
     </>

@@ -29,3 +29,6 @@ examples/
 
 # Converted output
 converted/
+
+# Raw generated imagery (curated copies live in src/assets)
+vibe_images/
