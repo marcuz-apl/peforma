@@ -4,6 +4,8 @@ Peforma is the broader product family for oil-sector data exchange. Peforma Grid
 
 Line and point exchange is specified in [Peforma Lines/Points](PRD_LINES_POINTS.md); its tier-1 open formats are implemented in the app. 2D and 3D seismic exchange is specified in [Peforma Seismic](PRD_SEISMIC.md), polygon and boundary exchange in [Peforma Polygons](PRD_POLYGONS.md), and 3D mesh and geobody exchange in [Peforma 3D](PRD_3D.md). Seismic, polygon, and 3D remain planned products and do not affect the grid scope below.
 
+The app ships an in-app Docs page (`#docs`, linked from the header beside the theme toggle) that documents every live tool in detail: grid header records, node storage order, null conventions, line and point geometry rules, and exact unit factors. It is written and updated alongside each feature so the format knowledge gathered during implementation stays available to users, and it replaces the former per-tool header help link.
+
 ## Problem
 Geoscientists exchange depth grids between interpretation applications. Petrel can export EarthVision ASCII grids, while receiving tools such as Kingdom may not import that format directly. Manual reformatting is error-prone and risks changing geometry or values.
 
