@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe2, Mail, Moon, Sun } from 'lucide-react';
+import { Globe, Mail, Moon, Sun } from 'lucide-react';
 
 // Shared site chrome used by both the app shell and the landing page so the
 // wordmark, theme control, and footer stay identical across every route.
@@ -79,7 +79,7 @@ export function AppFooter({ onAbout, onDisclaimer, onPrivacy, aboutRef, disclaim
         <div className="footer-legal-copy">© 2026 Peforma, an Alfazen product. All rights reserved.</div>
         <div className="footer-social">
           <a href="https://www.alfazen.org" target="_blank" rel="noreferrer" aria-label="Peforma on the web">
-            <Globe2 size={16} aria-hidden="true" />
+            <Globe size={16} aria-hidden="true" />
           </a>
           <a href="mailto:info@alfazen.org" aria-label="Email Alfazen">
             <Mail size={16} aria-hidden="true" />
