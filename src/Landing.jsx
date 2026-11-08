@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Accessibility, ArrowRight, ArrowUpRight, AudioWaveform, BookOpen, Box, Check, ChevronDown,
-  Copy, Crosshair, ExternalLink, Globe2, Grid3x3, Layers3, Lock, Mail, MapPin, Menu, Minus,
+  Accessibility, ArrowRight, ArrowUpRight, AudioWaveform, Box, Check, ChevronDown,
+  Copy, Crosshair, Globe2, Grid3x3, Layers3, Lock, Mail, MapPin, Menu, Minus,
   Pentagon, Plus, Ruler, ScanSearch, Send, ShieldCheck, Waypoints, X,
 } from 'lucide-react';
 import L from 'leaflet';
@@ -74,14 +74,6 @@ const MORPH_PAIRS = [
   ['CPS-3', 'EarthVision'],
 ];
 
-// lucide-react dropped brand glyphs, so GitHub is a self-drawn monochrome mark.
-function GithubIcon({ size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-      <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88 1.54-3.88 1.54-.52 1.33-1.28 1.68-1.28 1.68-1.05.72.08.71.08.71 1.16-.08 1.77-1.19 1.77-1.19 1.03-1.77 2.7-1.26 3.36-.96.1.75.4 1.26.73 1.55 2.55-.29 5.23-1.28 5.23-5.7 0-1.26-.45-2.29-1.19-3.1.12-.29.52-1.46-.11-3.05 0 0-.97-.31-3.18 1.18a11.1 11.1 0 0 0-5.8 0C7.28 5.5 6.31 5.81 6.31 5.81c-.63 1.59-.23 2.76-.11 3.05-.74.81-1.19 1.84-1.19 3.1 0 4.41 2.68 5.42 5.22 5.71-.33.28-.62.78-.72 1.51-.65.29-2.3.79-3.31-.94 0 0-.6-1.09-1.74-1.17 0 0-1.11-.02-.08.69 0 0 .74.35 1.25 1.65 0 0 .66 2.02 3.78 1.34.01.92.02 1.79.02 2.03 0 .31.21.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
-    </svg>
-  );
-}
 
 function LandingNav({ themePref, resolvedTheme, onThemeChange, scrolled, active, menuOpen, setMenuOpen }) {
   const close = () => setMenuOpen(false);
@@ -353,12 +345,6 @@ function CalgaryMap() {
         <button type="button" onClick={recenter} aria-label="Recenter map on Calgary"><Crosshair size={16} aria-hidden="true" /></button>
         <span className="lp-map-level" aria-hidden="true">z{zoom}</span>
       </div>
-      <div className="lp-map-caption">
-        <span><MapPin size={14} aria-hidden="true" /> Calgary · {CALGARY.lat.toFixed(4)}° N, {Math.abs(CALGARY.lng).toFixed(4)}° W</span>
-        <a href={`https://www.openstreetmap.org/?mlat=${CALGARY.lat}&mlon=${CALGARY.lng}#map=12/${CALGARY.lat}/${CALGARY.lng}`} target="_blank" rel="noreferrer">
-          Open in OpenStreetMap <ExternalLink size={13} aria-hidden="true" />
-        </a>
-      </div>
     </div>
   );
 }
@@ -513,12 +499,6 @@ function Contact() {
               </div>
             </div>
             <ContactForm />
-            <div className="lp-contact-actions">
-              <a className="lp-ghost lp-contact-docs" href="#docs"><BookOpen size={15} aria-hidden="true" /> Read the format reference</a>
-              <a className="lp-contact-gh" href="https://github.com/marcuz-apl/peforma" target="_blank" rel="noreferrer" aria-label="Peforma on GitHub">
-                <GithubIcon size={17} />
-              </a>
-            </div>
           </div>
           <CalgaryMap />
         </div>

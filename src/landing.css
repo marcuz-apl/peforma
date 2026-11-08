@@ -569,30 +569,6 @@ body:has(.landing)::-webkit-scrollbar-thumb:hover { background: var(--scroll-thu
 }
 .lp-contact-org b { display: block; color: var(--ink); font: 700 17px 'DM Sans', sans-serif; }
 .lp-contact-org span:not(.lp-contact-pin) { color: var(--muted); font-size: 13px; }
-.lp-contact-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: auto;
-  padding-top: 16px;
-}
-.lp-contact-docs { border-color: var(--line); background: var(--surface-muted); color: var(--ink-soft); }
-.lp-contact-docs:hover { background: var(--rail-hover); border-color: var(--chip-line-hover); }
-.lp-contact-docs svg { color: var(--icon-accent); }
-.lp-contact-gh {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--surface-muted);
-  color: var(--ink-soft);
-  transition: background .15s, border-color .15s, color .15s;
-}
-.lp-contact-gh:hover { background: var(--rail-hover); border-color: var(--chip-line-hover); color: var(--ink); }
 
 /* Contact form */
 .lp-form { display: flex; flex-direction: column; gap: 14px; }
@@ -724,29 +700,6 @@ body:not(.light) .lp-map-canvas .leaflet-tile-pane {
   font: 600 10.5px var(--font);
   letter-spacing: .4px;
 }
-.lp-map-caption {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 11px 15px;
-  border-top: 1px solid var(--line);
-  background: var(--surface-muted);
-  color: var(--muted);
-  font: 500 12.5px var(--font);
-}
-.lp-map-caption > span { display: inline-flex; align-items: center; gap: 7px; }
-.lp-map-caption > span svg { color: var(--icon-accent); }
-.lp-map-caption a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--link);
-  font-weight: 600;
-  text-decoration: none;
-}
-.lp-map-caption a:hover { text-decoration: underline; }
 
 .lp-closing {
   display: flex;
