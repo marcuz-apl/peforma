@@ -2,7 +2,7 @@
 
 Status: planned. This chapter defines the product and the intended format scope. No seismic converter is implemented yet, and nothing here should be read as a claim of current support.
 
-Peforma Seismic is the suite member for 2D seismic lines and 3D seismic cubes. Peforma Grid handles regularly sampled surfaces; Peforma Seismic handles the seismic traces, trace headers, and survey geometry that arrive with them. Polyline and point navigation belong to the separate Peforma Lines/Points tool; this chapter covers the data itself.
+Peforma Seismic is the suite member for 2D seismic lines and 3D seismic cubes. Peforma Grid/2D-Map handles regularly sampled surfaces; Peforma Seismic handles the seismic traces, trace headers, and survey geometry that arrive with them. Polyline and point navigation belong to the separate Peforma Lines/Points tool; this chapter covers the data itself.
 
 ## Problem
 

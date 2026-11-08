@@ -2,7 +2,7 @@
 
 Status: planned. This chapter defines the product and the intended format scope. No 3D converter is implemented yet, and nothing here should be read as a claim of current support.
 
-Peforma 3D is the suite member for triangular surface meshes and closed solid "geobodies". Peforma Grid handles regularly sampled surfaces; Peforma Polygons handles closed planar rings; Peforma 3D handles the tessellated objects that come from 3D geological modeling workflows: horizon and fault surfaces, faceted geobody boundaries, and the STL/OBJ/PLY/COLLADA files that interpretation and 3D-print tools exchange. Geobody-specific semantics (stratigraphic ordering, facies, fault separation) are carried as attributes, not as a separate data model.
+Peforma 3D is the suite member for triangular surface meshes and closed solid "geobodies". Peforma Grid/2D-Map handles regularly sampled surfaces; Peforma Polygons handles closed planar rings; Peforma 3D handles the tessellated objects that come from 3D geological modeling workflows: horizon and fault surfaces, faceted geobody boundaries, and the STL/OBJ/PLY/COLLADA files that interpretation and 3D-print tools exchange. Geobody-specific semantics (stratigraphic ordering, facies, fault separation) are carried as attributes, not as a separate data model.
 
 ## Problem
 

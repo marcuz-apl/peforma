@@ -1,19 +1,19 @@
-# Peforma Grid — Product Requirements
+# Peforma Grid/2D-Map — Product Requirements
 
-Peforma is the broader product family for oil-sector data exchange. Peforma Grid is its first tool; future capabilities may cover wells, seismic, contours, and other data types. Keep this PRD scoped to grid conversion.
+Peforma is the broader product family for oil-sector data exchange. Peforma Grid/2D-Map is its first tool; future capabilities may cover wells, seismic, contours, and other data types. Keep this PRD scoped to grid conversion.
 
 Line and point exchange is specified in [Peforma Lines/Points](PRD_LINES_POINTS.md); its tier-1 open formats are implemented in the app. 2D and 3D seismic exchange is specified in [Peforma Seismic](PRD_SEISMIC.md), polygon and boundary exchange in [Peforma Polygons](PRD_POLYGONS.md), and 3D mesh and geobody exchange in [Peforma 3D](PRD_3D.md). Seismic, polygon, and 3D remain planned products and do not affect the grid scope below.
 
 The app ships an in-app Docs page (`#docs`, linked from the header beside the theme toggle) that documents every live tool in detail: grid header records, node storage order, null conventions, line and point geometry rules, and exact unit factors. It is written and updated alongside each feature so the format knowledge gathered during implementation stays available to users, and it replaces the former per-tool header help link.
 
 ## Problem
-Geoscientists exchange depth grids between interpretation applications. Petrel can export EarthVision ASCII grids, while receiving tools such as Kingdom may not import that format directly. Manual reformatting is error-prone and risks changing geometry or values.
+Geoscientists exchange depth and time grids — 2D map surfaces such as horizons — between interpretation applications. Petrel can export EarthVision ASCII grids, while receiving tools such as Kingdom may not import that format directly. Manual reformatting is error-prone and risks changing geometry or values.
 
 ## Goal
-Provide a small, easy-to-use browser application that converts supported EarthVision ASCII depth grids into interoperable ASCII grid formats.
+Provide a small, easy-to-use browser application that converts supported EarthVision ASCII depth or time grids into interoperable ASCII grid formats.
 
 ## Users
-Oil and gas geoscientists who need to move regularly sampled depth surfaces between interpretation applications.
+Oil and gas geoscientists who need to move regularly sampled surfaces — horizons in depth or time — between interpretation applications.
 
 ## MVP
 - Accept an EarthVision ASCII grid selected by file picker or drag and drop.

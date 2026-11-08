@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The files under `examples/` are the same depth grid saved in five formats: CPS-3 ASCII, ZMAP+ ASCII, IRAP Classic ASCII, EarthVision ASCII and Shapefile. Comparing them node by node established the real header meaning, storage order and null convention for each format. This note records those findings, the defects they exposed and the checks used to confirm the fixes.
+The files under `examples/` are the same reference grid saved in five formats: CPS-3 ASCII, ZMAP+ ASCII, IRAP Classic ASCII, EarthVision ASCII and Shapefile. Comparing them node by node established the real header meaning, storage order and null convention for each format. This note records those findings, the defects they exposed and the checks used to confirm the fixes.
 
 ## Reference geometry
 
@@ -36,7 +36,7 @@ fileIndex = r * nx + c
 
 EarthVision scatters the same nodes but carries explicit 1-based column and row indices, so no order needs to be inferred.
 
-Peforma Grid stores grids internally in the IRAP/EarthVision order: row-major from `ymin`. CPS-3 and ZMAP+ are reordered on import and reordered again on export.
+Peforma Grid/2D-Map stores grids internally in the IRAP/EarthVision order: row-major from `ymin`. CPS-3 and ZMAP+ are reordered on import and reordered again on export.
 
 ## Format details
 
@@ -56,7 +56,7 @@ Peforma Grid stores grids internally in the IRAP/EarthVision order: row-major fr
 - The null control record is `<width>, <null>, <blank>, <decimals>, <flag>`. The example is `15, 0.1000000E+31, , 7, 1`.
 - The null marker in the control record and in the data is `0.1000000E+31`, which is 1e30.
 - Node values follow the closing `@` in the same column-major north-west to south order as CPS-3.
-- Some writers declare columns first. Peforma Grid resolves the orientation by matching the coordinate spans to the declared increments, and falls back to the declared order only when the increments are missing or zero. This keeps both header conventions readable without guessing from file names.
+- Some writers declare columns first. Peforma Grid/2D-Map resolves the orientation by matching the coordinate spans to the declared increments, and falls back to the declared order only when the increments are missing or zero. This keeps both header conventions readable without guessing from file names.
 
 ### IRAP Classic ASCII
 
@@ -73,13 +73,13 @@ Peforma Grid stores grids internally in the IRAP/EarthVision order: row-major fr
 - `Grid_size: <columns> x <rows>` gives columns then rows; the example is `152 x 252`.
 - Each node record is `x y z column row` with 1-based column and row indices.
 - Null nodes are omitted rather than written with a sentinel.
-- Peforma Grid restores the regular grid from the explicit indices and fills missing nodes with an internal null value.
+- Peforma Grid/2D-Map restores the regular grid from the explicit indices and fills missing nodes with an internal null value.
 
 ### Shapefile
 
 - The example is a `.shp`, `.shx`, `.dbf` and `.prj` bundle in ED50 / UTM zone 34N.
 - It contains boundary geometry, not grid node values.
-- Turning the boundary into a depth grid would require an interpolation method and cell size, so the app inspects shapefiles but does not convert them.
+- Turning the boundary into a regular grid would require an interpolation method and cell size, so the app inspects shapefiles but does not convert them.
 
 ## Defects this study exposed
 

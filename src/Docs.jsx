@@ -236,23 +236,23 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute — and without ever sending your data to a server.</p>
-            <p>Three tools are live today. <b>Peforma Grid</b> converts regular depth grids between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII, and inspects shapefiles. <b>Peforma Lines/Points</b> converts open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Units</b> converts ten engineering categories with exact factors. Polygons, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Three tools are live today. <b>Peforma Grid/2D-Map</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII, and inspects shapefiles. <b>Peforma Lines/Points</b> converts open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Units</b> converts ten engineering categories with exact factors. Polygons, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser. Source files never leave this device, and there is no telemetry.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
               <div className="principle"><span className="principle-icon"><FileText size={18} aria-hidden="true" /></span><b>Assumptions stated</b><p>Every format's header meaning, storage order, and null marker is documented here and surfaced in the tool itself.</p></div>
             </div>
             <Callout tone="info" title="How to read this reference">
-              <p>Each format section lists the real header records, the node traversal order, the null convention, and exactly what Peforma does on import and export. The bundled examples under <code className="inline-code">examples/</code> are the same depth grid saved in every format, so the rules below are measured, not assumed.</p>
+              <p>Each format section lists the real header records, the node traversal order, the null convention, and exactly what Peforma does on import and export. The bundled examples under <code className="inline-code">examples/</code> are the same reference grid saved in every format, so the rules below are measured, not assumed.</p>
             </Callout>
           </section>
 
           <section className="docs-section" id="grid-formats">
             <div className="section-head">
               <span className="section-glyph"><Grid3x3 size={20} aria-hidden="true" /></span>
-              <div><h2>Grid formats</h2><p className="section-sub">Regular depth grids · Peforma Grid</p></div>
+              <div><h2>Grid formats</h2><p className="section-sub">Depth &amp; time surfaces · Peforma Grid/2D-Map</p></div>
             </div>
-            <p>Peforma Grid reads four ASCII grid dialects and writes the same four. Internally every grid is stored once, in a single canonical order, and each exporter reorders from that model. This is why a CPS-3 file and an EarthVision file of the same surface produce identical node values after conversion.</p>
+            <p>Peforma Grid/2D-Map reads four ASCII grid dialects and writes the same four. Internally every grid is stored once, in a single canonical order, and each exporter reorders from that model. This is why a CPS-3 file and an EarthVision file of the same surface produce identical node values after conversion. The Z values may be depth, two-way time, or another sampled attribute; they are copied verbatim and never rescaled, so a time horizon converts exactly like a depth structure map.</p>
 
             <Table
               caption="The five grid inputs at a glance. Shapefile is inspection-only and is never offered as a grid output."
@@ -282,7 +282,7 @@ FSATTR 0 0
 FSLIMI 358413 365963 3142534 3155084 5899.32959 7601.849609
 FSNROW 252 152
 FSXINC 50 50
-->MSMODL: Converted depth grid
+->MSMODL: Converted grid
 … node values …`} />
               <ul className="doc-list">
                 <li><code className="inline-code">FSNROW &lt;rows&gt; &lt;columns&gt;</code> gives <b>rows then columns</b> — here <code className="inline-code">252 152</code>.</li>
@@ -351,8 +351,8 @@ FSXINC 50 50
             </Sub>
 
             <Sub id="grid-shapefile" title="Shapefile">
-              <p><FormatChip fmt="shapefile">Shapefile</FormatChip> is a bundle of <code className="inline-code">.shp</code>, <code className="inline-code">.shx</code>, <code className="inline-code">.dbf</code>, and <code className="inline-code">.prj</code> files. The bundled example is in ED50 / UTM zone 34N and contains <b>boundary geometry</b>, not regularly sampled depth nodes.</p>
-              <p>Peforma Grid inspects a shapefile — feature count, coordinate bounds, and the <code className="inline-code">.prj</code> projection — but does not convert it. Turning a boundary into a depth grid requires an interpolation method and a cell size, and no values will be invented to fill that gap.</p>
+              <p><FormatChip fmt="shapefile">Shapefile</FormatChip> is a bundle of <code className="inline-code">.shp</code>, <code className="inline-code">.shx</code>, <code className="inline-code">.dbf</code>, and <code className="inline-code">.prj</code> files. The bundled example is in ED50 / UTM zone 34N and contains <b>boundary geometry</b>, not regularly sampled grid nodes.</p>
+              <p>Peforma Grid/2D-Map inspects a shapefile — feature count, coordinate bounds, and the <code className="inline-code">.prj</code> projection — but does not convert it. Turning a boundary into a regular grid requires an interpolation method and a cell size, and no values will be invented to fill that gap.</p>
               <Callout tone="caution" title="Why shapefile is not a grid output">
                 <p>A polygon boundary carries no node values. Producing a grid from it is an interpolation decision that belongs to a gridding workflow, not a format conversion. Closed polygon topology is handled by the planned Peforma Polygons tool.</p>
               </Callout>
@@ -372,7 +372,7 @@ EarthVision    (explicit 1-based column / row indices):
             </Sub>
 
             <Sub id="grid-reference" title="The reference grid">
-              <p>The files under <code className="inline-code">examples/</code> are one depth grid saved in every format. Comparing them node by node established the rules above and confirmed the converters agree.</p>
+              <p>The files under <code className="inline-code">examples/</code> are one reference grid saved in every format. Comparing them node by node established the rules above and confirmed the converters agree.</p>
               <Table
                 caption="Reference geometry shared by all bundled grid examples."
                 head={['Property', 'Value']}

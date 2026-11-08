@@ -16,7 +16,7 @@ const NULLS = { cps3: 1e30, irap: 9999900, zmap: 1e30, earthvision: 1e31 };
 // Product-family navigation. Only the grid suite is live; the rest are labelled
 // placeholders so the rail never offers a link that does nothing.
 const SUITES = [
-  { key: 'grid', name: 'Peforma Grid', tool: 'Grid converter', href: '#converter', icon: Grid3x3, live: true },
+  { key: 'grid', name: 'Peforma Grid/2D-Map', tool: 'Grid & 2D-map converter', href: '#converter', icon: Grid3x3, live: true },
   { key: 'lines', name: 'Peforma Lines/Points', tool: 'Line & point converter', href: '#lines', icon: Waypoints, live: true },
   { key: 'polygons', name: 'Peforma Polygons', icon: Pentagon },
   { key: '3d', name: 'Peforma 3D', icon: Box },
@@ -210,7 +210,7 @@ function exportGrid(g, fmt) {
   if (fmt === 'zmap') {
     // Matches the ZIMS/Kingdom layout: rows then columns, real increments after the
     // rotation, and nodes ordered column by column from the north-west corner.
-    return `! Peforma Grid ZMAP+ ASCII
+    return `! Peforma Grid/2D-Map ZMAP+ ASCII
 ! Converted with Peforma toolbox of Alfazen Inc.
 @GRID FILE, GRID, 10
 15, 0.1000000E+31, , 7, 1
@@ -236,20 +236,20 @@ FSATTR 0 0
 FSLIMI ${g.xmin} ${g.xmax} ${g.ymin} ${g.ymax} ${range.min} ${range.max}
 FSNROW ${ny} ${nx}
 FSXINC ${g.dx} ${g.dy}
-->MSMODL: Converted depth grid
+->MSMODL: Converted grid
 ${formatFlat(toColumnMajor(values, nx, ny), g.nodata, '0.1E+31', nx)}
 ! Converted with Peforma toolbox of Alfazen Inc.
 `;
   }
   if (fmt === 'earthvision') {
-    const out = [`# Type: scattered data`, `# Version: 6`, `# Description: Converted by Peforma Grid\n# Converted with Peforma toolbox of Alfazen Inc.`, `# Format: free`, `# Field: 1 x`, `# Field: 2 y`, `# Field: 3 z ${g.units || 'unknown'}`, `# Field: 4 column`, `# Field: 5 row`, `# Projection: ${g.projection || 'Unknown'}`, `# Units: Unknown`, `# End:`, `# Information from grid:`, `# Grid_size: ${nx} x ${ny}`, `# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`, `# Z_units: ${g.units || 'unknown'}`];
+    const out = [`# Type: scattered data`, `# Version: 6`, `# Description: Converted by Peforma Grid/2D-Map\n# Converted with Peforma toolbox of Alfazen Inc.`, `# Format: free`, `# Field: 1 x`, `# Field: 2 y`, `# Field: 3 z ${g.units || 'unknown'}`, `# Field: 4 column`, `# Field: 5 row`, `# Projection: ${g.projection || 'Unknown'}`, `# Units: Unknown`, `# End:`, `# Information from grid:`, `# Grid_size: ${nx} x ${ny}`, `# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`, `# Z_units: ${g.units || 'unknown'}`];
     for (let r = 0; r < ny; r++) for (let c = 0; c < nx; c++) {
       const v = values[r * nx + c];
       if (v !== g.nodata) out.push(`${(g.xmin + c * g.dx).toFixed(6)} ${(g.ymin + r * g.dy).toFixed(6)} ${Number(v).toPrecision(10)} ${c + 1} ${r + 1}`);
     }
     return out.join('\n') + '\n';
   }
-  throw Error('Shapefile is supported as a source for inspection. Converting its polygon boundary into a depth grid requires an interpolation choice; no values will be invented.');
+  throw Error('Shapefile is supported as a source for inspection. Converting its polygon boundary into a regular grid requires an interpolation choice; no values will be invented.');
 }
 async function parseShapefile(files){const needed=['.shp','.shx','.dbf','.prj'], byExt={};for(const f of files){const ext='.'+f.name.split('.').at(-1).toLowerCase();byExt[ext]=f;}const missing=needed.filter(x=>!byExt[x]);if(missing.length)throw Error(`Shapefile needs all sidecars together. Missing: ${missing.join(', ')}.`);const base=byExt['.shp'].name.replace(/\.shp$/i,'');const bundle={};for(const ext of needed)bundle[base+ext]=await byExt[ext].arrayBuffer();const fc=await shp(bundle),features=fc.features||[];if(!features.length)throw Error('No features found in this shapefile.');const bounds=[Infinity,Infinity,-Infinity,-Infinity];let withGeometry=0;for(const f of features){const coords=f?.geometry?.coordinates;if(!Array.isArray(coords))continue;const before=bounds[0];const walk=c=>{if(!Array.isArray(c))return;if(typeof c[0]==='number'){if(!Number.isFinite(c[0])||!Number.isFinite(c[1]))return;bounds[0]=Math.min(bounds[0],c[0]);bounds[1]=Math.min(bounds[1],c[1]);bounds[2]=Math.max(bounds[2],c[0]);bounds[3]=Math.max(bounds[3],c[1]);}else c.forEach(walk);};walk(coords);if(bounds[0]!==before||Number.isFinite(bounds[2]))withGeometry++;}if(!withGeometry||!Number.isFinite(bounds[0])||!Number.isFinite(bounds[2]))throw Error('No usable geometry found in this shapefile. Features are missing coordinates, so coordinate bounds cannot be determined.');return {kind:'shapefile',count:features.length,bounds,features,name:base,projection:await byExt['.prj'].text()};}
 function useGridFile() {
@@ -392,9 +392,9 @@ function ShapeSummary({ shape }) {
         <div><small>X RANGE</small><b>{shape.bounds[0].toFixed(2)} — {shape.bounds[2].toFixed(2)}</b><span>Coordinate bounds</span></div>
         <div><small>Y RANGE</small><b>{shape.bounds[1].toFixed(2)} — {shape.bounds[3].toFixed(2)}</b><span>Coordinate bounds</span></div>
         <div><small>CRS</small><b>Included</b><span>.prj sidecar read</span></div>
-        <div><small>TYPE</small><b>Boundary</b><span>No depth node values</span></div>
+        <div><small>TYPE</small><b>Boundary</b><span>No grid node values</span></div>
       </div>
-      <div className="error"><Info size={17} /><span>This shapefile contains boundary geometry, not grid node values. It can be inspected here, but converting it to a depth grid would require interpolation.</span></div>
+      <div className="error"><Info size={17} /><span>This shapefile contains boundary geometry, not grid node values. It can be inspected here, but converting it to a regular grid would require interpolation.</span></div>
     </div>
   );
 }
@@ -571,7 +571,7 @@ function ThemeToggle({ preference, resolved, onChange }) {
 }
 
 function SiteHeader({ drawerOpen, onOpen, menuRef, route, themePref, resolvedTheme, onThemeChange }) {
-  const tool = route === 'units' ? 'Units' : route === 'lines' ? 'Lines/Points' : route === 'docs' ? 'Docs' : 'Grid';
+  const tool = route === 'units' ? 'Units' : route === 'lines' ? 'Lines/Points' : route === 'docs' ? 'Docs' : 'Grid/2D-Map';
   return (
     <header className="site-header">
       <div className="topbar shell">
@@ -836,7 +836,7 @@ function App() {
         ? 'Peforma Lines/Points — Line & Point Converter'
         : route === 'docs'
           ? 'Peforma Docs — Format Reference & Guides'
-          : 'Peforma Grid — Subsurface Grid Converter';
+          : 'Peforma Grid/2D-Map — Subsurface Grid Converter';
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [route]);
 
@@ -930,9 +930,9 @@ function App() {
             ) : (
               <>
                 <section className="content-head">
-                  <div className="eyebrow"><span /> PEFORMA / GRID</div>
+                  <div className="eyebrow"><span /> PEFORMA / GRID-2D-MAP</div>
                   <h1>Move your grids.<br /><em>Keep your data.</em></h1>
-                  <p>Convert between five subsurface grid formats. Local processing, no uploads.</p>
+                  <p>Convert depth or time grid surfaces between five subsurface formats. Local processing, no uploads.</p>
                 </section>
                 <section className="workspace">
                   <UploadPanel grid={grid} shape={shape} error={error} source={source} drag={drag} setDrag={setDrag} input={input} load={load} reset={reset} />

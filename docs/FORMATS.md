@@ -8,13 +8,13 @@ ASCII grids are identified from their contents, never from the file extension. A
 
 The one exception is the shapefile, which is recognised by its `.shp` extension because its `.shx`, `.dbf` and `.prj` sidecars must be bundled with it.
 
-The files under `examples/` are the same 152 by 252 depth grid saved in each format. They are the reference set for parser and exporter checks: CPS-3 and ZMAP+ must produce the same node values as IRAP Classic and EarthVision. The measured ordering, null conventions and verification results are recorded in [the format study](FORMAT_STUDY.md).
+The files under `examples/` are the same 152 by 252 reference grid saved in each format. They are the reference set for parser and exporter checks: CPS-3 and ZMAP+ must produce the same node values as IRAP Classic and EarthVision. The measured ordering, null conventions and verification results are recorded in [the format study](FORMAT_STUDY.md).
 
 EarthVision `Field:` records may carry a unit suffix (for example `# Field: 3 z feet`); the field number and name are matched, and the suffix is ignored.
 
 ## EarthVision ASCII
 
-The provided Petrel-style export is version 6 scattered data. Its header includes `Grid_size: 152 x 252`, `Grid_space` bounds, and X/Y/Z/column/row fields. The node records carry 1-based column and row indices. Peforma Grid uses those indices to restore the regular grid without interpolating. `Z_units` is preserved as descriptive metadata; values are not rescaled.
+The provided Petrel-style export is version 6 scattered data. Its header includes `Grid_size: 152 x 252`, `Grid_space` bounds, and X/Y/Z/column/row fields. The node records carry 1-based column and row indices. Peforma Grid/2D-Map uses those indices to restore the regular grid without interpolating. `Z_units` is preserved as descriptive metadata; values are not rescaled.
 
 ## CPS-3 ASCII
 
@@ -30,7 +30,7 @@ The replacement example is a real ZMAP+ grid: an `@Grid HEADER, GRID, 5` record,
 
 ## Shapefile
 
-The example is a shapefile bundle (`.shp`, `.shx`, `.dbf`, `.prj`) with ED50 / UTM zone 34N projection. It describes boundary geometry rather than regularly sampled depth nodes. The app can inspect it, but it cannot safely turn the boundary into a depth grid without an explicit interpolation method and cell size.
+The example is a shapefile bundle (`.shp`, `.shx`, `.dbf`, `.prj`) with ED50 / UTM zone 34N projection. It describes boundary geometry rather than regularly sampled grid nodes. The app can inspect it, but it cannot safely turn the boundary into a regular grid without an explicit interpolation method and cell size.
 
 ## Interoperability caution
 
