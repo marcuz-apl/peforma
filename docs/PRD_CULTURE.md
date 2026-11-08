@@ -59,6 +59,7 @@ A polygon that arrives closed in one format may arrive open in another because t
 - Read and write Petrel-style ASCII point and line layouts as delimited text where the columns are unambiguous.
 - Read and write GOCAD ASCII polylines (`.pl`) and point sets (`.vs`).
 - Read and write GeoJSON `Point`, `MultiPoint`, `LineString`, and `MultiLineString` geometry with property preservation.
+- Read and write fault sticks as ordinary polylines: each stick is one ordered vertex path, and a fault name or ID is carried as an object attribute.
 - Show geometry counts, coordinate bounds, vertex totals, Z range, attribute names, CRS source, and a lightweight preview.
 - Preserve coordinate reference system metadata when present and label it as unknown when absent.
 - Process files locally in the browser, with no upload and no telemetry.
@@ -91,6 +92,7 @@ A polygon that arrives closed in one format may arrive open in another because t
 ### Out of scope for Culture
 
 - Vendor project databases and binary project files, including Petrel, OpenWorks, DecisionSpace, Kingdom, Petra, Roxar RMS, JewelSuite, GeoGraphix, and PaleoScan project stores.
+- Fault planes and other triangulated surfaces, which belong to Peforma 3D, and structural-framework fault pillars, which are reservoir-grid objects rather than exchange polylines.
 - Reading or writing seismic trace data. Seismic amplitudes belong to Peforma Seismic; Culture reads only navigation stored in SEG-Y headers, and that reader is planned.
 - Well log curves (LAS, DLIS, LIS) and petrophysical interpretation objects.
 - Topological operations: union, intersection, difference, buffer, dissolve, validity repair, self-intersection fixing, and area computation.

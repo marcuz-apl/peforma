@@ -418,6 +418,7 @@ EarthVision    (explicit 1-based column / row indices):
 358463,3142584,6018.10,FAULT_A
 358513,3142634,6025.77,FAULT_A`} />
               <p>Suggested columns come only from unambiguous labels: <code className="inline-code">x / lon / easting</code>, <code className="inline-code">y / lat / northing</code>, <code className="inline-code">z / elevation / depth / tvd / md</code>, and <code className="inline-code">name / id / line / well / fault</code>. Anything else stays unmatched so you decide.</p>
+              <p>A fault stick is an ordinary polyline. In line mode, consecutive rows that share a fault name form one stick, and the fault name travels as an attribute. A fault plane is a triangulated surface, not line data, so it belongs to Peforma 3D rather than this converter.</p>
               <Callout tone="info" title="Headerless files need an explicit mapping">
                 <p>Without a header there are no labels to suggest from, so you must assign the X and Y columns before the rows are treated as geometry. In line mode, consecutive rows are grouped into one polyline and a new line starts whenever the mapped Name column changes; a polyline needs at least two vertices.</p>
               </Callout>

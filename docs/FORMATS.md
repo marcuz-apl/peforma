@@ -36,7 +36,7 @@ Peforma Culture is the vector tool; its Lines/Points converter handles open line
 
 Vertex order, attribute values, the distinction between a missing and a zero Z coordinate, and CRS/units labels are preserved exactly as read. No reprojection or unit conversion is performed.
 
-A delimited file with a header has its column mapping pre-seeded from labels that clearly name each axis; a file without a header has anonymous columns, so the user must assign the X and Y columns explicitly before the rows are treated as geometry. In line mode, consecutive rows are grouped into one polyline, split whenever the mapped Name column changes.
+A delimited file with a header has its column mapping pre-seeded from labels that clearly name each axis; a file without a header has anonymous columns, so the user must assign the X and Y columns explicitly before the rows are treated as geometry. In line mode, consecutive rows are grouped into one polyline, split whenever the mapped Name column changes. Fault sticks are ordinary polylines: a fault name or ID column groups the vertices of one stick and is carried as an attribute. Fault planes are triangulated surfaces handled by Peforma 3D.
 
 Closed polygon geometry (GeoJSON Polygon/MultiPolygon and closed GOCAD curves) belongs to the Culture Polygon converter and is not offered as a Lines/Points case. The vendor fault-polygon dialects remain planned.
 

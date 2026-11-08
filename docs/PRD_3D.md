@@ -2,7 +2,7 @@
 
 Status: planned. This chapter defines the product and the intended format scope. No 3D converter is implemented yet, and nothing here should be read as a claim of current support.
 
-Peforma 3D is the suite member for triangular surface meshes and closed solid "geobodies". Peforma Grid handles regularly sampled surfaces; Peforma Culture handles points, polylines, and closed planar rings; Peforma 3D handles the tessellated objects that come from 3D geological modeling workflows: horizon and fault surfaces, faceted geobody boundaries, and the STL/OBJ/PLY/COLLADA files that interpretation and 3D-print tools exchange. Geobody-specific semantics (stratigraphic ordering, facies, fault separation) are carried as attributes, not as a separate data model.
+Peforma 3D is the suite member for triangular surface meshes and closed solid "geobodies". Peforma Grid handles regularly sampled surfaces; Peforma Culture handles points, open polylines, and closed planar rings — fault sticks, well trajectories, fault polygons, and prospect outlines; Peforma Seismic handles 2D seismic lines and 3D cubes; Peforma 3D handles the tessellated objects that come from 3D geological modeling workflows: horizon and fault surfaces, faceted geobody boundaries, salt bodies, and the STL/OBJ/PLY/COLLADA/GOCAD files that interpretation and 3D-print tools exchange. Seismic volumes are trace data, not mesh objects, and are never read here. Geobody- and fault-specific semantics (stratigraphic ordering, facies, fault separation) are carried as attributes, not as a separate data model.
 
 ## Problem
 
@@ -29,6 +29,7 @@ Oil and gas geoscientists, reservoir modelers, and 3D-print or visualization spe
 - Read and write Wavefront OBJ with `v`, `vn`, `f`, and `o`/`g` group records; preserve face indices, vertex normals, and group names.
 - Read and write PLY (ASCII and binary little-endian) with vertex position, optional vertex normal, and face connectivity.
 - Read GOCAD `TSurf` (`.ts`) triangle surfaces and `TSolid` (`.so`) tetrahedral cells as meshes.
+- Read triangular fault and horizon surfaces as meshes; fault identity is carried only by the group or object name and by attributes, not by a separate fault object.
 - Read COLLADA (`dae`) with one or more meshes, limited to the `triods` and `triangles` primitives.
 - Show mesh-level facts: vertex count, face count, whether the mesh is closed or open (detected by open edges), normal consistency, bounding box, and attribute group names.
 - Preserve vertex positions, face connectivity, group or object names, and normals where present.
@@ -39,6 +40,9 @@ Oil and gas geoscientists, reservoir modelers, and 3D-print or visualization spe
 ### Out of scope
 
 - Vendor project databases and binary project stores for Petrel, OpenWorks, Kingdom, Petra, Roxar RMS, JewelSuite, and GeoGraphix.
+- Seismic data: 2D lines, 3D cubes, SEG-Y, ZGY, trace headers, and survey geometry belong to Peforma Seismic. A seismic volume is not a mesh and is never read here.
+- Fault sticks, well trajectories, and other open polylines: Peforma Culture Lines/Points reads and writes these.
+- Fault pillars, structural frameworks, corner-point grids, and reservoir property arrays: grid-topology objects that no tessellation format carries.
 - Mesh repair: welding vertices, filling holes, decimating, smoothing, re-tessellating, or computing new normals.
 - Stratigraphic and facies re-assignment. Unit and facies labels that are present are carried through; labels that are not present are not inferred.
 - Solid modeling: no B-rep, no watertightness repair, no boolean operations.
@@ -63,6 +67,25 @@ Peforma 3D uses one internal model built from triangles and their groups.
 | Units | Model units | Carried as metadata; never converted |
 
 A mesh that arrives open in one format may arrive closed in another if the exporter added the boundary faces. The tool must not add or remove faces silently. The reader records the closure state it found, and the writer applies whatever the target format requires, stating that decision.
+
+## Object classification
+
+A fault appears as three different objects, and they are not interchangeable. A **fault stick** is a picked polyline — one open path of X, Y, Z vertices. A **fault plane** is the interpreted surface built through one or more sticks: a triangulated, usually open surface. A **fault pillar** is the grid skeleton a corner-point model is built on — paired pillars with split nodes that encode throw across the fault. Only the surface is a Peforma 3D object. The stick is a Culture Lines/Points polyline, and the pillar belongs to reservoir-grid modelling. Peforma 3D never infers one from another.
+
+| Object | Geometry | Typical exchange | Suite owner |
+| --- | --- | --- | --- |
+| Horizon or attribute surface, regular | Gridded surface | CPS-3, EarthVision, IRAP Classic, ZMAP+ | **Grid** |
+| Horizon or fault surface, irregular | Triangulated surface | GOCAD `TSurf`, OBJ, STL | **3D** |
+| Salt top or other interpreted surface | Triangulated surface | GOCAD `TSurf`, STL | **3D** |
+| Geobody or salt body | Closed mesh or tetrahedral solid | STL, OBJ, PLY, GOCAD `TSolid` | **3D** |
+| Fault stick or well trajectory | Open polyline in 3D | Delimited text, GeoJSON, GOCAD `PLINE` | **Culture Lines/Points** |
+| Fault polygon, prospect outline, lease boundary | Closed planar ring | GeoJSON, GOCAD, shapefile, IESX (planned) | **Culture Polygon** / **Shapefile** |
+| Well pick or 3D point | Point or point set | Delimited text, GeoJSON | **Culture Lines/Points** |
+| Fault pillar, structural framework | Paired pillars with split nodes and grid topology | No mesh format; RESQML or a vendor project | **Future reservoir-grid tool** |
+| Corner-point grid and properties | Cell topology plus arrays | RESQML or a vendor project | **Future reservoir-grid tool** |
+| 2D seismic line or 3D cube | Volume raster of traces | SEG-Y, ZGY | **Seismic** |
+
+Two lines follow from the table. First, dimensionality is not ownership: a fault stick has X, Y, Z but is 1D geometry, so it belongs with vectors; a horizon is a surface sampled either on a regular grid or as a triangle mesh, so it belongs with Grid or 3D depending on how it was sampled. Second, the object that carries the *interpretation* — the stick, plane, or pillar — is not always the object that carries the *grid topology*, and no tessellation format carries the latter.
 
 ## Format landscape
 
@@ -146,6 +169,8 @@ Warnings must be specific: which face has no normal, which boundary edge is open
 ## Interoperability cautions
 
 - "Closed" and "open" are properties of the mesh, not of the file extension. An STL file can be an open surface or a closed solid, and the tool must say which.
+- A fault plane is an open surface even when a viewer makes it look closed. Report its closure state; never cap, thicken, or merge it into a solid.
+- A fault stick, a fault plane, and a fault pillar are different objects. Never infer a surface from sticks or a pillar from a surface; each has its own owner in the suite.
 - Face normal direction is a property of the file, not of the software that reads it. Flipping normals to "face outward" is a geometric decision the user must make, and the tool must state it.
 - Group and object names in OBJ carry the stratigraphic or facies identity in many geobody workflows. A target format that cannot carry group names must have that limitation reported, not silently dropped.
 - GOCAD `TSurf` may declare a coordinate reference system in a free-text field. Preserve the text and do not interpret it as an EPSG code.
