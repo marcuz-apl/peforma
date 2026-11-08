@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeftRight, ChevronDown, LockKeyhole } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown } from 'lucide-react';
 import { CATEGORIES, convertValue, findUnit, formatNumber, getCategory } from './units.js';
 
 export default function UnitConverter() {
@@ -97,8 +97,6 @@ export default function UnitConverter() {
           </div>
         </div>
       </div>
-
-      <div className="secure-note"><LockKeyhole size={13} /> Conversions run on this device.</div>
     </section>
   );
 }

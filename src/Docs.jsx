@@ -33,7 +33,7 @@ const TOC = [
       { id: 'units-definitions', label: 'Definitions' },
     ],
   },
-  { id: 'privacy', label: 'Privacy & integrity', icon: ShieldCheck },
+  { id: 'integrity', label: 'Data integrity', icon: ShieldCheck },
 ];
 
 const FLAT_IDS = TOC.flatMap(entry => [entry.id, ...(entry.children || []).map(c => c.id)]);
@@ -235,10 +235,10 @@ export default function Docs() {
         <article className="docs-body">
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
-            <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute — and without ever sending your data to a server.</p>
+            <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
             <p>Three tools are live today. <b>Peforma Grid/2D-Map</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII, and inspects shapefiles. <b>Peforma Lines/Points</b> converts open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Units</b> converts ten engineering categories with exact factors. Polygons, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
             <div className="doc-principles">
-              <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser. Source files never leave this device, and there is no telemetry.</p></div>
+              <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
               <div className="principle"><span className="principle-icon"><FileText size={18} aria-hidden="true" /></span><b>Assumptions stated</b><p>Every format's header meaning, storage order, and null marker is documented here and surfaced in the tool itself.</p></div>
             </div>
@@ -501,15 +501,15 @@ VSET 1 WELL_01
             </Sub>
           </section>
 
-          <section className="docs-section" id="privacy">
+          <section className="docs-section" id="integrity">
             <div className="section-head">
               <span className="section-glyph"><ShieldCheck size={20} aria-hidden="true" /></span>
-              <div><h2>Privacy & integrity</h2><p className="section-sub">What never happens to your data</p></div>
+              <div><h2>Data integrity</h2><p className="section-sub">What every conversion guarantees</p></div>
             </div>
-            <p>Every Peforma tool is local-first. Files are read with the browser's File API, parsed and written in memory, and downloaded straight back to your device. There is no upload endpoint, no account, and no analytics.</p>
+            <p>Peforma changes the file format, never the data. These guarantees hold across every tool and every supported dialect.</p>
             <div className="doc-principles">
-              <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>No uploads</b><p>Source grids, shapefiles, and geometry never leave this device. Conversion is pure client-side computation.</p></div>
-              <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>No silent guessing</b><p>Unsupported variants are rejected with a clear message. Nulls, order, and values are preserved, never invented.</p></div>
+              <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>No silent guessing</b><p>Unsupported variants are rejected with a clear message rather than producing a plausible but wrong file.</p></div>
+              <div className="principle"><span className="principle-icon"><FileText size={18} aria-hidden="true" /></span><b>Values preserved</b><p>Node values, ordering, bounds, and nulls are copied verbatim — no interpolation, reprojection, or rescaling.</p></div>
               <div className="principle"><span className="principle-icon"><Check size={18} aria-hidden="true" /></span><b>Verify before use</b><p>Always confirm converted files in the receiving application — orientation, units, datum, and null conventions — before production.</p></div>
             </div>
             <Callout tone="integrity" title="The contract">

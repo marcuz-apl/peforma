@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { ArrowDownToLine, ArrowLeftRight, Check, ChevronDown, FileSpreadsheet, FileUp, LockKeyhole, RotateCcw, TriangleAlert, Info } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, Check, ChevronDown, FileSpreadsheet, FileUp, RotateCcw, TriangleAlert, Info } from 'lucide-react';
 import { LINE_TARGETS, LINE_SOURCE_LABELS, parseLinePoints, resolveDelimited, writeLinePoints, summarize } from './lines.js';
 
 // Owns file state for the converter. A loaded delimited source resolves to a
@@ -228,7 +228,6 @@ function LineExportPanel({ model, target, setTarget, download, canDownload }) {
         {!model ? 'Upload a file to continue' : `Convert & download ${LINE_TARGETS[target]}`}
         <ArrowLeftRight className="download-arrow" size={16} />
       </button>
-      <div className="secure-note"><LockKeyhole size={13} /> Your files stay on this device. Nothing is uploaded.</div>
     </>
   );
 }

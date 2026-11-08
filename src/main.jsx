@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import shp from 'shpjs';
-import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, BookOpen, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, LockKeyhole, Mail, Menu, Moon, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, Sun, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, BookOpen, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, Mail, Menu, Moon, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, Sun, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
 import VERSION from '../VERSION?raw';
 import UnitConverter from './UnitConverter.jsx';
 import LinePoints from './LinePoints.jsx';
@@ -433,7 +433,6 @@ function ExportPanel({ grid, shape, format, setFormat, download }) {
         {shape ? 'Shapefile inspected' : grid ? `Convert & download ${FORMATS[format]}` : 'Upload a grid to continue'}
         <ArrowLeftRight className="download-arrow" size={16} />
       </button>
-      <div className="secure-note"><LockKeyhole size={13} /> Your files stay on this device. Nothing is uploaded.</div>
     </>
   );
 }
@@ -689,14 +688,10 @@ function AboutDialog({ onClose }) {
         </button>
         <Wordmark label="Peforma" className="about-wordmark" />
         <h2 id="about-title">About Peforma</h2>
-        <p className="about-copy">Subsurface data tools built for the field. Convert grids and engineering units without sending your data anywhere.</p>
+        <p className="about-copy">Subsurface data tools built for the field. Convert grids and engineering units.</p>
         <div className="about-meta">
           <span className="about-meta-label">Version</span>
           <span className="about-version">{VERSION.trim()}</span>
-        </div>
-        <div className="about-privacy">
-          <LockKeyhole size={15} aria-hidden="true" />
-          <span>Grids, shapefiles, and conversions are processed in your browser. Source files never leave this device.</span>
         </div>
       </div>
     </div>
@@ -759,10 +754,6 @@ function DisclaimerDialog({ onClose }) {
           application before production use, and confirm coordinate units, datum, and null conventions
           match your project.
         </p>
-        <div className="about-privacy">
-          <LockKeyhole size={15} aria-hidden="true" />
-          <span>All processing happens in your browser. Source files never leave this device.</span>
-        </div>
       </div>
     </div>
   );
@@ -900,7 +891,7 @@ function App() {
                 <section className="content-head">
                   <div className="eyebrow"><span /> PEFORMA / UNITS</div>
                   <h1>Change units.<br /><em>Keep the value.</em></h1>
-                  <p>Convert ten engineering categories with exact factors. Local processing, no uploads.</p>
+                  <p>Convert ten engineering categories with exact factors.</p>
                 </section>
                 <UnitConverter />
                 <section className="bottom-info" id="unit-note">
@@ -916,7 +907,7 @@ function App() {
                 <section className="content-head">
                   <div className="eyebrow"><span /> PEFORMA / LINES-POINTS</div>
                   <h1>Move your lines.<br /><em>Keep the geometry.</em></h1>
-                  <p>Convert points and polylines between CSV, GeoJSON, and GOCAD ASCII. Local processing, no uploads.</p>
+                  <p>Convert points and polylines between CSV, GeoJSON, and GOCAD ASCII.</p>
                 </section>
                 <LinePoints />
                 <section className="bottom-info" id="line-note">
@@ -932,7 +923,7 @@ function App() {
                 <section className="content-head">
                   <div className="eyebrow"><span /> PEFORMA / GRID-2D-MAP</div>
                   <h1>Move your grids.<br /><em>Keep your data.</em></h1>
-                  <p>Convert depth or time grid surfaces between five subsurface formats. Local processing, no uploads.</p>
+                  <p>Convert depth or time grid surfaces between five subsurface formats.</p>
                 </section>
                 <section className="workspace">
                   <UploadPanel grid={grid} shape={shape} error={error} source={source} drag={drag} setDrag={setDrag} input={input} load={load} reset={reset} />

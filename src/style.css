@@ -686,15 +686,6 @@ a.rail-suite.current:hover { background: var(--rail-current-hover); }
 .download:hover:not(:disabled) { background: var(--cta-hover); transform: translateY(-1px); }
 .download:disabled { background: var(--btn-disabled-bg); color: var(--btn-disabled-ink); cursor: not-allowed; }
 .download-arrow { margin-left: 3px; color: var(--cta-arrow); }
-.secure-note {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  color: var(--muted);
-  font-size: 12px;
-}
 
 /* Unit converter */
 .unit-block + .unit-block {
@@ -983,17 +974,6 @@ a.rail-suite.current:hover { background: var(--rail-current-hover); }
   text-transform: uppercase;
 }
 .about-version { color: var(--ink); font: 500 12px 'DM Sans', sans-serif; }
-.about-privacy {
-  display: flex;
-  gap: 9px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line-soft);
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.55;
-}
-.about-privacy svg { flex: none; margin-top: 1px; color: var(--info-icon); }
 
 /* Tablet: keep the rail as icons so the workspace keeps its width. */
 @media (min-width: 761px) and (max-width: 1023px) {
