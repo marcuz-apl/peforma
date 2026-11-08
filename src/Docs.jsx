@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowUp, BookOpen, Check, Copy, FileText, Grid3x3, Info, LockKeyhole, Ruler, ShieldCheck, TriangleAlert, Waypoints } from 'lucide-react';
+import { ArrowUp, BookOpen, Check, Copy, Files, FileText, Grid3x3, Info, LockKeyhole, Ruler, ShieldCheck, TriangleAlert, Waypoints } from 'lucide-react';
 
 // In-page navigation. The hash router owns top-level routes (#grid, #units,
 // #culture, #docs), so these anchors never change the hash: clicking one scrolls the
@@ -24,6 +24,14 @@ const TOC = [
       { id: 'lines-geojson', label: 'GeoJSON' },
       { id: 'lines-gocad', label: 'GOCAD ASCII' },
       { id: 'lines-integrity', label: 'Geometry integrity' },
+    ],
+  },
+  {
+    id: 'shapefile-formats', label: 'Shapefile', icon: Files, children: [
+      { id: 'shapefile-bundle', label: 'The bundle' },
+      { id: 'shapefile-geometry', label: 'Geometry types' },
+      { id: 'shapefile-writing', label: 'Writing a set' },
+      { id: 'shapefile-caution', label: 'Interoperability' },
     ],
   },
   {
@@ -234,7 +242,7 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
-            <p>Three tools are live today. <b>Peforma Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Units</b> converts ten engineering categories with exact factors. Culture Polygon, Shapefile, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Four tools are live today. <b>Peforma Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. Culture Polygon, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
@@ -390,7 +398,7 @@ EarthVision    (explicit 1-based column / row indices):
               <span className="section-glyph"><Waypoints size={20} aria-hidden="true" /></span>
               <div><h2>Culture — Lines &amp; Points</h2><p className="section-sub">Open line and point geometry · Peforma Culture</p></div>
             </div>
-            <p>The Culture Lines/Points converter handles open geometry — point sets and polylines — across three formats. Closed polygon geometry belongs to the planned Culture Polygon converter, and shapefile interchange belongs to the planned Peforma Shapefile tool, so neither is offered here.</p>
+            <p>The Culture Lines/Points converter handles open geometry — point sets and polylines — across three formats. Closed polygon geometry belongs to the planned Culture Polygon converter; shapefile interchange belongs to Peforma Shapefile, so neither is offered here.</p>
 
             <Sub id="lines-delimited" title="Delimited text">
               <p>Comma, semicolon, tab, and whitespace-separated files (CSV, TSV, XYZ) are all read. The delimiter is detected from the first line. The first row decides whether a header is present:</p>
@@ -450,6 +458,64 @@ VSET 1 WELL_01
                 <li><b>CRS and units labels</b> are carried through as text. No reprojection or unit conversion is performed.</li>
               </ul>
               <p>Outputs are delimited CSV (<code className="inline-code">X,Y,Z,Name,…</code>), a GeoJSON FeatureCollection, and GOCAD ASCII. Coordinate order, precision, and labels are written exactly as read.</p>
+            </Sub>
+          </section>
+
+          <section className="docs-section" id="shapefile-formats">
+            <div className="section-head">
+              <span className="section-glyph"><Files size={20} aria-hidden="true" /></span>
+              <div><h2>Shapefile</h2><p className="section-sub">Esri Shapefile sets &amp; GeoJSON · Peforma Shapefile</p></div>
+            </div>
+            <p>Peforma Shapefile reads and writes the Esri Shapefile bundle and GeoJSON, including point, multipoint, polyline, polygon, and multipolygon geometry. Record order, vertex order, attribute values, and present Z values are preserved. No reprojection or unit conversion is performed.</p>
+
+            <Sub id="shapefile-bundle" title="The bundle">
+              <p>A shapefile is a set of files that share one base name. All parts are read together:</p>
+              <CodeBlock label="A complete set — roads.shp, roads.shx, roads.dbf, roads.prj" code={`roads.shp   geometry records
+roads.shx   record offsets
+roads.dbf   attribute table
+roads.prj   coordinate reference definition (WKT)
+roads.cpg   text encoding, when present`} />
+              <ul className="doc-list">
+                <li><b>.shp and .dbf are required.</b> A set without either is rejected rather than read partially.</li>
+                <li><b>.shx is optional</b> but, when present, its record count must match the .shp file. The .dbf row count must match too.</li>
+                <li>Geometry is read directly from record content, so a missing .shx produces a warning, not a wrong result.</li>
+                <li>Attribute text is decoded as UTF-8 first and falls back to Windows-1252 when those bytes are not valid UTF-8.</li>
+                <li>Null geometry records are skipped and counted. Records flagged deleted in the .dbf table keep their geometry and are listed with empty attributes.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="shapefile-geometry" title="Geometry types">
+              <p>The shape type is read from each record, not assumed from the file header. Z variants are decoded as Z; measure (M) variants are read but M values are ignored and reported.</p>
+              <Table
+                caption="Shape type codes Peforma Shapefile reads and writes."
+                head={['Shape type', 'Geometry', 'Z variant']}
+                rows={[
+                  ['1', 'Point', '11'],
+                  ['3', 'PolyLine', '13'],
+                  ['5', 'Polygon', '15'],
+                  ['8', 'MultiPoint', '18'],
+                  ['0', 'Null record', '—'],
+                ]}
+              />
+              <p>Within a polygon record, exterior rings are clockwise and holes are counter-clockwise. Parts are grouped into polygons by that orientation when the bundle is read, so a multi-area record becomes a MultiPolygon rather than one polygon with unrelated rings.</p>
+            </Sub>
+
+            <Sub id="shapefile-writing" title="Writing a set">
+              <p>GeoJSON output is RFC 7946. Linear rings are closed, exterior rings are written counter-clockwise, and holes clockwise. A short CRS label is written in the legacy <code className="inline-code">crs</code> member; a WKT definition is kept verbatim in a <code className="inline-code">peforma_crs_wkt</code> member so it can be written back to a .prj.</p>
+              <p>Shapefile output is a ZIP holding one set per geometry kind. A single shapefile can carry only one geometry type, so a source that mixes points, lines, and polygons produces separate sets inside the ZIP. The applied conventions are reported in the tool:</p>
+              <ul className="doc-list">
+                <li><b>Z values</b> are written only when every vertex in the set has a Z. A set that mixes present and missing Z is written without Z, with a warning.</li>
+                <li><b>Ring closure and ring orientation</b> are applied to the target convention — clockwise exteriors and counter-clockwise holes — and the count of changed rings is reported.</li>
+                <li><b>DBF field names</b> are limited to 10 ASCII characters and must be unique; a renamed field is reported. Values keep their text, number, or boolean type.</li>
+                <li>A DBF field has no null marker, so a missing attribute value is written as a blank and counted in the warnings.</li>
+                <li>Non-ASCII attribute text is written as UTF-8 and a matching <code className="inline-code">.cpg</code> file is included in the ZIP.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="shapefile-caution" title="Interoperability">
+              <Callout tone="caution" title="Confirm in the receiving software before operational use">
+                <p>Shapefile readers differ in their support for Z values, UTF-8 attribute text, field widths, and deleted-record handling. Attribute values are not reinterpreted, and coordinate reference definitions are carried as text without reprojection. Compare record order, geometry, attributes, ring orientation, CRS, and Z values in the target application before relying on an exchange.</p>
+              </Callout>
             </Sub>
           </section>
 

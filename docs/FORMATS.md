@@ -38,4 +38,17 @@ Vertex order, attribute values, the distinction between a missing and a zero Z c
 
 A delimited file with a header has its column mapping pre-seeded from labels that clearly name each axis; a file without a header has anonymous columns, so the user must assign the X and Y columns explicitly before the rows are treated as geometry. In line mode, consecutive rows are grouped into one polyline, split whenever the mapped Name column changes.
 
-Closed polygon geometry (GeoJSON Polygon/MultiPolygon, closed GOCAD curves, fault-polygon dialects) belongs to the planned Culture Polygon converter. Esri Shapefile bundles belong to the planned Peforma Shapefile tool. Neither is offered as a Lines/Points case.
+Closed polygon geometry (GeoJSON Polygon/MultiPolygon, closed GOCAD curves, fault-polygon dialects) belongs to the planned Culture Polygon converter and is not offered as a Lines/Points case.
+
+## Esri Shapefile (Peforma Shapefile)
+
+Peforma Shapefile reads a bundle of `.shp`, `.shx`, `.dbf`, and optional `.prj` files, or a GeoJSON file, and writes either a GeoJSON FeatureCollection or a ZIP of shapefile sets.
+
+A `.shp` and a `.dbf` are required together; `.shx` is optional but, when present, its record count must match `.shp`. Record counts in `.dbf` are also checked against `.shp`, and null shape records are skipped with a warning. Shape types 1 (point), 3 (polyline), 5 (polygon), 8 (multipoint) and their Z variants 11, 13, 15, 18 are read; M-only variants are not treated as a separate geometry kind.
+
+Polygon parts are grouped by ring orientation: clockwise rings start an exterior and counter-clockwise rings become holes, keeping source part order. Ring closure and orientation are preserved from the source and applied on write — Esri exterior rings clockwise, GeoJSON exterior rings counter-clockwise per RFC 7946, with holes reversed accordingly.
+
+DBF attributes are carried by field name and value. Text is read as UTF-8 when it validates and otherwise falls back to Windows-1252 with a warning. On write, field names are limited to 10 ASCII characters with case-insensitive uniqueness, numeric widths are kept within 18 characters, and values a DBF field cannot hold, such as nulls outside logical fields, are written as blanks with a warning.
+
+A `.prj` file is treated as WKT and stored as text without interpretation; GeoJSON round-trips through the legacy `crs` member or the `peforma_crs_wkt` member. No reprojection, datum transformation, or unit conversion is performed. When a model mixes geometry kinds, one shapefile set is written per kind inside the ZIP.
+

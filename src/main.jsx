@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, BookOpen, Box, Check, ChevronDown, FileSpreadsheet, FileText, FileUp, Globe2, Grid3x3, Layers3, Menu, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, ShieldCheck, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, BookOpen, Box, Check, ChevronDown, FileSpreadsheet, FileText, FileUp, Files, Globe2, Grid3x3, Layers3, Menu, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, ShieldCheck, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
 import VERSION from '../VERSION?raw';
 import UnitConverter from './UnitConverter.jsx';
 import LinePoints from './LinePoints.jsx';
+import Shapefile from './Shapefile.jsx';
 import Docs from './Docs.jsx';
 import Landing from './Landing.jsx';
 import { Wordmark, ThemeToggle, AppFooter } from './chrome.jsx';
@@ -27,7 +28,7 @@ const SUITES = [
       { key: 'culture-polygon', name: 'Polygon' },
     ],
   },
-  { key: 'shapefile', name: 'Peforma Shapefile', icon: Pentagon },
+  { key: 'shapefile', name: 'Peforma Shapefile', tool: 'Shapefile bundle converter', href: '#shapefile', icon: Files, live: true },
   { key: '3d', name: 'Peforma 3D', icon: Box },
   { key: 'seismic', name: 'Peforma Seismic', icon: AudioWaveform },
   { key: 'coordinates', name: 'Peforma Coordinates', icon: Globe2, reference: true },
@@ -752,6 +753,7 @@ function PrivacyDialog({ onClose }) {
 function routeFromHash(hash) {
   if (hash === '#units') return 'units';
   if (hash === '#culture') return 'culture';
+  if (hash === '#shapefile') return 'shapefile';
   if (hash === '#docs') return 'docs';
   if (hash === '#grid') return 'grid';
   return 'home';
@@ -822,9 +824,11 @@ function App() {
         ? 'Peforma Units — Engineering Unit Converter'
         : route === 'culture'
           ? 'Peforma Culture — Vector Data Converter'
-          : route === 'docs'
-            ? 'Peforma Docs — Format Reference & Guides'
-            : 'Peforma Grid — Subsurface Grid Converter';
+          : route === 'shapefile'
+            ? 'Peforma Shapefile — Esri Shapefile Bundle Converter'
+            : route === 'docs'
+              ? 'Peforma Docs — Format Reference & Guides'
+              : 'Peforma Grid — Subsurface Grid Converter';
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [route]);
 
@@ -925,7 +929,23 @@ function App() {
                   <div className="info-icon"><Info size={17} /></div>
                   <div>
                     <b>Format and geometry integrity</b>
-                    <p>CSV, GeoJSON, and GOCAD PLINE/VSET are recognised from contents. Vertex order, attributes, missing-Z distinctions, and CRS/units labels are preserved exactly. Delimited files without a header require an explicit column mapping. Polygon geometry belongs to Peforma Culture Polygon and shapefile interchange to Peforma Shapefile; both are planned, not yet offered.</p>
+                    <p>CSV, GeoJSON, and GOCAD PLINE/VSET are recognised from contents. Vertex order, attributes, missing-Z distinctions, and CRS/units labels are preserved exactly. Delimited files without a header require an explicit column mapping. Polygon geometry belongs to Peforma Culture Polygon, which is planned; shapefile interchange is handled by Peforma Shapefile.</p>
+                  </div>
+                </section>
+              </>
+            ) : route === 'shapefile' ? (
+              <>
+                <section className="content-head">
+                  <div className="eyebrow"><span /> PEFORMA / SHAPEFILE</div>
+                  <h1>Move your shapefiles.<br /><em>Keep every record.</em></h1>
+                  <p>Read and write Esri Shapefile sets and GeoJSON with attributes and CRS intact.</p>
+                </section>
+                <Shapefile />
+                <section className="bottom-info" id="shapefile-note">
+                  <div className="info-icon"><Info size={17} /></div>
+                  <div>
+                    <b>Format and bundle integrity</b>
+                    <p>A shapefile is a set: .shp geometry and .dbf attributes, with an .shx index and an optional .prj definition. Record order, vertex order, attribute values, and Z values are preserved. When a source mixes geometry types, each type is written as its own set inside the ZIP. Ring closure and ring orientation follow the target convention and are reported. Confirm the target application’s handling of CRS, field types, and deleted records before operational use.</p>
                   </div>
                 </section>
               </>

@@ -697,6 +697,7 @@ a.rail-tool:hover { color: var(--ink-soft); }
   pointer-events: none;
 }
 .preview { margin-bottom: 14px; padding: 11px 13px; border: 1px solid var(--preview-line); border-radius: 7px; }
+.loaded-preview { margin: 0 15px 15px; }
 .preview-head {
   display: flex;
   justify-content: space-between;

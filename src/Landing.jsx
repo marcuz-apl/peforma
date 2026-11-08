@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Accessibility, ArrowDown, ArrowRight, ArrowUpRight, AudioWaveform, BookOpen, Box, Check, ChevronDown,
-  Copy, Crosshair, Globe2, Grid3x3, Layers3, Lock, Mail, MapPin, Menu, Minus,
+  Copy, Crosshair, Files, Globe2, Grid3x3, Layers3, Lock, Mail, MapPin, Menu, Minus,
   Pentagon, Plus, Ruler, ScanSearch, Send, ShieldCheck, Waypoints, X,
 } from 'lucide-react';
 import L from 'leaflet';
@@ -30,6 +30,11 @@ const LIVE_SUITES = [
     formats: ['CSV', 'GeoJSON', 'GOCAD'],
   },
   {
+    key: 'shapefile', icon: Files, name: 'Peforma Shapefile', href: '#shapefile',
+    blurb: 'Esri Shapefile sets and GeoJSON exchanged with every record, attribute, and CRS definition kept in place.',
+    formats: ['SHP', 'DBF', 'PRJ', 'GeoJSON'],
+  },
+  {
     key: 'units', icon: Ruler, name: 'Peforma Units', href: '#units',
     blurb: 'Ten engineering categories on exact factors — pressure, volume, density, temperature, and the rest.',
     formats: ['10 categories', 'Exact factors'],
@@ -38,7 +43,6 @@ const LIVE_SUITES = [
 
 const ROADMAP = [
   { key: 'culture-polygon', icon: Pentagon, name: 'Peforma Culture — Polygon' },
-  { key: 'shapefile', icon: Layers3, name: 'Peforma Shapefile' },
   { key: '3d', icon: Box, name: 'Peforma 3D' },
   { key: 'seismic', icon: AudioWaveform, name: 'Peforma Seismic' },
   { key: 'coordinates', icon: Globe2, name: 'Peforma Coordinates' },

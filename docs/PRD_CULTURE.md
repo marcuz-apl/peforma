@@ -1,10 +1,10 @@
 # Peforma Culture — Vector Data Exchange
 
-Status: the Culture Lines/Points converter is implemented. It reads and writes delimited text with an explicit column mapping, Petrel-style ASCII points and lines where the columns are unambiguous, GOCAD ASCII `.pl` and `.vs`, and GeoJSON `Point`, `MultiPoint`, `LineString`, and `MultiLineString`. Polygon geometry is not implemented. Esri Shapefile is not implemented and is planned as its own Peforma Shapefile tool. The navigation, SEG-Y header, RESQML, DXF, KML, WITSML, and vendor-dialect formats remain planned, and no line below should be read as a claim of support for them.
+Status: the Culture Lines/Points converter is implemented. It reads and writes delimited text with an explicit column mapping, Petrel-style ASCII points and lines where the columns are unambiguous, GOCAD ASCII `.pl` and `.vs`, and GeoJSON `Point`, `MultiPoint`, `LineString`, and `MultiLineString`. Polygon geometry is not implemented. Esri Shapefile is implemented as its own Peforma Shapefile tool, specified in [PRD_SHAPEFILE.md](PRD_SHAPEFILE.md). The navigation, SEG-Y header, RESQML, DXF, KML, WITSML, and vendor-dialect formats remain planned, and no line below should be read as a claim of support for them.
 
 Peforma Culture is the suite member for vector geometry: ordered coordinates, closed rings, and the attributes that travel with them. Peforma Grid handles regularly sampled surfaces; Culture handles everything that is not a grid — fault sticks, contour lines, culture lines, seismic navigation, well trajectories, well picks, fault polygons, horizon boundaries, prospect outlines, and other point, line, and polygon sets.
 
-Culture is one product with two geometry converters. **Lines/Points** handles open geometry and is live. **Polygon** handles closed area geometry and is planned. Esri Shapefile is a container that can hold any of the three geometry kinds, so it is not a geometry converter; the planned **Peforma Shapefile** tool owns the shapefile bundle itself, including its DBF attributes and `.prj` sidecar.
+Culture is one product with two geometry converters. **Lines/Points** handles open geometry and is live. **Polygon** handles closed area geometry and is planned. Esri Shapefile is a container that can hold any of the three geometry kinds, so it is not a geometry converter; the live **Peforma Shapefile** tool owns the shapefile bundle itself, including its DBF attributes and `.prj` sidecar.
 
 ## Problem
 
@@ -74,11 +74,13 @@ A polygon that arrives closed in one format may arrive open in another because t
 - Preserve vertex order, ring order, hole order, and attribute values exactly.
 - Report, not change, ring closure state, ring orientation, and any duplicate first/last vertex.
 
-### Peforma Shapefile — planned, separate product
+### Peforma Shapefile — implemented, separate product
 
-- Read and write Esri Shapefile point, polyline, and polygon features as a bundle: `.shp`, `.shx`, `.dbf`, and optional `.prj`.
+- Read and write Esri Shapefile point, multipoint, polyline, polygon, and multipolygon features as a bundle: required `.shp` and `.dbf`, optional `.shx`, `.prj`, and `.cpg`.
 - Preserve record order, geometry order, part order, and attribute values; report attribute names that cannot be written back exactly.
-- Detect truncated bundles, missing `.dbf` files, and unreadable `.prj` files.
+- Detect truncated bundles, missing `.dbf` files, mismatched `.shx` or `.dbf` counts, and unreadable geometry records.
+- Exchange the same geometry with GeoJSON, including polygon and multipolygon geometry.
+- Full scope lives in [PRD_SHAPEFILE.md](PRD_SHAPEFILE.md).
 
 ### Out of scope for Culture
 
@@ -105,7 +107,7 @@ Vector data travels through three families of formats: open exchange standards, 
 | GeoJSON | IETF RFC 7946 | Points, multipoints, lines, multilines, polygons, multipolygons, properties | Yes, points and lines | Yes, points and lines | WGS 84 longitude/latitude by specification; projected coordinates are outside the RFC and must be flagged; polygon geometry is planned |
 | GOCAD ASCII `.pl` | Paradigm/Emerson GOCAD, publicly documented | Polyline and closed-curve vertices and segments with properties | Yes | Yes | `PLINE` objects use vertices and segments; a curve declared closed is a Polygon case |
 | GOCAD ASCII `.vs` | Paradigm/Emerson GOCAD | Point or voxel sets | Yes | Yes | JewelSuite documents `.vs` as a point-set exchange option |
-| Esri Shapefile | Esri technical description | Point, polyline, and polygon features with DBF attributes and `.prj` | Planned | Planned | Owned by Peforma Shapefile; requires `.shp`, `.shx`, `.dbf`, and optional `.prj`; geometry order and record order are preserved |
+| Esri Shapefile | Esri technical description | Point, multipoint, polyline, and polygon features with DBF attributes and `.prj` | Implemented by Peforma Shapefile | Implemented by Peforma Shapefile | Requires `.shp` and `.dbf`; `.shx`, `.prj`, and `.cpg` are optional; geometry order and record order are preserved |
 | DXF | Autodesk, documented | 2D and 3D polylines, points, closed entities, blocks | Later | Later | Version drift and block references make full support unrealistic; only simple entities are candidates |
 | KML | OGC | Points, line strings, and polygon placemarks for display | Later | Later | WGS 84 longitude/latitude; styling and folders are not preserved as data |
 | UKOOA P1/90 | Legacy UKOOA/IOGP | Marine navigation lines, shot points, source and receiver positions | Later | Later | Fixed-width records; widely used legacy exchange |
@@ -162,7 +164,7 @@ The tiers separate what can be built with confidence from what needs a published
 | 1 — implemented | Lines/Points | GeoJSON points and lines | Import and export | Precise specification and straightforward geometry mapping |
 | 1 — planned | Polygon | GeoJSON `Polygon` and `MultiPolygon` | Import and export | Precise specification and unambiguous ring rules |
 | 1 — planned | Polygon | GOCAD closed curves | Import and export | Documented closed-curve structure |
-| 1 — planned | Shapefile | Point, polyline, and polygon bundles | Import and export | Standard GIS delivery, delivered by Peforma Shapefile |
+| 1 — implemented | Shapefile | Point, multipoint, polyline, and polygon bundles | Import and export | Standard GIS delivery, delivered by Peforma Shapefile |
 | 2 — after validation | Lines/Points | UKOOA P1/90 and IOGP P1/11 | Import, then export | Valuable for seismic navigation but record layouts need representative files |
 | 2 — after validation | Lines/Points | SEG-Y navigation headers | Import | Read-only extraction of trace-header coordinates and line identifiers |
 | 2 — after validation | Polygon | Petrel IESX, CPS-3 Lines, Kingdom `.plg`, ZMAP `@FALT` | Import, then export | Real dialects, partially documented; need representative files |
@@ -230,7 +232,7 @@ Warnings must be specific and actionable in both converters: which record or rin
 - CRS definitions may be absent, approximate, or stored only in a companion file. A shapefile without `.prj` is not self-describing.
 - GeoJSON is WGS 84 longitude/latitude by specification. Projected coordinates in a `.geojson` file are a common informal extension and must be labeled as such.
 - Ring closure and orientation conventions differ. Some writers repeat the first vertex, some do not; RFC 7946 expects exterior rings counter-clockwise and holes clockwise in a geographic coordinate system. Reversing or closing a ring without recording the decision changes the data.
-- Shapefile attribute names are limited to sixteen characters and may be truncated. Preserve the stored names and warn when a name cannot be written back exactly.
+- Shapefile attribute names are limited to ten characters and may be truncated. Preserve the stored names and warn when a name cannot be written back exactly.
 - GOCAD headers may declare a coordinate reference system in a free-text field. Preserve the text and do not interpret it as an EPSG code.
 - Navigation formats describe acquisition geometry, not interpreted horizons. Shot-point order and line direction must be preserved even when they look irregular.
 - SEG-Y trace headers are not guaranteed to be populated consistently. Report which header fields were used and let the user confirm the coordinate convention.
@@ -258,7 +260,7 @@ Warnings must be specific and actionable in both converters: which record or rin
 - Which vendor dialect should anchor Culture Polygon: Petrel IESX, Kingdom `.plg`, or ZMAP `@FALT`? IESX has the strongest public documentation trail.
 - Should ring-orientation normalization be offered as an explicit user choice in the first release of Culture Polygon, or only reported?
 - Is Z per vertex required for Culture Polygon, or should the first release be strictly planar X/Y polygons with an optional Z column?
-- Should Peforma Shapefile read all geometry kinds from the first release, and how should it hand polygon records to Culture Polygon versus Lines/Points?
+- Should Culture Polygon accept shapefile Polygon records from Peforma Shapefile, or keep the two tools fully independent?
 - Should UKOOA P1/90 import ship before the polygon work, given how often seismic navigation is the actual exchange need?
 - Is a map preview required, or is a numeric summary and a table enough?
 - How should very large navigation files be handled in a browser: a hard size limit, a streaming summary, or a worker with progress?
