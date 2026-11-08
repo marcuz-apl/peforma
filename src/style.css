@@ -78,7 +78,6 @@
   --fmt-zmap: #9d7cff;
   --fmt-irap: #34d399;
   --fmt-earthvision: #f59e0b;
-  --fmt-shapefile: #8a93a6;
   --callout-info-bg: rgba(91, 140, 255, .09);
   --callout-info-line: rgba(91, 140, 255, .28);
   --callout-integrity-bg: rgba(52, 211, 153, .09);
@@ -162,7 +161,6 @@ body.light {
   --fmt-zmap: #7c5cff;
   --fmt-irap: #16a34a;
   --fmt-earthvision: #b45309;
-  --fmt-shapefile: #8b93a5;
   --callout-info-bg: rgba(59, 111, 255, .08);
   --callout-info-line: rgba(59, 111, 255, .25);
   --callout-integrity-bg: rgba(22, 163, 74, .08);
@@ -1274,7 +1272,6 @@ a.rail-suite.current:hover { background: var(--rail-current-hover); }
 .fmt-dot.zmap { background: var(--fmt-zmap); }
 .fmt-dot.irap { background: var(--fmt-irap); }
 .fmt-dot.earthvision { background: var(--fmt-earthvision); }
-.fmt-dot.shapefile { background: var(--fmt-shapefile); }
 
 .doc-table-wrap { margin: 0 0 18px; }
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }

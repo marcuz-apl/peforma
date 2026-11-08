@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import shp from 'shpjs';
 import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, BookOpen, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, Mail, Menu, Moon, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, Sun, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
 import VERSION from '../VERSION?raw';
 import UnitConverter from './UnitConverter.jsx';
@@ -249,12 +248,10 @@ ${formatFlat(toColumnMajor(values, nx, ny), g.nodata, '0.1E+31', nx)}
     }
     return out.join('\n') + '\n';
   }
-  throw Error('Shapefile is supported as a source for inspection. Converting its polygon boundary into a regular grid requires an interpolation choice; no values will be invented.');
+  throw Error('Unsupported output format.');
 }
-async function parseShapefile(files){const needed=['.shp','.shx','.dbf','.prj'], byExt={};for(const f of files){const ext='.'+f.name.split('.').at(-1).toLowerCase();byExt[ext]=f;}const missing=needed.filter(x=>!byExt[x]);if(missing.length)throw Error(`Shapefile needs all sidecars together. Missing: ${missing.join(', ')}.`);const base=byExt['.shp'].name.replace(/\.shp$/i,'');const bundle={};for(const ext of needed)bundle[base+ext]=await byExt[ext].arrayBuffer();const fc=await shp(bundle),features=fc.features||[];if(!features.length)throw Error('No features found in this shapefile.');const bounds=[Infinity,Infinity,-Infinity,-Infinity];let withGeometry=0;for(const f of features){const coords=f?.geometry?.coordinates;if(!Array.isArray(coords))continue;const before=bounds[0];const walk=c=>{if(!Array.isArray(c))return;if(typeof c[0]==='number'){if(!Number.isFinite(c[0])||!Number.isFinite(c[1]))return;bounds[0]=Math.min(bounds[0],c[0]);bounds[1]=Math.min(bounds[1],c[1]);bounds[2]=Math.max(bounds[2],c[0]);bounds[3]=Math.max(bounds[3],c[1]);}else c.forEach(walk);};walk(coords);if(bounds[0]!==before||Number.isFinite(bounds[2]))withGeometry++;}if(!withGeometry||!Number.isFinite(bounds[0])||!Number.isFinite(bounds[2]))throw Error('No usable geometry found in this shapefile. Features are missing coordinates, so coordinate bounds cannot be determined.');return {kind:'shapefile',count:features.length,bounds,features,name:base,projection:await byExt['.prj'].text()};}
 function useGridFile() {
   const [grid, setGrid] = useState(null);
-  const [shape, setShape] = useState(null);
   const [error, setError] = useState('');
   const [source, setSource] = useState('');
   const [format, setFormat] = useState('zmap');
@@ -264,18 +261,8 @@ function useGridFile() {
     if (!files?.length) return;
     setError('');
     setGrid(null);
-    setShape(null);
     try {
       const fs = [...files];
-      // Shapefiles are the only format that needs its extension, because the sidecars
-      // must be bundled together. Everything else is identified from its contents.
-      const shpFile = fs.find(f => /\.shp$/i.test(f.name));
-      if (shpFile) {
-        const result = await parseShapefile(fs);
-        setShape(result);
-        setSource('shapefile');
-        return;
-      }
       // Try each selected file in turn and use the first one whose contents are a
       // recognised grid, so the extension never decides whether a file is accepted.
       let text = '', fmt = null, file = null;
@@ -317,16 +304,15 @@ function useGridFile() {
 
   const reset = () => {
     setGrid(null);
-    setShape(null);
     setError('');
     setSource('');
     if (input.current) input.current.value = '';
   };
 
-  return { grid, shape, error, source, format, setFormat, input, load, download, reset };
+  return { grid, error, source, format, setFormat, input, load, download, reset };
 }
 
-function UploadPanel({ grid, shape, error, source, drag, setDrag, input, load, reset }) {
+function UploadPanel({ grid, error, source, drag, setDrag, input, load, reset }) {
   const values = grid?.values || [];
   const range = valueRange(values, grid?.nodata);
   return (
@@ -336,7 +322,7 @@ function UploadPanel({ grid, shape, error, source, drag, setDrag, input, load, r
           <div className="section-kicker">01 <span>·</span> SOURCE DATA</div>
           <h2>Bring in your file</h2>
         </div>
-        {(grid || shape) && <button className="reset" onClick={reset}><RotateCcw size={14} /> Start over</button>}
+        {grid && <button className="reset" onClick={reset}><RotateCcw size={14} /> Start over</button>}
       </div>
       <div
         className={`dropzone ${drag ? 'dragging' : ''}`}
@@ -348,14 +334,13 @@ function UploadPanel({ grid, shape, error, source, drag, setDrag, input, load, r
         tabIndex="0"
         onKeyDown={e => e.key === 'Enter' && input.current?.click()}
       >
-        <input ref={input} type="file" multiple accept=".shp,.shx,.dbf,.prj,text/plain,*/*" onChange={e => load(e.target.files)} />
+        <input ref={input} type="file" multiple accept="text/plain,*/*" onChange={e => load(e.target.files)} />
         <span className="upload-icon"><FileUp size={23} /></span>
         <strong>Drop a grid file here</strong>
         <span className="drop-sub">or <button className="browse" type="button" onClick={e => { e.stopPropagation(); input.current?.click(); }}>browse files</button> from your computer</span>
-        <span className="file-hint">CPS-3 · EARTHVISION · IRAP · ZMAP+ · SHAPEFILE</span>
+        <span className="file-hint">CPS-3 · EARTHVISION · IRAP · ZMAP+</span>
       </div>
       {grid && <GridSummary grid={grid} source={source} range={range} />}
-      {shape && <ShapeSummary shape={shape} />}
       {error && <div className="error"><TriangleAlert size={17} /><span>{error}</span></div>}
     </>
   );
@@ -380,26 +365,7 @@ function GridSummary({ grid, source, range }) {
   );
 }
 
-function ShapeSummary({ shape }) {
-  return (
-    <div className="loaded">
-      <div className="loaded-file">
-        <span className="file-icon"><FileSpreadsheet size={19} /></span>
-        <div><b>{shape.name}</b><small>Shapefile · {shape.count.toLocaleString()} boundary features</small></div>
-        <span className="ready"><Check size={13} /> READ</span>
-      </div>
-      <div className="stats">
-        <div><small>X RANGE</small><b>{shape.bounds[0].toFixed(2)} — {shape.bounds[2].toFixed(2)}</b><span>Coordinate bounds</span></div>
-        <div><small>Y RANGE</small><b>{shape.bounds[1].toFixed(2)} — {shape.bounds[3].toFixed(2)}</b><span>Coordinate bounds</span></div>
-        <div><small>CRS</small><b>Included</b><span>.prj sidecar read</span></div>
-        <div><small>TYPE</small><b>Boundary</b><span>No grid node values</span></div>
-      </div>
-      <div className="error"><Info size={17} /><span>This shapefile contains boundary geometry, not grid node values. It can be inspected here, but converting it to a regular grid would require interpolation.</span></div>
-    </div>
-  );
-}
-
-function ExportPanel({ grid, shape, format, setFormat, download }) {
+function ExportPanel({ grid, format, setFormat, download }) {
   const values = grid?.values || [];
   // Preview the first real values rather than the leading nulls, which many grids
   // (EarthVision exports in particular) start with and which say nothing useful.
@@ -428,9 +394,9 @@ function ExportPanel({ grid, shape, format, setFormat, download }) {
           </div>
         </div>
       )}
-      <button className="download" disabled={!grid || shape} onClick={download}>
+      <button className="download" disabled={!grid} onClick={download}>
         <ArrowDownToLine size={17} />
-        {shape ? 'Shapefile inspected' : grid ? `Convert & download ${FORMATS[format]}` : 'Upload a grid to continue'}
+        {grid ? `Convert & download ${FORMATS[format]}` : 'Upload a grid to continue'}
         <ArrowLeftRight className="download-arrow" size={16} />
       </button>
     </>
@@ -760,7 +726,7 @@ function DisclaimerDialog({ onClose }) {
 }
 
 function App() {
-  const { grid, shape, error, source, format, setFormat, input, load, download, reset } = useGridFile();
+  const { grid, error, source, format, setFormat, input, load, download, reset } = useGridFile();
   const [drag, setDrag] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -923,17 +889,17 @@ function App() {
                 <section className="content-head">
                   <div className="eyebrow"><span /> PEFORMA / GRID-2D-MAP</div>
                   <h1>Move your grids.<br /><em>Keep your data.</em></h1>
-                  <p>Convert depth or time grid surfaces between five subsurface formats.</p>
+                  <p>Convert depth or time grid surfaces between four subsurface formats.</p>
                 </section>
                 <section className="workspace">
-                  <UploadPanel grid={grid} shape={shape} error={error} source={source} drag={drag} setDrag={setDrag} input={input} load={load} reset={reset} />
-                  <ExportPanel grid={grid} shape={shape} format={format} setFormat={setFormat} download={download} />
+                  <UploadPanel grid={grid} error={error} source={source} drag={drag} setDrag={setDrag} input={input} load={load} reset={reset} />
+                  <ExportPanel grid={grid} format={format} setFormat={setFormat} download={download} />
                 </section>
                 <section className="bottom-info" id="format-note">
                   <div className="info-icon"><Info size={17} /></div>
                   <div>
                     <b>Format and grid integrity</b>
-                    <p>All five source formats are recognized from their contents. Shapefiles describe boundaries and need interpolation to create grid nodes. Confirm row direction, units, null values, and target software import settings before operational use.</p>
+                    <p>All four source formats are recognized from their contents. Confirm row direction, units, null values, and target software import settings before operational use.</p>
                   </div>
                 </section>
               </>

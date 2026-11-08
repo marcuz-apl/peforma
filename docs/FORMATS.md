@@ -6,8 +6,6 @@ All file parsing and writing runs locally in the browser.
 
 ASCII grids are identified from their contents, never from the file extension. A CPS-3, EarthVision, IRAP Classic or ZMAP+ grid is accepted whatever it is named (`.grid`, `.txt`, `.dat`, no extension at all). When several files are selected, each is tried in turn and the first one whose contents match a supported format is loaded.
 
-The one exception is the shapefile, which is recognised by its `.shp` extension because its `.shx`, `.dbf` and `.prj` sidecars must be bundled with it.
-
 The files under `examples/` are the same 152 by 252 reference grid saved in each format. They are the reference set for parser and exporter checks: CPS-3 and ZMAP+ must produce the same node values as IRAP Classic and EarthVision. The measured ordering, null conventions and verification results are recorded in [the format study](FORMAT_STUDY.md).
 
 EarthVision `Field:` records may carry a unit suffix (for example `# Field: 3 z feet`); the field number and name are matched, and the suffix is ignored.
@@ -27,10 +25,6 @@ The example uses the `-996` classic header: row count and increments on record o
 ## ZMAP+ ASCII
 
 The replacement example is a real ZMAP+ grid: an `@Grid HEADER, GRID, 5` record, value-width/null control record, grid dimensions and coordinate bounds, an origin/increment record, a closing `@`, and then values. Its dimensions are `252, 152` and increments are 50 by 50. This exporter declares rows then columns, while other writers declare columns then rows; Peforma resolves the orientation from the coordinate spans and the declared increments. Nodes are stored column by column from the north-west corner, as in CPS-3.
-
-## Shapefile
-
-The example is a shapefile bundle (`.shp`, `.shx`, `.dbf`, `.prj`) with ED50 / UTM zone 34N projection. It describes boundary geometry rather than regularly sampled grid nodes. The app can inspect it, but it cannot safely turn the boundary into a regular grid without an explicit interpolation method and cell size.
 
 ## Interoperability caution
 

@@ -13,7 +13,6 @@ const TOC = [
       { id: 'grid-zmap', label: 'ZMAP+ ASCII' },
       { id: 'grid-irap', label: 'IRAP Classic ASCII' },
       { id: 'grid-earthvision', label: 'EarthVision ASCII' },
-      { id: 'grid-shapefile', label: 'Shapefile' },
       { id: 'grid-order', label: 'Storage order & nulls' },
       { id: 'grid-reference', label: 'The reference grid' },
       { id: 'grid-caution', label: 'Interoperability' },
@@ -236,7 +235,7 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
-            <p>Three tools are live today. <b>Peforma Grid/2D-Map</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII, and inspects shapefiles. <b>Peforma Lines/Points</b> converts open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Units</b> converts ten engineering categories with exact factors. Polygons, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Three tools are live today. <b>Peforma Grid/2D-Map</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Lines/Points</b> converts open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Units</b> converts ten engineering categories with exact factors. Polygons, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
@@ -255,14 +254,13 @@ export default function Docs() {
             <p>Peforma Grid/2D-Map reads four ASCII grid dialects and writes the same four. Internally every grid is stored once, in a single canonical order, and each exporter reorders from that model. This is why a CPS-3 file and an EarthVision file of the same surface produce identical node values after conversion. The Z values may be depth, two-way time, or another sampled attribute; they are copied verbatim and never rescaled, so a time horizon converts exactly like a depth structure map.</p>
 
             <Table
-              caption="The five grid inputs at a glance. Shapefile is inspection-only and is never offered as a grid output."
+              caption="The four grid inputs at a glance. Every dialect is both read and written as a node grid."
               head={['Format', 'Detected by', 'Dimensions record', 'Node order', 'Null marker', 'Grid output']}
               rows={[
                 [<FormatChip fmt="cps3">CPS-3</FormatChip>, <code className="inline-code">FSASCI</code>, 'rows, then columns', 'column-major, NW→S', <code className="inline-code">0.1E+31</code>, 'Yes'],
                 [<FormatChip fmt="zmap">ZMAP+</FormatChip>, <code className="inline-code">@…,GRID</code>, 'resolved from spans', 'column-major, NW→S', <code className="inline-code">1e30</code>, 'Yes'],
                 [<FormatChip fmt="irap">IRAP Classic</FormatChip>, <code className="inline-code">-996</code>, 'rows on rec 1, cols on rec 3', 'row-major, from ymin', <code className="inline-code">9999900</code>, 'Yes'],
                 [<FormatChip fmt="earthvision">EarthVision</FormatChip>, <code className="inline-code"># Type: scattered data</code>, 'columns × rows', 'explicit 1-based indices', 'omitted', 'Yes'],
-                [<FormatChip fmt="shapefile">Shapefile</FormatChip>, <span><code className="inline-code">.shp</code> + sidecars</span>, 'boundary geometry', 'not a node grid', 'n/a', 'No'],
               ]}
             />
 
@@ -272,7 +270,6 @@ export default function Docs() {
 # Type: scattered data           → EarthVision
 -996 …                           → IRAP Classic
 @… , GRID , …                    → ZMAP+`} />
-              <p>The one exception is the shapefile: it is recognised by its <code className="inline-code">.shp</code> extension because the <code className="inline-code">.shx</code>, <code className="inline-code">.dbf</code>, and <code className="inline-code">.prj</code> sidecars must be bundled with it before anything can be read.</p>
             </Sub>
 
             <Sub id="grid-cps3" title="CPS-3 ASCII">
@@ -348,14 +345,6 @@ FSXINC 50 50
                 <li>A <code className="inline-code">Field:</code> record may carry a unit suffix (for example <code className="inline-code">3 z feet</code>); the field number and name are matched and the suffix is ignored. <code className="inline-code">Z_units</code> is kept as descriptive metadata — values are never rescaled.</li>
               </ul>
               <p>Because the indices are explicit, no storage order needs to be inferred. Unsupported EarthVision variants are rejected rather than guessed.</p>
-            </Sub>
-
-            <Sub id="grid-shapefile" title="Shapefile">
-              <p><FormatChip fmt="shapefile">Shapefile</FormatChip> is a bundle of <code className="inline-code">.shp</code>, <code className="inline-code">.shx</code>, <code className="inline-code">.dbf</code>, and <code className="inline-code">.prj</code> files. The bundled example is in ED50 / UTM zone 34N and contains <b>boundary geometry</b>, not regularly sampled grid nodes.</p>
-              <p>Peforma Grid/2D-Map inspects a shapefile — feature count, coordinate bounds, and the <code className="inline-code">.prj</code> projection — but does not convert it. Turning a boundary into a regular grid requires an interpolation method and a cell size, and no values will be invented to fill that gap.</p>
-              <Callout tone="caution" title="Why shapefile is not a grid output">
-                <p>A polygon boundary carries no node values. Producing a grid from it is an interpolation decision that belongs to a gridding workflow, not a format conversion. Closed polygon topology is handled by the planned Peforma Polygons tool.</p>
-              </Callout>
             </Sub>
 
             <Sub id="grid-order" title="Storage order & nulls">
