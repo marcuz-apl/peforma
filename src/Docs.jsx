@@ -249,7 +249,7 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
-            <p>Four tools are live today. <b>Peforma Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Four tools are live today. <b>Peforma Horizon/Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
@@ -263,9 +263,9 @@ export default function Docs() {
           <section className="docs-section" id="grid-formats">
             <div className="section-head">
               <span className="section-glyph"><Grid3x3 size={20} aria-hidden="true" /></span>
-              <div><h2>Grid formats</h2><p className="section-sub">Depth &amp; time surfaces · Peforma Grid</p></div>
+              <div><h2>Grid formats</h2><p className="section-sub">Depth &amp; time surfaces · Peforma Horizon/Grid</p></div>
             </div>
-            <p>Peforma Grid reads four ASCII grid dialects and writes the same four. Internally every grid is stored once, in a single canonical order, and each exporter reorders from that model. This is why a CPS-3 file and an EarthVision file of the same surface produce identical node values after conversion. The Z values may be depth, two-way time, or another sampled attribute; they are copied verbatim and never rescaled, so a time horizon converts exactly like a depth structure map.</p>
+            <p>Peforma Horizon/Grid reads four ASCII grid dialects and writes the same four. Internally every grid is stored once, in a single canonical order, and each exporter reorders from that model. This is why a CPS-3 file and an EarthVision file of the same surface produce identical node values after conversion. The Z values may be depth, two-way time, or another sampled attribute; they are copied verbatim and never rescaled, so a time horizon converts exactly like a depth structure map.</p>
 
             <Table
               caption="The four grid inputs at a glance. Every dialect is both read and written as a node grid."

@@ -1,6 +1,6 @@
-# Peforma Grid — Product Requirements
+# Peforma Horizon/Grid — Product Requirements
 
-Peforma is the broader product family for oil-sector data exchange. Peforma Grid is its first tool; future capabilities may cover wells, seismic, contours, and other data types. Keep this PRD scoped to grid conversion.
+Peforma is the broader product family for oil-sector data exchange. Peforma Horizon/Grid is its first tool; future capabilities may cover wells, seismic, contours, and other data types. Keep this PRD scoped to grid conversion.
 
 Point, line, and polygon exchange is specified in [Peforma Culture](PRD_CULTURE.md); its Lines/Points and Polygon converters are implemented. Esri Shapefile and GeoJSON feature exchange is implemented in its own product, specified in [Peforma Shapefile](PRD_SHAPEFILE.md). 2D and 3D seismic exchange is specified in [Peforma Seismic](PRD_SEISMIC.md), and 3D mesh and geobody exchange in [Peforma 3D](PRD_3D.md). Seismic and 3D remain planned capabilities and do not affect the grid scope below.
 

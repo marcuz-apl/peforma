@@ -21,7 +21,7 @@ const NULLS = { cps3: 1e30, irap: 9999900, zmap: 1e30, earthvision: 1e31 };
 // Product-family navigation. Only the grid suite is live; the rest are labelled
 // placeholders so the rail never offers a link that does nothing.
 const SUITES = [
-  { key: 'grid', name: 'Peforma Grid', tool: 'Grid & 2D-map converter', href: '#grid', icon: Grid3x3, live: true },
+  { key: 'grid', name: 'Peforma Horizon/Grid', tool: 'Time-Horizon/Depth-Grid', href: '#grid', icon: Grid3x3, live: true },
   {
     key: 'culture', name: 'Peforma Culture', icon: Waypoints,
     children: [
@@ -29,7 +29,7 @@ const SUITES = [
       { key: 'culture-polygon', name: 'Polygon', href: '#culture-polygon', live: true },
     ],
   },
-  { key: 'shapefile', name: 'Peforma Shapefile', tool: 'Shapefile bundle converter', href: '#shapefile', icon: Files, live: true },
+  { key: 'shapefile', name: 'Peforma Shapefile', tool: 'Shapefile bundle', href: '#shapefile', icon: Files, live: true },
   { key: '3d', name: 'Peforma 3D', icon: Box },
   { key: 'seismic', name: 'Peforma Seismic', icon: AudioWaveform },
   { key: 'coordinates', name: 'Peforma Coordinates', icon: Globe2, reference: true },
@@ -221,7 +221,7 @@ function exportGrid(g, fmt) {
   if (fmt === 'zmap') {
     // Matches the ZIMS/Kingdom layout: rows then columns, real increments after the
     // rotation, and nodes ordered column by column from the north-west corner.
-    return `! Peforma Grid ZMAP+ ASCII
+    return `! Peforma Horizon/Grid ZMAP+ ASCII
 ! Converted with Peforma toolbox of Alfazen Inc.
 @GRID FILE, GRID, 10
 15, 0.1000000E+31, , 7, 1
@@ -253,7 +253,7 @@ ${formatFlat(toColumnMajor(values, nx, ny), g.nodata, '0.1E+31', nx)}
 `;
   }
   if (fmt === 'earthvision') {
-    const out = [`# Type: scattered data`, `# Version: 6`, `# Description: Converted by Peforma Grid\n# Converted with Peforma toolbox of Alfazen Inc.`, `# Format: free`, `# Field: 1 x`, `# Field: 2 y`, `# Field: 3 z ${g.units || 'unknown'}`, `# Field: 4 column`, `# Field: 5 row`, `# Projection: ${g.projection || 'Unknown'}`, `# Units: Unknown`, `# End:`, `# Information from grid:`, `# Grid_size: ${nx} x ${ny}`, `# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`, `# Z_units: ${g.units || 'unknown'}`];
+    const out = [`# Type: scattered data`, `# Version: 6`, `# Description: Converted by Peforma Horizon/Grid\n# Converted with Peforma toolbox of Alfazen Inc.`, `# Format: free`, `# Field: 1 x`, `# Field: 2 y`, `# Field: 3 z ${g.units || 'unknown'}`, `# Field: 4 column`, `# Field: 5 row`, `# Projection: ${g.projection || 'Unknown'}`, `# Units: Unknown`, `# End:`, `# Information from grid:`, `# Grid_size: ${nx} x ${ny}`, `# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`, `# Z_units: ${g.units || 'unknown'}`];
     for (let r = 0; r < ny; r++) for (let c = 0; c < nx; c++) {
       const v = values[r * nx + c];
       if (v !== g.nodata) out.push(`${(g.xmin + c * g.dx).toFixed(6)} ${(g.ymin + r * g.dy).toFixed(6)} ${Number(v).toPrecision(10)} ${c + 1} ${r + 1}`);
@@ -832,7 +832,7 @@ function App() {
             ? 'Peforma Shapefile — Esri Shapefile Bundle Converter'
             : route === 'docs'
               ? 'Peforma Docs — Format Reference & Guides'
-              : 'Peforma Grid — Subsurface Grid Converter';
+              : 'Peforma Horizon/Grid — Subsurface Grid Converter';
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [route]);
 
@@ -979,7 +979,7 @@ function App() {
             ) : (
               <>
                 <section className="content-head">
-                  <div className="eyebrow"><span /> PEFORMA / GRID</div>
+                  <div className="eyebrow"><span /> PEFORMA / HORIZON-GRID</div>
                   <h1>Move your grids.<br /><em>Keep your data.</em></h1>
                   <p>Convert depth or time grid surfaces between four subsurface formats.</p>
                 </section>

@@ -20,7 +20,7 @@ const NAV_LINKS = [
 
 const LIVE_SUITES = [
   {
-    key: 'grid', icon: Grid3x3, name: 'Peforma Grid', href: '#grid',
+    key: 'grid', icon: Grid3x3, name: 'Peforma Horizon/Grid', href: '#grid',
     blurb: 'Depth or time grid surfaces moved between the four ASCII dialects interpretation packages actually read.',
     formats: ['CPS-3', 'EarthVision', 'IRAP Classic', 'ZMAP+'],
   },
