@@ -25,7 +25,7 @@ const SUITES = [
   {
     key: 'culture', name: 'Peforma Culture', icon: Waypoints,
     children: [
-      { key: 'culture', name: 'Lines/Points', href: '#culture', live: true },
+      { key: 'culture', name: 'Lines/Points/Fault-sticks', href: '#culture', live: true },
       { key: 'culture-polygon', name: 'Polygon', href: '#culture-polygon', live: true },
     ],
   },
@@ -928,7 +928,7 @@ function App() {
                   {route === 'culture' ? (
                     <>
                       <h1>Move your vectors.<br /><em>Keep the geometry.</em></h1>
-                      <p>Convert point and polyline data between CSV, GeoJSON, and GOCAD ASCII.</p>
+                      <p>Convert point, polyline, and fault-stick data between CSV, GeoJSON, and GOCAD ASCII.</p>
                     </>
                   ) : (
                     <>
@@ -937,7 +937,7 @@ function App() {
                     </>
                   )}
                   <nav className="culture-tabs" aria-label="Peforma Culture tools">
-                    <a className={`culture-tab${route === 'culture' ? ' active' : ''}`} href="#culture" aria-current={route === 'culture' ? 'page' : undefined}>Lines/Points</a>
+                    <a className={`culture-tab${route === 'culture' ? ' active' : ''}`} href="#culture" aria-current={route === 'culture' ? 'page' : undefined}>Lines/Points/Fault-sticks</a>
                     <a className={`culture-tab${route === 'culture-polygon' ? ' active' : ''}`} href="#culture-polygon" aria-current={route === 'culture-polygon' ? 'page' : undefined}>Polygon</a>
                   </nav>
                 </section>

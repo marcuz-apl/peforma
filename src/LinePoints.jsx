@@ -147,9 +147,9 @@ function LineSourcePanel({ pending, model, error, drag, setDrag, input, load, re
         onDragLeave={() => setDrag(false)}
         onDrop={e => { e.preventDefault(); setDrag(false); load(e.dataTransfer.files); }}
       >
-        <input ref={input} type="file" accept=".csv,.tsv,.xyz,.dat,.txt,.pl,.vs,.ts,.geojson,.json" aria-label="Choose a line or point file" onChange={e => load(e.target.files)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); input.current?.click(); } }} />
+        <input ref={input} type="file" accept=".csv,.tsv,.xyz,.dat,.txt,.pl,.vs,.ts,.geojson,.json" aria-label="Choose a line, point, or fault stick file" onChange={e => load(e.target.files)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); input.current?.click(); } }} />
         <span className="upload-icon"><FileUp size={23} /></span>
-        <strong>Drop a line or point file here</strong>
+        <strong>Drop a line, point, or fault stick file here</strong>
         <span className="drop-sub">or <span className="browse">browse files</span> from your computer</span>
         <span className="file-hint">CSV · TSV · XYZ · GEOJSON · GOCAD .PL / .VS</span>
       </label>
@@ -268,7 +268,7 @@ export default function LinePoints() {
   }, [model, target]);
 
   return (
-    <section className="workspace line-workspace" aria-label="Line and point converter">
+    <section className="workspace line-workspace" aria-label="Line, point, and fault stick converter">
       <div className="line-block">
         <LineSourcePanel
           pending={pending}

@@ -403,9 +403,9 @@ EarthVision    (explicit 1-based column / row indices):
           <section className="docs-section" id="line-formats">
             <div className="section-head">
               <span className="section-glyph"><Waypoints size={20} aria-hidden="true" /></span>
-              <div><h2>Culture — Lines &amp; Points</h2><p className="section-sub">Open line and point geometry · Peforma Culture</p></div>
+              <div><h2>Culture — Lines, Points &amp; Fault Sticks</h2><p className="section-sub">Open line and point geometry · Peforma Culture</p></div>
             </div>
-            <p>The Culture Lines/Points converter handles open geometry — point sets and polylines — across three formats. Closed polygon geometry belongs to the Polygon converter in the next section; shapefile interchange belongs to Peforma Shapefile, so neither is offered here.</p>
+            <p>The Culture Lines/Points/Fault-sticks converter handles open geometry — point sets and polylines, including fault sticks — across three formats. Closed polygon geometry belongs to the Polygon converter in the next section; shapefile interchange belongs to Peforma Shapefile, so neither is offered here.</p>
 
             <Sub id="lines-delimited" title="Delimited text">
               <p>Comma, semicolon, tab, and whitespace-separated files (CSV, TSV, XYZ) are all read. The delimiter is detected from the first line. The first row decides whether a header is present:</p>
