@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowUp, BookOpen, Check, Copy, Files, FileText, Grid3x3, Info, LockKeyhole, Ruler, ShieldCheck, TriangleAlert, Waypoints } from 'lucide-react';
+import { ArrowUp, BookOpen, Box, Check, Copy, Files, FileText, Grid3x3, Info, LockKeyhole, Ruler, ShieldCheck, TriangleAlert, Waypoints } from 'lucide-react';
 
 // In-page navigation. The hash router owns top-level routes (#grid, #units,
 // #culture, #docs), so these anchors never change the hash: clicking one scrolls the
@@ -39,6 +39,16 @@ const TOC = [
       { id: 'shapefile-geometry', label: 'Geometry types' },
       { id: 'shapefile-writing', label: 'Writing a set' },
       { id: 'shapefile-caution', label: 'Interoperability' },
+    ],
+  },
+  {
+    id: 'mesh-formats', label: '3D meshes', icon: Box, children: [
+      { id: 'mesh-objects', label: 'Surfaces & solids' },
+      { id: 'mesh-stl', label: 'STL' },
+      { id: 'mesh-obj', label: 'Wavefront OBJ' },
+      { id: 'mesh-ply', label: 'PLY' },
+      { id: 'mesh-tsurf', label: 'GOCAD TSurf' },
+      { id: 'mesh-integrity', label: 'Mesh integrity' },
     ],
   },
   {
@@ -249,7 +259,7 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
-            <p>Four tools are live today. <b>Peforma Horizon/Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Five tools are live today. <b>Peforma Horizon/Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points/Fault-sticks converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma 3D</b> moves triangulated surfaces and geobody shells between STL, OBJ, PLY, and GOCAD TSurf. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. Seismic and Coordinates are planned and labelled as such in the suite rail.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
@@ -570,6 +580,84 @@ roads.cpg   text encoding, when present`} />
             <Sub id="shapefile-caution" title="Interoperability">
               <Callout tone="caution" title="Confirm in the receiving software before operational use">
                 <p>Shapefile readers differ in their support for Z values, UTF-8 attribute text, field widths, and deleted-record handling. Attribute values are not reinterpreted, and coordinate reference definitions are carried as text without reprojection. Compare record order, geometry, attributes, ring orientation, CRS, and Z values in the target application before relying on an exchange.</p>
+              </Callout>
+            </Sub>
+          </section>
+
+          <section className="docs-section" id="mesh-formats">
+            <div className="section-head">
+              <span className="section-glyph"><Box size={20} aria-hidden="true" /></span>
+              <div><h2>3D meshes</h2><p className="section-sub">Triangulated surfaces &amp; geobody shells · Peforma 3D</p></div>
+            </div>
+            <p>Peforma 3D reads and writes triangular meshes in ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf. Vertex order, face connectivity, group names, and the normals a file carries are preserved. Closure and normal consistency are measured and reported; nothing is welded, capped, flipped, or re-tessellated.</p>
+
+            <Sub id="mesh-objects" title="Surfaces &amp; solids">
+              <p>Both pages use the same reader, writer, and summary. <b>Fault planes &amp; horizons</b> at <code className="inline-code">#3d-surfaces</code> covers fault planes, faulted horizons, and salt tops — surfaces that are usually open at their edges. <b>Geobodies &amp; solids</b> at <code className="inline-code">#3d-solids</code> covers faceted geobodies, salt bodies, and tetrahedral solids, and flags a shell that is not watertight before export.</p>
+              <Table
+                caption="Where a fault object belongs. Geometry and grid topology decide the owner, not the file extension."
+                head={['Object', 'Geometry', 'Tool']}
+                rows={[
+                  ['Fault stick, well trajectory', 'Open polyline', 'Culture Lines/Points/Fault-sticks'],
+                  ['Fault plane, horizon, salt top', 'Triangulated surface', 'Peforma 3D surfaces'],
+                  ['Geobody, salt body, tetrahedral solid', 'Closed mesh or tetrahedral cells', 'Peforma 3D solids'],
+                  ['Fault polygon, prospect outline', 'Closed planar ring', 'Culture Polygon or Shapefile'],
+                  ['Fault pillar, corner-point grid', 'Paired pillars and cell topology', 'Not a mesh format — out of scope'],
+                  ['2D seismic line, 3D cube', 'Volume of traces', 'Peforma Seismic'],
+                ]}
+              />
+              <p>A fault stick and the fault plane built through it are different objects. Peforma 3D never infers a surface from sticks, and no tessellation format carries fault pillars or corner-point topology.</p>
+            </Sub>
+
+            <Sub id="mesh-stl" title="STL">
+              <p>STL stores triangles only. ASCII STL is read from <code className="inline-code">facet normal</code>, three <code className="inline-code">vertex</code> records, and <code className="inline-code">endfacet</code>; the <code className="inline-code">solid</code> name is kept when present. Binary STL is read from the 80-byte header, a 32-bit count, and 50-byte records. The file length must equal <code className="inline-code">84 + 50 × count</code>, or the file is rejected.</p>
+              <ul className="doc-list">
+                <li>Every facet carries its own three vertices, so STL has no shared vertex list. Peforma stores the facet vertices as written and detects closure by exact coordinate matching, not by index.</li>
+                <li>Per-facet normals are kept as face normals. A zero facet normal means "not supplied", not a direction.</li>
+                <li>Binary attribute words, which some writers use for colour, are counted and not carried.</li>
+                <li>STL output writes the solid name; groups, vertex normals, CRS, and units are reported as not written.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="mesh-obj" title="Wavefront OBJ">
+              <p>OBJ is read for <code className="inline-code">v</code> vertices, <code className="inline-code">vn</code> normals, triangular <code className="inline-code">f</code> faces, and <code className="inline-code">o</code>/<code className="inline-code">g</code> names. Negative indices count back from the end of the current list, as the format defines. A face with more than three vertices is rejected rather than triangulated, because splitting it would add faces the source never had.</p>
+              <ul className="doc-list">
+                <li><code className="inline-code">o</code> and <code className="inline-code">g</code> records become named face groups. Faces before the first group stay ungrouped.</li>
+                <li>Vertex normals are kept per vertex, not per face. A vertex assigned two different normals by different faces is rejected as contradictory.</li>
+                <li>Texture coordinates, material libraries, and smoothing records are counted and reported, not carried.</li>
+                <li>On write, <code className="inline-code">vn</code> records are emitted only for vertices that carried a normal. Faces whose vertices have no normal are written as plain <code className="inline-code">f</code> references, so a normal is never invented.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="mesh-ply" title="PLY">
+              <p>PLY is read in ASCII and binary little-endian. The header's property list is honoured exactly: <code className="inline-code">x</code>, <code className="inline-code">y</code>, and <code className="inline-code">z</code> are required; vertex normals are read only when all three of <code className="inline-code">nx</code>, <code className="inline-code">ny</code>, and <code className="inline-code">nz</code> are present.</p>
+              <ul className="doc-list">
+                <li>A face must be an integer property list. A non-triangle face is rejected, and a list-bearing element other than face is rejected because its byte length cannot be computed safely.</li>
+                <li>Big-endian binary PLY is rejected with the declared endianness named.</li>
+                <li>Other vertex and face properties, texture coordinates, and extra elements are counted and not carried.</li>
+                <li>PLY output writes double-precision coordinates, an optional complete vertex-normal set, and a <code className="inline-code">uchar</code>/<code className="inline-code">uint</code> face index list.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="mesh-tsurf" title="GOCAD TSurf">
+              <p>GOCAD TSurf is read from <code className="inline-code">VRTX</code>, <code className="inline-code">PVRTX</code>, and <code className="inline-code">TRGL</code> records. GOCAD ids are mapped to zero-based vertex indices; a record that references an id no vertex declares is an error, never a silent skip.</p>
+              <ul className="doc-list">
+                <li><code className="inline-code">name</code>, <code className="inline-code">*CRS</code>, and <code className="inline-code">*UNITS</code> are preserved as free text and never interpreted as EPSG codes.</li>
+                <li><code className="inline-code">PROPERTY</code> records and extra <code className="inline-code">PVRTX</code> values are counted and not carried.</li>
+                <li>A <code className="inline-code">TSolid</code> is detected and rejected with a tier-2 message; it is a solid-cell format, not a triangle surface.</li>
+                <li>TSurf output writes <code className="inline-code">GOCAD TSurf 1</code>, a <code className="inline-code">HEADER</code> with the name, CRS, and units that were present, <code className="inline-code">TFACE</code>, sequential <code className="inline-code">VRTX</code> records, <code className="inline-code">TRGL</code> records, and <code className="inline-code">END</code>. Groups and normals are not written.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="mesh-integrity" title="Mesh integrity">
+              <p>Closure is measured from edge use. An edge used by one face is an open boundary; an edge used by more than two faces is non-manifold; a mesh is closed only when every edge is used exactly twice. STL closure is measured by exact coordinate matching because STL has no shared vertex list. Normal consistency is measured from the direction each shared edge is traversed by its two faces.</p>
+              <ul className="doc-list">
+                <li>Open boundaries, non-manifold edges, degenerate faces, and inconsistent normals are reported, never repaired. No face is added, removed, welded, or flipped.</li>
+                <li>When neither a vertex nor a face normal is stored, the normal state is <b>None</b>. When normals exist but no edges are shared, it is <b>Undetermined</b>.</li>
+                <li>Files up to 64 MB are read fully. A larger file is rejected with its size stated and is never truncated.</li>
+                <li>The 3D preview draws at most 20,000 faces and states when the view is a sample. The numeric summary is always computed over the whole mesh.</li>
+              </ul>
+              <Callout tone="caution" title="Confirm in the receiving software before operational use">
+                <p>Closure, normal direction, and group names are properties of the file, not of the tool that reads it. A target format may not carry groups, vertex normals, face normals, CRS, or units; every such loss is counted and reported. Compare vertex count, face count, bounds, orientation, and normals in the target application before relying on an exchange.</p>
               </Callout>
             </Sub>
           </section>

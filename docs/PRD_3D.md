@@ -1,6 +1,6 @@
 # Peforma 3D — Mesh and Geobody Data Exchange
 
-Status: planned. This chapter defines the product and the intended format scope. No 3D converter is implemented yet, and nothing here should be read as a claim of current support.
+Status: tier 1 implemented; tier 2 planned. ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf are live at `#3d-surfaces` and `#3d-solids`. GOCAD TSolid and COLLADA are detected and rejected with a tier-2 message. The rest of this chapter records the product and format scope.
 
 Peforma 3D is the suite member for triangular surface meshes and closed solid "geobodies". Peforma Horizon/Grid handles regularly sampled surfaces; Peforma Culture handles points, open polylines, and closed planar rings — fault sticks, well trajectories, fault polygons, and prospect outlines; Peforma Seismic handles 2D seismic lines and 3D cubes; Peforma 3D handles the tessellated objects that come from 3D geological modeling workflows: horizon and fault surfaces, faceted geobody boundaries, salt bodies, and the STL/OBJ/PLY/COLLADA/GOCAD files that interpretation and 3D-print tools exchange. Seismic volumes are trace data, not mesh objects, and are never read here. Geobody- and fault-specific semantics (stratigraphic ordering, facies, fault separation) are carried as attributes, not as a separate data model.
 
@@ -25,17 +25,18 @@ Oil and gas geoscientists, reservoir modelers, and 3D-print or visualization spe
 ### In scope for the first release
 
 - Read and write ASCII STL (solid and non-solid) with vertex and face preservation.
-- Read binary STL where the byte layout is well-defined; report the detected record count and byte size.
+- Read and write binary STL; the file length must match `84 + 50 × record count`, and the record count is reported.
 - Read and write Wavefront OBJ with `v`, `vn`, `f`, and `o`/`g` group records; preserve face indices, vertex normals, and group names.
 - Read and write PLY (ASCII and binary little-endian) with vertex position, optional vertex normal, and face connectivity.
-- Read GOCAD `TSurf` (`.ts`) triangle surfaces and `TSolid` (`.so`) tetrahedral cells as meshes.
+- Read and write GOCAD `TSurf` (`.ts`) triangle surfaces, including the declared name, CRS, and units.
 - Read triangular fault and horizon surfaces as meshes; fault identity is carried only by the group or object name and by attributes, not by a separate fault object.
-- Read COLLADA (`dae`) with one or more meshes, limited to the `triods` and `triangles` primitives.
-- Show mesh-level facts: vertex count, face count, whether the mesh is closed or open (detected by open edges), normal consistency, bounding box, and attribute group names.
-- Preserve vertex positions, face connectivity, group or object names, and normals where present.
+- Detect GOCAD `TSolid` (`.so`) and COLLADA (`.dae`) and reject them with a tier-2 message rather than misreading them.
+- Show mesh-level facts: vertex count, face count, whether the mesh is closed or open (detected by open edges), normal consistency, bounding box, group names, CRS, and units.
+- Preserve vertex positions, face connectivity, group or object names, and the normals a file carries.
 - Report, not repair, open boundaries, inconsistent normals, and shared-vertex gaps.
-- Process files locally in the browser, with no upload and no telemetry.
-- For large files, use a streaming path with a hard preview limit and an explicit size warning.
+- Count and report records a target format cannot carry, such as UV coordinates, material names, face normals, and CRS text.
+- Process one file at a time locally in the browser, with no telemetry.
+- Read files up to 64 MB into memory and reject a larger file with its size stated; never truncate a file.
 
 ### Out of scope
 
@@ -100,8 +101,8 @@ Two lines follow from the table. First, dimensionality is not ownership: a fault
 | Wavefront OBJ | Wavefront, documented | Vertices, normals, UVs, faces, groups, objects | Yes | Yes | Rich but free-form; the group and object records carry the only semantics |
 | PLY | Stanford, documented | Vertices with properties, faces, and an optional texture | Yes | Yes | ASCII or binary; property list is explicit |
 | GOCAD TSurf `.ts` | Paradigm/Emerson GOCAD, publicly documented | Triangulated surface with vertices, triangles, and properties | Yes | Yes | A surface mesh; CRS may be declared in the header |
-| GOCAD TSolid `.so` | Paradigm/Emerson GOCAD | Tetrahedral cells with faces | Yes | Later | A solid mesh; confirm against a representative file before writing |
-| COLLADA `dae` | Khronos, documented | Multiple meshes in a scene, each with primitives | Yes, limited | Yes, limited | Limited to `triangles` and `triods` primitives; materials and transforms are out of scope |
+| GOCAD TSolid `.so` | Paradigm/Emerson GOCAD | Tetrahedral cells with faces | Detected, tier 2 | No | A solid mesh; needs a representative file set before it can be read |
+| COLLADA `dae` | Khronos, documented | Multiple meshes in a scene, each with primitives | Detected, tier 2 | No | Materials and transforms are out of scope; a tier-2 producer file set is required |
 | KML ground overlay | OGC | Raster overlays, not mesh | No | No | Not a 3D mesh format |
 
 ### Vendor exchange surface
@@ -134,22 +135,23 @@ The tiers separate what can be built with confidence from what needs a represent
 
 A format moves from tier 2 to tier 1 only after the parser has been checked against representative files from more than one producer and the assumptions are written down.
 
-## Size and streaming model
+Tier 1 is implemented. A tier-2 format is detected and rejected with a message naming the tier, never parsed as a different format.
 
-A geobody mesh can be large. A full reservoir model tessellated at interpretation density can exceed a million triangles. The design separates a small in-browser summary from the full data body.
+## Size and preview model
 
-- Small files (target: under 64 MB) are read fully into memory and previewed.
-- Large files are streamed from the file system in chunks, with a hard preview limit on triangle count.
-- Mesh-level summaries (vertex count, face count, closure state, normal consistency, bounds) are built from the first N faces, not from every face.
-- Export writes face by face with a fixed layout and progress reporting.
-- The UI must show the file size, the estimated memory requirement, and whether the preview is partial before any conversion begins.
-- A file that cannot be streamed in the target browser is rejected with the reason, not truncated.
+A geobody mesh can be large. Peforma 3D sets one hard limit and states it before conversion.
+
+- Files up to 64 MB are read fully into memory; the summary is computed over the whole mesh, not a sample.
+- A file larger than 64 MB is rejected with its size and the read cap stated. It is never truncated or partially read.
+- The 3D preview draws at most 20,000 faces, sampled evenly, and labels the face count when it is a sample. The numeric summary is never sampled.
+- Export writes the whole mesh with a fixed layout. The download button reports a busy state while the file is produced.
+- The UI shows the file size, an estimate of the in-memory data model, and the 64 MB read cap before conversion begins.
 
 ## User experience outline
 
-1. Drop or choose one or more files. Identify the format from content and magic bytes, not only from the extension.
-2. Show the mesh summary: vertex count, face count, whether the mesh is closed or open, whether normals are consistent, bounding box, and group or object names.
-3. For GOCAD `TSurf` or `TSolid`, show the declared CRS and property list.
+1. Drop or choose one mesh file. Identify the format from content and magic bytes, not only from the extension.
+2. Show the mesh summary: vertex count, face count, whether the mesh is closed or open, whether normals are consistent, bounding box, group names, CRS, and units. A sampled 3D preview shows the triangles, with the sample size stated when the mesh exceeds 20,000 faces.
+3. For GOCAD `TSurf`, show the declared CRS and units. A `TSolid` is rejected with a tier-2 message.
 4. Let the user choose an output format and confirm the target conventions: face encoding, whether to preserve group names, and whether to keep vertex normals.
 5. Download the result with a clear file name and extension, and report any information the target format cannot carry, such as UV coordinates, a face normal, or a group name.
 
@@ -184,18 +186,18 @@ Warnings must be specific: which face has no normal, which boundary edge is open
 - A mesh with open boundaries or inconsistent normals is never silently repaired; the state is reported and the user confirms the export.
 - The exported mesh has the same vertex count, face count, vertex order, face connectivity, and group names as the imported mesh, apart from documented precision rounding.
 - CRS and units are preserved or explicitly reported as unknown; no reprojection or unit conversion occurs.
-- Invalid or unsupported files produce a readable error without crashing the page, and the previous result remains available.
+- Invalid or unsupported files produce a readable error without crashing the page; a failed load replaces the panel result with the error, while a failed export keeps the current mesh.
 - The interface works on desktop and narrow screens and is keyboard accessible, with labelled controls, visible focus, and announced results.
 - All parsing, preview, and export run in the browser, with no network request carrying source geometry.
 - The format assumptions and limitations are documented before a format is marked as supported.
 
-## Open questions
+## Recorded decisions
 
-- Which producer's OBJ should anchor the first release: Leapfrog Geo per-unit exports or a generic triangulation tool? Leapfrog is the most common geobody producer in the field.
-- Should GOCAD `TSolid` be in the first release, given that it is the only public format that carries a true solid rather than a surface?
-- Is a map preview required for the first release, or is a numeric summary and face list enough?
-- Should per-unit OBJ files be combined into a single OBJ with group records during import, and is that combination a loss of information?
-- How should the tool handle UV coordinates and face normals in formats that do not carry them: drop with a note, or refuse the export?
+- **OBJ anchoring.** A generic triangular OBJ is the read anchor, so a Leapfrog Geo per-unit export and a generic triangulation tool are both accepted as ordinary `v`/`vn`/`f`/`g` records. Per-unit files are converted one at a time; Peforma 3D does not combine them into one mesh, because combining changes the object count and can merge unrelated units.
+- **GOCAD TSolid is tier 2.** It is the only public format that carries a true solid, but no representative file set has been validated. It is detected and rejected with a message naming tier 2.
+- **The preview is numeric plus a sampled canvas.** A map view is not meaningful for an arbitrary 3D mesh, so the release shows the full numeric summary and a rotating orthographic preview sampled to 20,000 faces.
+- **UV coordinates, materials, and face normals are dropped with a count.** A target format that cannot carry them reports how many records were not written rather than refusing the export. The source file remains unchanged.
+- **One file at a time.** The converter reads one mesh file per conversion; a multi-file drop is rejected with a clear message instead of silently converting the first file.
 
 ## Sources
 

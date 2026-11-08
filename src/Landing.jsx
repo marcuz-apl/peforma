@@ -30,6 +30,11 @@ const LIVE_SUITES = [
     formats: ['CSV', 'GeoJSON', 'GOCAD'],
   },
   {
+    key: '3d', icon: Box, name: 'Peforma 3D', href: '#3d-surfaces',
+    blurb: 'Triangulated horizons, fault planes, and geobody shells moved between STL, OBJ, PLY, and GOCAD TSurf with every vertex and triangle kept.',
+    formats: ['STL', 'OBJ', 'PLY', 'GOCAD TSurf'],
+  },
+  {
     key: 'shapefile', icon: Files, name: 'Peforma Shapefile', href: '#shapefile',
     blurb: 'Esri Shapefile sets and GeoJSON exchanged with every record, attribute, and CRS definition kept in place.',
     formats: ['SHP', 'DBF', 'PRJ', 'GeoJSON'],
@@ -42,7 +47,6 @@ const LIVE_SUITES = [
 ];
 
 const ROADMAP = [
-  { key: '3d', icon: Box, name: 'Peforma 3D' },
   { key: 'seismic', icon: AudioWaveform, name: 'Peforma Seismic' },
   { key: 'coordinates', icon: Globe2, name: 'Peforma Coordinates' },
 ];
@@ -56,7 +60,7 @@ const GUARANTEES = [
 
 const STATS = [
   { value: '4', label: 'grid dialects' },
-  { value: '3', label: 'live converters' },
+  { value: '5', label: 'live tools' },
   { value: '10', label: 'unit categories' },
   { value: '0', label: 'values lost' },
 ];

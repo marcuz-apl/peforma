@@ -64,3 +64,17 @@ DBF attributes are carried by field name and value. Text is read as UTF-8 when i
 
 A `.prj` file is treated as WKT and stored as text without interpretation; GeoJSON round-trips through the legacy `crs` member or the `peforma_crs_wkt` member. No reprojection, datum transformation, or unit conversion is performed. When a model mixes geometry kinds, one shapefile set is written per kind inside the ZIP.
 
+
+## 3D meshes (Peforma 3D)
+
+Peforma 3D reads and writes triangular meshes in ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf. Detection is by content: the PLY `format` line, a GOCAD `TSurf` header, the exact binary STL length `84 + 50 × count`, an ASCII STL `facet normal` record, or an OBJ with `v` and `f` records. A `TSolid` or COLLADA file is detected and rejected with a tier-2 message; a GOCAD `PLINE`/`VSet` is directed to Culture Lines/Points.
+
+STL stores each facet's three vertices separately, so closure is detected by exact coordinate matching. Binary STL is rejected when its byte length does not match the declared record count; a non-zero attribute word is counted and not carried. ASCII STL and binary STL both keep a per-facet normal.
+
+OBJ is read as triangles only; a face with more than three vertices is rejected rather than triangulated. Negative indices are resolved, `o`/`g` records become face groups, and vertex normals are preserved. A vertex assigned two different normals is rejected. Texture coordinates, materials, and smoothing records are counted and not carried. On write, `vn` records are emitted only for vertices that carried a normal, and face references are remapped accordingly.
+
+PLY requires `x`, `y`, and `z` vertex properties. Vertex normals are read only when all three of `nx`, `ny`, `nz` are present. A face must have an integer property list; a non-triangle face is rejected, and a list-bearing element other than face is rejected because its byte length cannot be computed safely. Big-endian binary PLY is rejected. Other vertex and face properties, texture coordinates, and extra elements are counted and not carried.
+
+GOCAD TSurf is read from `VRTX`/`PVRTX` and `TRGL` records, mapping GOCAD ids to zero-based vertex indices. An unknown id is an error. The `name`, `*CRS`, and `*UNITS` header fields are preserved verbatim and never interpreted as EPSG codes. `PROPERTY` records and extra `PVRTX` values are counted and not carried. TSurf output writes `GOCAD TSurf 1`, a `HEADER` with the name, CRS, and units that were present, `TFACE`, sequential `VRTX` records, `TRGL` records, and `END`; groups and normals are not written.
+
+Closure is reported, never repaired: an edge used by one face is open, an edge used by more than two faces is non-manifold, and a mesh is closed only when every edge is used exactly twice. Normal consistency is reported from the direction each shared edge is traversed. Nothing is welded, capped, filled, flipped, smoothed, or re-tessellated, and no reprojection or unit conversion is performed. Files up to 64 MB are read fully; a larger file is rejected with its size stated. The 3D preview draws at most 20,000 faces and states when the preview is a sample.
