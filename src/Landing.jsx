@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Accessibility, ArrowDown, ArrowRight, ArrowUpRight, AudioWaveform, Box, Check, ChevronDown,
+  Accessibility, ArrowDown, ArrowRight, ArrowUpRight, AudioWaveform, BookOpen, Box, Check, ChevronDown,
   Copy, Crosshair, Globe2, Grid3x3, Layers3, Lock, Mail, MapPin, Menu, Minus,
   Pentagon, Plus, Ruler, ScanSearch, Send, ShieldCheck, Waypoints, X,
 } from 'lucide-react';
@@ -87,22 +87,22 @@ function LandingNav({ themePref, resolvedTheme, onThemeChange, scrolled, active,
             <span className="brand-slogan">We morph data</span>
           </span>
         </a>
-        <nav className="lp-links" aria-label="Landing sections">
-          {NAV_LINKS.map(link => (
-            <a
-              key={link.id}
-              href={`#${link.id}`}
-              className={`lp-link${active === link.id ? ' active' : ''}`}
-              aria-current={active === link.id ? 'true' : undefined}
-            >
-              {link.label}
-            </a>
-          ))}
-          <a className="lp-link" href="#docs">Docs</a>
-        </nav>
         <div className="lp-nav-right">
-          <a className="lp-cta lp-cta-sm" href="#converter">
-            Open toolbox <ArrowDown size={15} aria-hidden="true" />
+          <nav className="lp-links" aria-label="Landing sections">
+            {NAV_LINKS.map(link => (
+              <a
+                key={link.id}
+                href={`#${link.id}`}
+                className={`lp-link${active === link.id ? ' active' : ''}`}
+                aria-current={active === link.id ? 'true' : undefined}
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+          <a className="docs-link lp-docs-link" href="#docs" aria-label="Documentation">
+            <BookOpen size={16} aria-hidden="true" />
+            <span>Docs</span>
           </a>
           <button
             type="button"
