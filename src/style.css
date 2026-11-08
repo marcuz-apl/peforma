@@ -786,7 +786,7 @@ a.rail-suite.current:hover { background: var(--rail-current-hover); }
 .footer-legal-links button:hover { color: var(--ink); }
 .footer-legal-copy {
   color: var(--faint);
-  font: 500 11px 'DM Sans', sans-serif;
+  font: 500 13px 'DM Sans', sans-serif;
   text-align: center;
 }
 .footer-social {
