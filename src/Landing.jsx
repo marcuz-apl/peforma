@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Accessibility, ArrowRight, ArrowUpRight, AudioWaveform, BookOpen, Box, ChevronDown,
-  ExternalLink, Globe2, Grid3x3, Layers3, Lock, Mail, MapPin, Menu, Pentagon, Ruler,
-  ScanSearch, ShieldCheck, Waypoints, X,
+  Accessibility, ArrowRight, ArrowUpRight, AudioWaveform, BookOpen, Box, Check, ChevronDown,
+  Copy, Crosshair, ExternalLink, Globe2, Grid3x3, Layers3, Lock, Mail, MapPin, Menu, Minus,
+  Pentagon, Plus, Ruler, ScanSearch, Send, ShieldCheck, Waypoints, X,
 } from 'lucide-react';
-import { AppFooter, LinkedinIcon, ThemeToggle, Wordmark } from './chrome.jsx';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { AppFooter, ThemeToggle, Wordmark } from './chrome.jsx';
 import heroImg from './assets/peforma-hero.png';
 import morphImg from './assets/peforma-morph.png';
 
@@ -107,7 +109,6 @@ function LandingNav({ themePref, resolvedTheme, onThemeChange, scrolled, active,
           <a className="lp-link" href="#docs">Docs</a>
         </nav>
         <div className="lp-nav-right">
-          <ThemeToggle preference={themePref} resolved={resolvedTheme} onChange={onThemeChange} />
           <a className="lp-cta lp-cta-sm" href="#converter">
             Open toolbox <ArrowRight size={15} aria-hidden="true" />
           </a>
@@ -121,6 +122,7 @@ function LandingNav({ themePref, resolvedTheme, onThemeChange, scrolled, active,
           >
             {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
           </button>
+          <ThemeToggle preference={themePref} resolved={resolvedTheme} onChange={onThemeChange} />
         </div>
       </div>
       <div id="lp-mobile-menu" className={`lp-mobile-menu${menuOpen ? ' open' : ''}`} hidden={!menuOpen}>
@@ -287,12 +289,210 @@ function Services() {
   );
 }
 
-const CONTACT_ROWS = [
-  { icon: Mail, label: 'Email', value: 'info@alfazen.org', href: 'mailto:info@alfazen.org' },
-  { icon: Globe2, label: 'Web', value: 'www.alfazen.org', href: 'https://www.alfazen.org' },
-  { icon: LinkedinIcon, label: 'LinkedIn', value: 'marcuszou', href: 'https://www.linkedin.com/in/marcuszou' },
-  { icon: GithubIcon, label: 'GitHub', value: 'marcuz-apl/peforma', href: 'https://github.com/marcuz-apl/peforma' },
-];
+const CALGARY = { lat: 51.0447, lng: -114.0719 };
+const CALGARY_ZOOM = 11;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// The map stays centred on Calgary: panning and cursor-relative zoom are off,
+// and every zoom is re-pinned to the Calgary coordinate.
+function CalgaryMap() {
+  const hostRef = useRef(null);
+  const mapRef = useRef(null);
+  const [zoom, setZoom] = useState(CALGARY_ZOOM);
+
+  useEffect(() => {
+    if (!hostRef.current) return undefined;
+    const map = L.map(hostRef.current, {
+      center: [CALGARY.lat, CALGARY.lng],
+      zoom: CALGARY_ZOOM,
+      minZoom: 9,
+      maxZoom: 16,
+      zoomControl: false,
+      dragging: false,
+      keyboard: false,
+      boxZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      scrollWheelZoom: 'center',
+    });
+    mapRef.current = map;
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
+    }).addTo(map);
+    L.marker([CALGARY.lat, CALGARY.lng], {
+      keyboard: false,
+      icon: L.divIcon({ className: 'lp-map-pin', html: '<span></span>', iconSize: [26, 34], iconAnchor: [13, 32] }),
+    }).addTo(map);
+    const recenter = () => {
+      setZoom(map.getZoom());
+      map.setView([CALGARY.lat, CALGARY.lng], map.getZoom(), { animate: false });
+    };
+    map.on('zoomend', recenter);
+    map.whenReady(() => map.invalidateSize());
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(hostRef.current);
+    return () => {
+      ro.disconnect();
+      map.off('zoomend', recenter);
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  const recenter = () => {
+    mapRef.current?.setView([CALGARY.lat, CALGARY.lng], CALGARY_ZOOM, { animate: true });
+  };
+
+  return (
+    <div className="lp-map-frame lp-reveal">
+      <div className="lp-map-canvas" ref={hostRef} aria-label="Map of Calgary, Alberta, Canada" />
+      <div className="lp-map-controls">
+        <button type="button" onClick={() => mapRef.current?.zoomIn()} aria-label="Zoom in, stays centered on Calgary"><Plus size={16} aria-hidden="true" /></button>
+        <button type="button" onClick={() => mapRef.current?.zoomOut()} aria-label="Zoom out, stays centered on Calgary"><Minus size={16} aria-hidden="true" /></button>
+        <button type="button" onClick={recenter} aria-label="Recenter map on Calgary"><Crosshair size={16} aria-hidden="true" /></button>
+        <span className="lp-map-level" aria-hidden="true">z{zoom}</span>
+      </div>
+      <div className="lp-map-caption">
+        <span><MapPin size={14} aria-hidden="true" /> Calgary · {CALGARY.lat.toFixed(4)}° N, {Math.abs(CALGARY.lng).toFixed(4)}° W</span>
+        <a href={`https://www.openstreetmap.org/?mlat=${CALGARY.lat}&mlon=${CALGARY.lng}#map=12/${CALGARY.lat}/${CALGARY.lng}`} target="_blank" rel="noreferrer">
+          Open in OpenStreetMap <ExternalLink size={13} aria-hidden="true" />
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function ContactForm() {
+  const [fields, setFields] = useState({ name: '', email: '', message: '' });
+  const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState('idle');
+  const [copied, setCopied] = useState(false);
+  const timers = useRef([]);
+
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  const update = key => event => {
+    const value = event.target.value;
+    setFields(f => ({ ...f, [key]: value }));
+    setErrors(e => (e[key] ? { ...e, [key]: undefined } : e));
+  };
+
+  const compose = () => {
+    const name = fields.name.trim();
+    const email = fields.email.trim();
+    const subject = `[Peforma] Message from ${name || 'website visitor'}`;
+    const body = `${fields.message.trim()}\n\n— ${name}\n${email}`;
+    return {
+      subject,
+      body,
+      mailto: `mailto:info@alfazen.org?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+    };
+  };
+
+  const onSubmit = event => {
+    event.preventDefault();
+    const next = {};
+    if (!fields.name.trim()) next.name = 'Please enter your name.';
+    if (!fields.email.trim()) next.email = 'Please enter your email.';
+    else if (!EMAIL_RE.test(fields.email.trim())) next.email = 'Please enter a valid email address.';
+    if (!fields.message.trim()) next.message = 'Please enter a message.';
+    else if (fields.message.trim().length < 10) next.message = 'Please add a little more detail (at least 10 characters).';
+    setErrors(next);
+    const firstError = Object.keys(next)[0];
+    if (firstError) {
+      document.getElementById(`cf-${firstError}`)?.focus();
+      return;
+    }
+    const { mailto } = compose();
+    window.location.href = mailto;
+    setStatus('sent');
+  };
+
+  const copyMessage = async () => {
+    const { subject, body } = compose();
+    try {
+      await navigator.clipboard.writeText(`To: info@alfazen.org\nSubject: ${subject}\n\n${body}`);
+      setCopied(true);
+      timers.current.push(setTimeout(() => setCopied(false), 2000));
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  const reset = () => {
+    setFields({ name: '', email: '', message: '' });
+    setErrors({});
+    setStatus('idle');
+    setCopied(false);
+    timers.current.push(setTimeout(() => document.getElementById('cf-name')?.focus(), 0));
+  };
+
+  if (status === 'sent') {
+    return (
+      <div className="lp-form-success" role="status" aria-live="polite">
+        <span className="lp-form-success-icon"><Check size={20} aria-hidden="true" /></span>
+        <h3>Your message is ready</h3>
+        <p>We opened your email app with the message addressed to <b>info@alfazen.org</b>. Press <b>Send</b> there to deliver it — nothing is sent until you do.</p>
+        <div className="lp-form-success-actions">
+          <button type="button" className="lp-ghost" onClick={copyMessage}>
+            {copied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />} {copied ? 'Copied' : 'Copy message'}
+          </button>
+          <button type="button" className="lp-ghost" onClick={reset}>Write another</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <form className="lp-form" noValidate onSubmit={onSubmit}>
+      <div className="lp-field">
+        <label htmlFor="cf-name">Name</label>
+        <input
+          id="cf-name"
+          type="text"
+          autoComplete="name"
+          value={fields.name}
+          onChange={update('name')}
+          aria-invalid={errors.name ? 'true' : undefined}
+          aria-describedby={errors.name ? 'cf-name-error' : undefined}
+        />
+        {errors.name && <p className="lp-field-error" id="cf-name-error" role="alert">{errors.name}</p>}
+      </div>
+      <div className="lp-field">
+        <label htmlFor="cf-email">Email</label>
+        <input
+          id="cf-email"
+          type="email"
+          autoComplete="email"
+          value={fields.email}
+          onChange={update('email')}
+          aria-invalid={errors.email ? 'true' : undefined}
+          aria-describedby={errors.email ? 'cf-email-error' : undefined}
+        />
+        {errors.email && <p className="lp-field-error" id="cf-email-error" role="alert">{errors.email}</p>}
+      </div>
+      <div className="lp-field">
+        <label htmlFor="cf-message">Message</label>
+        <textarea
+          id="cf-message"
+          rows={5}
+          value={fields.message}
+          onChange={update('message')}
+          aria-invalid={errors.message ? 'true' : undefined}
+          aria-describedby={errors.message ? 'cf-message-error' : undefined}
+        />
+        {errors.message && <p className="lp-field-error" id="cf-message-error" role="alert">{errors.message}</p>}
+      </div>
+      <div className="lp-form-foot">
+        <button type="submit" className="lp-cta lp-form-submit">
+          Send message <Send size={15} aria-hidden="true" />
+        </button>
+        <span className="lp-form-note"><Mail size={14} aria-hidden="true" /> Goes to info@alfazen.org</span>
+      </div>
+    </form>
+  );
+}
 
 function Contact() {
   return (
@@ -301,7 +501,7 @@ function Contact() {
         <div className="lp-section-head lp-reveal">
           <div className="lp-kicker">Get in touch</div>
           <h2>Built in Calgary. <em>Used everywhere.</em></h2>
-          <p>Questions about a format, a conversion, or a workflow? Reach the team behind Peforma.</p>
+          <p>Questions about a format, a conversion, or a workflow? Send the team behind Peforma a message.</p>
         </div>
         <div className="lp-contact-grid">
           <div className="lp-contact-card lp-reveal">
@@ -312,34 +512,15 @@ function Contact() {
                 <span>Calgary, Alberta, Canada</span>
               </div>
             </div>
-            <ul className="lp-contact-rows">
-              {CONTACT_ROWS.map(row => (
-                <li key={row.label}>
-                  <a href={row.href} {...(row.href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}>
-                    <span className="lp-contact-icon"><row.icon size={16} /></span>
-                    <span className="lp-contact-label">{row.label}</span>
-                    <span className="lp-contact-value">{row.value}</span>
-                    <ArrowUpRight size={14} className="lp-contact-arrow" aria-hidden="true" />
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <a className="lp-ghost lp-contact-docs" href="#docs"><BookOpen size={15} aria-hidden="true" /> Read the format reference</a>
-          </div>
-          <div className="lp-map-frame lp-reveal">
-            <iframe
-              title="Map of Calgary, Alberta, Canada"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=-114.16%2C50.99%2C-113.98%2C51.10&layer=mapnik&marker=51.0447%2C-114.0719"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-            <div className="lp-map-caption">
-              <span><MapPin size={14} aria-hidden="true" /> Calgary · 51.0447° N, 114.0719° W</span>
-              <a href="https://www.openstreetmap.org/?mlat=51.0447&mlon=-114.0719#map=12/51.0447/-114.0719" target="_blank" rel="noreferrer">
-                Open in OpenStreetMap <ExternalLink size={13} aria-hidden="true" />
+            <ContactForm />
+            <div className="lp-contact-actions">
+              <a className="lp-ghost lp-contact-docs" href="#docs"><BookOpen size={15} aria-hidden="true" /> Read the format reference</a>
+              <a className="lp-contact-gh" href="https://github.com/marcuz-apl/peforma" target="_blank" rel="noreferrer" aria-label="Peforma on GitHub">
+                <GithubIcon size={17} />
               </a>
             </div>
           </div>
+          <CalgaryMap />
         </div>
         <div className="lp-closing lp-reveal">
           <div>
