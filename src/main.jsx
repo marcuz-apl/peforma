@@ -4,6 +4,7 @@ import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, BookOpen, Box, Check, C
 import VERSION from '../VERSION?raw';
 import UnitConverter from './UnitConverter.jsx';
 import LinePoints from './LinePoints.jsx';
+import Polygon from './Polygon.jsx';
 import Shapefile from './Shapefile.jsx';
 import Docs from './Docs.jsx';
 import Landing from './Landing.jsx';
@@ -25,7 +26,7 @@ const SUITES = [
     key: 'culture', name: 'Peforma Culture', icon: Waypoints,
     children: [
       { key: 'culture', name: 'Lines/Points', href: '#culture', live: true },
-      { key: 'culture-polygon', name: 'Polygon' },
+      { key: 'culture-polygon', name: 'Polygon', href: '#culture-polygon', live: true },
     ],
   },
   { key: 'shapefile', name: 'Peforma Shapefile', tool: 'Shapefile bundle converter', href: '#shapefile', icon: Files, live: true },
@@ -753,6 +754,7 @@ function PrivacyDialog({ onClose }) {
 function routeFromHash(hash) {
   if (hash === '#units') return 'units';
   if (hash === '#culture') return 'culture';
+  if (hash === '#culture-polygon') return 'culture-polygon';
   if (hash === '#shapefile') return 'shapefile';
   if (hash === '#docs') return 'docs';
   if (hash === '#grid') return 'grid';
@@ -824,7 +826,9 @@ function App() {
         ? 'Peforma Units — Engineering Unit Converter'
         : route === 'culture'
           ? 'Peforma Culture — Vector Data Converter'
-          : route === 'shapefile'
+          : route === 'culture-polygon'
+            ? 'Peforma Culture Polygon — Closed-Ring Converter'
+            : route === 'shapefile'
             ? 'Peforma Shapefile — Esri Shapefile Bundle Converter'
             : route === 'docs'
               ? 'Peforma Docs — Format Reference & Guides'
@@ -917,21 +921,44 @@ function App() {
                   </div>
                 </section>
               </>
-            ) : route === 'culture' ? (
+            ) : route === 'culture' || route === 'culture-polygon' ? (
               <>
                 <section className="content-head">
                   <div className="eyebrow"><span /> PEFORMA / CULTURE</div>
-                  <h1>Move your vectors.<br /><em>Keep the geometry.</em></h1>
-                  <p>Convert point and polyline data between CSV, GeoJSON, and GOCAD ASCII.</p>
+                  {route === 'culture' ? (
+                    <>
+                      <h1>Move your vectors.<br /><em>Keep the geometry.</em></h1>
+                      <p>Convert point and polyline data between CSV, GeoJSON, and GOCAD ASCII.</p>
+                    </>
+                  ) : (
+                    <>
+                      <h1>Move your polygons.<br /><em>Keep every ring.</em></h1>
+                      <p>Convert polygon geometry between GeoJSON and GOCAD ASCII closed curves.</p>
+                    </>
+                  )}
+                  <nav className="culture-tabs" aria-label="Peforma Culture tools">
+                    <a className={`culture-tab${route === 'culture' ? ' active' : ''}`} href="#culture" aria-current={route === 'culture' ? 'page' : undefined}>Lines/Points</a>
+                    <a className={`culture-tab${route === 'culture-polygon' ? ' active' : ''}`} href="#culture-polygon" aria-current={route === 'culture-polygon' ? 'page' : undefined}>Polygon</a>
+                  </nav>
                 </section>
-                <LinePoints />
-                <section className="bottom-info" id="culture-note">
-                  <div className="info-icon"><Info size={17} /></div>
-                  <div>
-                    <b>Format and geometry integrity</b>
-                    <p>CSV, GeoJSON, and GOCAD PLINE/VSET are recognised from contents. Vertex order, attributes, missing-Z distinctions, and CRS/units labels are preserved exactly. Delimited files without a header require an explicit column mapping. Polygon geometry belongs to Peforma Culture Polygon, which is planned; shapefile interchange is handled by Peforma Shapefile.</p>
-                  </div>
-                </section>
+                {route === 'culture' ? <LinePoints /> : <Polygon />}
+                {route === 'culture' ? (
+                  <section className="bottom-info" id="culture-note">
+                    <div className="info-icon"><Info size={17} /></div>
+                    <div>
+                      <b>Format and geometry integrity</b>
+                      <p>CSV, GeoJSON, and GOCAD PLINE/VSET are recognised from contents. Vertex order, attributes, missing-Z distinctions, and CRS/units labels are preserved exactly. Delimited files without a header require an explicit column mapping. Polygon geometry belongs to the Polygon tab; shapefile interchange is handled by Peforma Shapefile.</p>
+                    </div>
+                  </section>
+                ) : (
+                  <section className="bottom-info" id="culture-polygon-note">
+                    <div className="info-icon"><Info size={17} /></div>
+                    <div>
+                      <b>Ring and hole integrity</b>
+                      <p>GeoJSON Polygon and MultiPolygon geometry and closed GOCAD PLINE curves are recognised from contents. Polygon count, ring order, hole order, vertex order, stored closure, and attribute values are preserved; orientation is reported as stored. GeoJSON output applies RFC 7946 closure and orientation, and GOCAD output writes each ring as its own closed curve. Every change is reported; no ring is repaired and no coordinate is reprojected.</p>
+                    </div>
+                  </section>
+                )}
               </>
             ) : route === 'shapefile' ? (
               <>

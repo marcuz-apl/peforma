@@ -27,6 +27,13 @@ const TOC = [
     ],
   },
   {
+    id: 'polygon-formats', label: 'Polygon', icon: Waypoints, children: [
+      { id: 'polygon-reading', label: 'Reading rings' },
+      { id: 'polygon-writing', label: 'Writing rings' },
+      { id: 'polygon-integrity', label: 'Ring integrity' },
+    ],
+  },
+  {
     id: 'shapefile-formats', label: 'Shapefile', icon: Files, children: [
       { id: 'shapefile-bundle', label: 'The bundle' },
       { id: 'shapefile-geometry', label: 'Geometry types' },
@@ -242,7 +249,7 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
-            <p>Four tools are live today. <b>Peforma Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. Culture Polygon, 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Four tools are live today. <b>Peforma Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
@@ -398,7 +405,7 @@ EarthVision    (explicit 1-based column / row indices):
               <span className="section-glyph"><Waypoints size={20} aria-hidden="true" /></span>
               <div><h2>Culture — Lines &amp; Points</h2><p className="section-sub">Open line and point geometry · Peforma Culture</p></div>
             </div>
-            <p>The Culture Lines/Points converter handles open geometry — point sets and polylines — across three formats. Closed polygon geometry belongs to the planned Culture Polygon converter; shapefile interchange belongs to Peforma Shapefile, so neither is offered here.</p>
+            <p>The Culture Lines/Points converter handles open geometry — point sets and polylines — across three formats. Closed polygon geometry belongs to the Polygon converter in the next section; shapefile interchange belongs to Peforma Shapefile, so neither is offered here.</p>
 
             <Sub id="lines-delimited" title="Delimited text">
               <p>Comma, semicolon, tab, and whitespace-separated files (CSV, TSV, XYZ) are all read. The delimiter is detected from the first line. The first row decides whether a header is present:</p>
@@ -458,6 +465,53 @@ VSET 1 WELL_01
                 <li><b>CRS and units labels</b> are carried through as text. No reprojection or unit conversion is performed.</li>
               </ul>
               <p>Outputs are delimited CSV (<code className="inline-code">X,Y,Z,Name,…</code>), a GeoJSON FeatureCollection, and GOCAD ASCII. Coordinate order, precision, and labels are written exactly as read.</p>
+            </Sub>
+          </section>
+
+          <section className="docs-section" id="polygon-formats">
+            <div className="section-head">
+              <span className="section-glyph"><Waypoints size={20} aria-hidden="true" /></span>
+              <div><h2>Culture — Polygon</h2><p className="section-sub">Closed rings, holes, and orientation · Peforma Culture</p></div>
+            </div>
+            <p>The Polygon converter handles closed area geometry. A polygon is an ordered list of rings: the first ring is the exterior and every later ring is a hole. It reads GeoJSON <code className="inline-code">Polygon</code>/<code className="inline-code">MultiPolygon</code> and closed GOCAD PLINE curves, and writes either format.</p>
+
+            <Sub id="polygon-reading" title="Reading rings">
+              <p>A GeoJSON ring is treated as stored-closed when its last position repeats its first X/Y position. A GOCAD PLINE is treated as closed when the last vertex repeats the first, or when a <code className="inline-code">SEG</code> record joins the last vertex to the first; both one-based and zero-based segment indices are accepted. An open GOCAD curve is skipped with a warning because open curves belong to Lines/Points.</p>
+              <CodeBlock label="GOCAD closed curve — the repeated first vertex marks closure" code={`UP TO
+CRS: EPSG:32611
+UNITS: m
+
+PLINE 5 4 PROSPECT_A
+0 0 0
+1000 0 0
+1000 800 0
+0 800 0
+0 0 0`} />
+              <p>Polygon order, ring order, hole order, vertex order, duplicate vertices, stored closure, ring direction, attributes, CRS, and units are reported exactly as read. Nothing is reordered, joined, or repaired.</p>
+            </Sub>
+
+            <Sub id="polygon-writing" title="Writing rings">
+              <p>GeoJSON output closes every ring and applies RFC 7946 orientation: exterior rings counter-clockwise and holes clockwise. Every ring that had to be closed or reversed is counted in a warning, so a change is never silent.</p>
+              <p>GOCAD output writes each ring as its own closed <code className="inline-code">PLINE</code> by repeating the first vertex. GOCAD has no hole or multipart structure, so holes and multipart areas become separate curves, and attributes other than the object name cannot be carried; each loss is reported.</p>
+              <Table
+                caption="What each Polygon target applies and what it cannot carry."
+                head={['Target', 'Closure', 'Orientation', 'Cannot carry']}
+                rows={[
+                  ['GeoJSON', 'Every ring closed', 'RFC 7946 — exterior CCW, holes CW', 'Nothing beyond the model’s attributes'],
+                  ['GOCAD ASCII', 'Every ring closed by repeating the first vertex', 'Stored direction kept', 'Holes, multipart containers, non-name attributes'],
+                ]}
+              />
+            </Sub>
+
+            <Sub id="polygon-integrity" title="Ring integrity">
+              <ul className="doc-list">
+                <li><b>Polygon, ring, hole, and vertex order</b> are preserved exactly.</li>
+                <li><b>Stored closure</b> is reported on read; the target convention is applied only on write and every change is counted.</li>
+                <li><b>Orientation</b> is computed from the signed area and reported as stored. A zero-area ring has no reportable direction.</li>
+                <li><b>Self-intersecting rings</b> are detected and reported, never repaired. Large rings above the check budget are reported as unchecked.</li>
+                <li><b>Consecutive duplicate vertices</b> stay in place; a closed ring whose repeated first position has a different Z keeps both values.</li>
+                <li><b>CRS and units</b> are carried as text. No reprojection or unit conversion is performed.</li>
+              </ul>
             </Sub>
           </section>
 

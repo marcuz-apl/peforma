@@ -526,6 +526,30 @@ a.rail-tool:hover { color: var(--ink-soft); }
   background-clip: text;
 }
 .content-head p { max-width: 52ch; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.culture-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin-top: 18px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-muted);
+}
+.culture-tab {
+  padding: 7px 14px;
+  border-radius: 6px;
+  color: var(--muted);
+  font: 500 12.5px 'DM Sans', sans-serif;
+  text-decoration: none;
+  transition: background .2s, color .2s;
+}
+.culture-tab:hover { color: var(--ink); background: var(--surface); }
+.culture-tab.active {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
 
 /* Converter card */
 .workspace {
@@ -903,9 +927,9 @@ body.light .download:hover:not(:disabled) { box-shadow: 0 14px 32px rgba(59, 111
 }
 .line-mapping-preview .download { margin-top: 14px; }
 .line-mapping-hint { margin-top: 10px; color: var(--faint); font-size: 12px; }
-.line-workspace .format-select,
-.line-workspace .format-select select { width: 100%; }
-.line-workspace .format-select select { min-width: 0; }
+@media (min-width: 761px) {
+  .line-workspace .format-select select { width: 230px; min-width: 0; }
+}
 
 .bottom-info {
   display: flex;

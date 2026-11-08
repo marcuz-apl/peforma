@@ -38,7 +38,19 @@ Vertex order, attribute values, the distinction between a missing and a zero Z c
 
 A delimited file with a header has its column mapping pre-seeded from labels that clearly name each axis; a file without a header has anonymous columns, so the user must assign the X and Y columns explicitly before the rows are treated as geometry. In line mode, consecutive rows are grouped into one polyline, split whenever the mapped Name column changes.
 
-Closed polygon geometry (GeoJSON Polygon/MultiPolygon, closed GOCAD curves, fault-polygon dialects) belongs to the planned Culture Polygon converter and is not offered as a Lines/Points case.
+Closed polygon geometry (GeoJSON Polygon/MultiPolygon and closed GOCAD curves) belongs to the Culture Polygon converter and is not offered as a Lines/Points case. The vendor fault-polygon dialects remain planned.
+
+## Culture Polygon (Peforma Culture)
+
+The Polygon converter reads GeoJSON `Polygon` and `MultiPolygon` geometry and GOCAD ASCII closed PLINE curves, and writes GeoJSON or GOCAD. Detection is by extension first (`.geojson`/`.json` is GeoJSON) and then by contents: a `UP TO` header or a leading `PLINE` selects GOCAD, and any other file must parse as JSON to be accepted as GeoJSON.
+
+A polygon is stored as an ordered list of rings. The first ring is the exterior and every later ring is a hole. Polygon order, ring order, hole order, and vertex order are preserved exactly; rings are never joined, split, reordered, or deduplicated. Missing Z is distinct from Z = 0, and a partially Z-valued model is reported as partial.
+
+Ring closure is read, not invented. A GeoJSON ring is treated as stored-closed when its last position repeats its first X/Y position. A GOCAD PLINE is treated as closed when the last vertex repeats the first or when a `SEG` record joins the last vertex to the first; one-based and zero-based segment indices are both accepted. An open GOCAD curve is skipped with a warning because open curves belong to Lines/Points. Closure is reported in the summary and is applied only when writing.
+
+Ring orientation (clockwise or counter-clockwise) is computed from the signed area and reported as stored, separately for exterior rings and holes. A zero-area ring is reported as having no reportable orientation. Self-intersecting rings are detected for rings up to 1,200 vertices within a 6,000-vertex check budget and are reported, never repaired.
+
+GeoJSON output closes every ring and applies RFC 7946 orientation: exterior rings counter-clockwise and holes clockwise. Every ring that had to be closed or reversed is counted in a warning. GOCAD output writes each ring as its own closed `PLINE` by repeating the first vertex; it warns that holes and multipart areas become separate curves and that attributes other than the object name cannot be carried. GOCAD headers may declare `CRS` and `UNITS` as free text; both are preserved verbatim and never interpreted as EPSG codes. GeoJSON CRS metadata is read from `peforma_crs_wkt` first and then the legacy `crs` member, and is written back in the same form. No reprojection or unit conversion is performed.
 
 ## Esri Shapefile (Peforma Shapefile)
 

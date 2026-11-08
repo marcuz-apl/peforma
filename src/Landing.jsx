@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Accessibility, ArrowDown, ArrowRight, ArrowUpRight, AudioWaveform, BookOpen, Box, Check, ChevronDown,
   Copy, Crosshair, Files, Globe2, Grid3x3, Layers3, Lock, Mail, MapPin, Menu, Minus,
-  Pentagon, Plus, Ruler, ScanSearch, Send, ShieldCheck, Waypoints, X,
+  Plus, Ruler, ScanSearch, Send, ShieldCheck, Waypoints, X,
 } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -26,7 +26,7 @@ const LIVE_SUITES = [
   },
   {
     key: 'culture', icon: Waypoints, name: 'Peforma Culture', href: '#culture',
-    blurb: 'Point and polyline vectors exchanged with vertex order, attributes, and missing-Z distinctions left intact.',
+    blurb: 'Point, polyline, and polygon vectors exchanged with vertex order, ring structure, attributes, and missing-Z distinctions left intact.',
     formats: ['CSV', 'GeoJSON', 'GOCAD'],
   },
   {
@@ -42,7 +42,6 @@ const LIVE_SUITES = [
 ];
 
 const ROADMAP = [
-  { key: 'culture-polygon', icon: Pentagon, name: 'Peforma Culture — Polygon' },
   { key: '3d', icon: Box, name: 'Peforma 3D' },
   { key: 'seismic', icon: AudioWaveform, name: 'Peforma Seismic' },
   { key: 'coordinates', icon: Globe2, name: 'Peforma Coordinates' },

@@ -1,10 +1,10 @@
 # Peforma Culture — Vector Data Exchange
 
-Status: the Culture Lines/Points converter is implemented. It reads and writes delimited text with an explicit column mapping, Petrel-style ASCII points and lines where the columns are unambiguous, GOCAD ASCII `.pl` and `.vs`, and GeoJSON `Point`, `MultiPoint`, `LineString`, and `MultiLineString`. Polygon geometry is not implemented. Esri Shapefile is implemented as its own Peforma Shapefile tool, specified in [PRD_SHAPEFILE.md](PRD_SHAPEFILE.md). The navigation, SEG-Y header, RESQML, DXF, KML, WITSML, and vendor-dialect formats remain planned, and no line below should be read as a claim of support for them.
+Status: both Culture converters are implemented. **Lines/Points** reads and writes delimited text with an explicit column mapping, Petrel-style ASCII points and lines where the columns are unambiguous, GOCAD ASCII `.pl` and `.vs`, and GeoJSON `Point`, `MultiPoint`, `LineString`, and `MultiLineString`. **Polygon** reads and writes GeoJSON `Polygon` and `MultiPolygon` and closed GOCAD PLINE curves. Esri Shapefile is implemented as its own Peforma Shapefile tool, specified in [PRD_SHAPEFILE.md](PRD_SHAPEFILE.md). Navigation, SEG-Y headers, RESQML, DXF, KML, WITSML, and the vendor polygon dialects (IESX, CPS-3 Lines, Kingdom `.plg`, ZMAP `@FALT`) remain planned, and no line below should be read as a claim of support for them.
 
 Peforma Culture is the suite member for vector geometry: ordered coordinates, closed rings, and the attributes that travel with them. Peforma Grid handles regularly sampled surfaces; Culture handles everything that is not a grid — fault sticks, contour lines, culture lines, seismic navigation, well trajectories, well picks, fault polygons, horizon boundaries, prospect outlines, and other point, line, and polygon sets.
 
-Culture is one product with two geometry converters. **Lines/Points** handles open geometry and is live. **Polygon** handles closed area geometry and is planned. Esri Shapefile is a container that can hold any of the three geometry kinds, so it is not a geometry converter; the live **Peforma Shapefile** tool owns the shapefile bundle itself, including its DBF attributes and `.prj` sidecar.
+Culture is one product with two live geometry converters. **Lines/Points** handles open geometry. **Polygon** handles closed area geometry. Esri Shapefile is a container that can hold any of the three geometry kinds, so it is not a geometry converter; the live **Peforma Shapefile** tool owns the shapefile bundle itself, including its DBF attributes and `.prj` sidecar.
 
 ## Problem
 
@@ -64,15 +64,21 @@ A polygon that arrives closed in one format may arrive open in another because t
 - Process files locally in the browser, with no upload and no telemetry.
 - Produce actionable errors for unsupported dialects and malformed records.
 
-### Polygon — planned
+### Polygon — implemented
 
-- Read and write GeoJSON `Polygon` and `MultiPolygon` with RFC 7946 ring orientation and property preservation.
-- Read and write GOCAD ASCII closed curves as polygon boundaries where the curve is declared closed.
+- Read and write GeoJSON `Polygon` and `MultiPolygon` with property preservation. On write, rings are closed and oriented to RFC 7946: exterior counter-clockwise, holes clockwise.
+- Read and write GOCAD ASCII closed curves as polygon boundaries. Closure is recognised from a repeated first/last vertex or a `SEG` record joining the last vertex to the first.
+- Preserve polygon count, ring order, hole order, vertex order, stored closure, and attribute values exactly.
+- Report polygon counts, ring counts, vertex totals, which rings are stored closed or open, the direction each ring runs, hole structure, zero-area rings, attribute names, CRS, and units.
+- Report ring closure and orientation decisions the writer makes; never normalize them on read.
+- Report self-intersecting rings and consecutive duplicate vertices without repairing them.
+- Report what GOCAD cannot carry: hole linkage, multipart structure, and attributes other than the object name.
+- Process files locally in the browser, with no upload and no telemetry.
+
+### Polygon vendor dialects — planned
+
 - Read the documented Petrel IESX fault-polygon ASCII export (`.dat` or `.iesx`) and the CPS-3 Lines ASCII polygon export.
 - Read the Kingdom planimeter polygon format (`.plg`) and the ZMAP fault-polygon records marked with `@FALT`.
-- Show polygon counts, vertex totals, ring counts, whether each ring is closed and in which direction, hole structure, attribute names, and CRS.
-- Preserve vertex order, ring order, hole order, and attribute values exactly.
-- Report, not change, ring closure state, ring orientation, and any duplicate first/last vertex.
 
 ### Peforma Shapefile — implemented, separate product
 
@@ -104,8 +110,8 @@ Vector data travels through three families of formats: open exchange standards, 
 | Format | Steward or origin | Carries | Reading | Writing | Notes |
 | --- | --- | --- | --- | --- | --- |
 | CSV, TSV, XYZ, ASCII | No single owner | Arbitrary point and vertex tables | Yes, with explicit mapping | Yes, with chosen columns | Delimiter, decimal mark, header row, and column meaning must be declared by the user |
-| GeoJSON | IETF RFC 7946 | Points, multipoints, lines, multilines, polygons, multipolygons, properties | Yes, points and lines | Yes, points and lines | WGS 84 longitude/latitude by specification; projected coordinates are outside the RFC and must be flagged; polygon geometry is planned |
-| GOCAD ASCII `.pl` | Paradigm/Emerson GOCAD, publicly documented | Polyline and closed-curve vertices and segments with properties | Yes | Yes | `PLINE` objects use vertices and segments; a curve declared closed is a Polygon case |
+| GeoJSON | IETF RFC 7946 | Points, multipoints, lines, multilines, polygons, multipolygons, properties | Yes, all supported geometry kinds | Yes, all supported geometry kinds | WGS 84 longitude/latitude by specification; projected coordinates are outside the RFC and must be flagged; polygons use RFC 7946 closure and orientation |
+| GOCAD ASCII `.pl` | Paradigm/Emerson GOCAD, publicly documented | Polyline and closed-curve vertices and segments with properties | Yes | Yes | `PLINE` objects use vertices and segments; closed curves are read as polygons, open curves belong to Lines/Points |
 | GOCAD ASCII `.vs` | Paradigm/Emerson GOCAD | Point or voxel sets | Yes | Yes | JewelSuite documents `.vs` as a point-set exchange option |
 | Esri Shapefile | Esri technical description | Point, multipoint, polyline, and polygon features with DBF attributes and `.prj` | Implemented by Peforma Shapefile | Implemented by Peforma Shapefile | Requires `.shp` and `.dbf`; `.shx`, `.prj`, and `.cpg` are optional; geometry order and record order are preserved |
 | DXF | Autodesk, documented | 2D and 3D polylines, points, closed entities, blocks | Later | Later | Version drift and block references make full support unrealistic; only simple entities are candidates |
@@ -162,8 +168,8 @@ The tiers separate what can be built with confidence from what needs a published
 | 1 — implemented | Lines/Points | Petrel-style ASCII points and polylines | Import and export | Simple, widely produced, and verifiable against real exports |
 | 1 — implemented | Lines/Points | GOCAD ASCII `.pl` and `.vs` | Import and export | Publicly documented, used across Paradigm/Emerson and JewelSuite |
 | 1 — implemented | Lines/Points | GeoJSON points and lines | Import and export | Precise specification and straightforward geometry mapping |
-| 1 — planned | Polygon | GeoJSON `Polygon` and `MultiPolygon` | Import and export | Precise specification and unambiguous ring rules |
-| 1 — planned | Polygon | GOCAD closed curves | Import and export | Documented closed-curve structure |
+| 1 — implemented | Polygon | GeoJSON `Polygon` and `MultiPolygon` | Import and export | Precise specification and unambiguous ring rules |
+| 1 — implemented | Polygon | GOCAD closed curves | Import and export | Documented closed-curve structure |
 | 1 — implemented | Shapefile | Point, multipoint, polyline, and polygon bundles | Import and export | Standard GIS delivery, delivered by Peforma Shapefile |
 | 2 — after validation | Lines/Points | UKOOA P1/90 and IOGP P1/11 | Import, then export | Valuable for seismic navigation but record layouts need representative files |
 | 2 — after validation | Lines/Points | SEG-Y navigation headers | Import | Read-only extraction of trace-header coordinates and line identifiers |
@@ -178,7 +184,7 @@ A format moves from tier 2 to tier 1 only after the parser has been checked agai
 
 ## Design principles
 
-- Preserve vertex count, vertex order, object order, part order, ring order, hole order, and attribute values exactly. Do not deduplicate, sort, simplify, join parts, or close geometry.
+- Preserve vertex count, vertex order, object order, part order, ring order, hole order, and attribute values exactly. Do not deduplicate, sort, simplify, join parts, or close geometry on read; a writer may apply the target's closure convention and must report it.
 - Make column meaning explicit. Delimited files require a user-confirmed mapping before a preview is treated as geometry.
 - Distinguish missing Z from zero Z, missing attributes from empty strings, and a stored closed ring from a stored open ring.
 - Carry CRS and units as metadata. Never reproject, never rescale, never substitute a default datum.
@@ -200,13 +206,13 @@ A format moves from tier 2 to tier 1 only after the parser has been checked agai
 5. Let the user choose an output format and confirm the assumptions that will be written: coordinate order, delimiter, precision, Z handling, CRS label, and attribute columns.
 6. Download the result with a clear file name and extension, and report any information the target format cannot carry.
 
-### Polygon — planned
+### Polygon — implemented
 
-1. Drop or choose one or more files and show the detected format with a confidence note.
-2. Show the ring summary: polygon count, ring count, vertex totals, which rings are closed, which direction they run, and which holes exist.
-3. Show attribute names and the CRS source. If the CRS is absent, say so rather than assuming WGS 84.
-4. Let the user choose an output format and confirm the target conventions: ring closure, ring orientation, precision, CRS label, and attribute columns.
-5. Download the result and report any information the target format cannot carry.
+1. Drop or choose one file and show the detected format.
+2. Show the ring summary: polygon count, ring count, vertex totals, which rings are stored closed or open, which direction each ring runs, which holes exist, and any zero-area rings.
+3. Show attribute names, the CRS source, and units. If the CRS is absent, say so rather than assuming WGS 84.
+4. Let the user choose GeoJSON or GOCAD output. The target conventions are stated before download: GeoJSON closes and orients rings to RFC 7946; GOCAD writes each ring as its own closed curve.
+5. Download the result and report every closure, reversal, and information loss the target format requires.
 
 Warnings must be specific and actionable in both converters: which record or ring failed, which column was ambiguous, which attribute was dropped, which convention the writer applied, and what the user can do about it. A partial conversion is not offered silently; either the user accepts a listed loss of metadata or the conversion stops.
 
@@ -215,8 +221,8 @@ Warnings must be specific and actionable in both converters: which record or rin
 - Validate numeric fields before building geometry, and report the line and column of the first failure.
 - Reject files with inconsistent vertex counts in fixed-width or declared-length records.
 - Reject a polyline with fewer than two vertices and a point with fewer than two coordinates.
-- Require at least four coordinates in a GeoJSON ring and at least three distinct vertices in a polygon.
-- Reject coordinates that are not finite numbers; do not coerce text to zero.
+- Require at least three positions and three distinct vertices in a ring. A GeoJSON ring that stores its closure repeats the first position and therefore has at least four positions; a stored-open ring is reported and closed only when the target requires it.
+- Reject coordinates that are not finite numbers; do not coerce text to zero. GeoJSON coordinates must be JSON numbers, not numeric strings.
 - Treat a declared CRS that contradicts the coordinate range as a warning, not a silent correction.
 - Detect truncated shapefile bundles, missing `.dbf` files, and unreadable `.prj` files.
 - Detect unsupported SEG-Y revisions and non-textual P1/11 encodings rather than parsing them as text.
@@ -234,6 +240,7 @@ Warnings must be specific and actionable in both converters: which record or rin
 - Ring closure and orientation conventions differ. Some writers repeat the first vertex, some do not; RFC 7946 expects exterior rings counter-clockwise and holes clockwise in a geographic coordinate system. Reversing or closing a ring without recording the decision changes the data.
 - Shapefile attribute names are limited to ten characters and may be truncated. Preserve the stored names and warn when a name cannot be written back exactly.
 - GOCAD headers may declare a coordinate reference system in a free-text field. Preserve the text and do not interpret it as an EPSG code.
+- GOCAD PLINE has no hole or multipart structure. A closed curve is one polygon, holes are separate closed curves, and per-vertex properties and per-object attributes other than the name cannot be carried; the writer reports each loss.
 - Navigation formats describe acquisition geometry, not interpreted horizons. Shot-point order and line direction must be preserved even when they look irregular.
 - SEG-Y trace headers are not guaranteed to be populated consistently. Report which header fields were used and let the user confirm the coordinate convention.
 - Vendor IESX and `.plg` dialects carry attributes that are named differently by different producers. A field that means "fault type" in one export may be unnamed in another; the mapping is explicit, never by position alone.
@@ -243,12 +250,13 @@ Warnings must be specific and actionable in both converters: which record or rin
 
 ## Acceptance criteria
 
-- A user can load a supported point or polyline file, see the detected format, confirm or assign the geometry columns, inspect counts, bounds, CRS, and attributes, and download a supported output.
+- A user can load a supported point, polyline, or polygon file, see the detected format, confirm or assign geometry columns where required, inspect counts, bounds, CRS, attributes, and ring structure, and download a supported output.
 - A delimited file without a header is never interpreted without an explicit user mapping.
 - The exported geometry has the same vertex count, vertex order, object order, part order, and coordinate values as the imported geometry, apart from documented precision rounding.
 - Missing Z, missing attributes, and empty strings remain distinguishable in the result.
 - A closed polyline stays a polyline unless the source declares polygon geometry.
-- When polygon support ships, the exported geometry keeps polygon count, ring count, ring order, hole order, and vertex order, apart from the explicitly chosen closure and orientation conventions, and the applied conventions are reported.
+- The exported polygon geometry keeps polygon count, ring count, ring order, hole order, and vertex order, apart from the target's closure and orientation conventions, and every applied convention and loss is reported.
+- A GOCAD export reports that holes and multipart areas become separate curves and that attributes other than the name are omitted.
 - CRS and units are either preserved or explicitly reported as unknown; no reprojection or unit conversion occurs.
 - Invalid or unsupported files produce a readable error without crashing the page, and the previous result remains available.
 - The interface works on desktop and narrow screens and is keyboard accessible, with labelled controls, visible focus, and announced results.
@@ -257,12 +265,12 @@ Warnings must be specific and actionable in both converters: which record or rin
 
 ## Open questions
 
-- Which vendor dialect should anchor Culture Polygon: Petrel IESX, Kingdom `.plg`, or ZMAP `@FALT`? IESX has the strongest public documentation trail.
-- Should ring-orientation normalization be offered as an explicit user choice in the first release of Culture Polygon, or only reported?
-- Is Z per vertex required for Culture Polygon, or should the first release be strictly planar X/Y polygons with an optional Z column?
+- Which vendor dialect should anchor the next Polygon step: Petrel IESX, Kingdom `.plg`, or ZMAP `@FALT`? IESX has the strongest public documentation trail.
+- GOCAD has no hole linkage. Should closed curves sharing a name be treated as one polygon with holes, or stay separate polygons unless the user says otherwise?
+- Should GeoJSON export offer a choice to keep stored ring orientation for projected coordinates, or always apply the RFC 7946 convention?
 - Should Culture Polygon accept shapefile Polygon records from Peforma Shapefile, or keep the two tools fully independent?
-- Should UKOOA P1/90 import ship before the polygon work, given how often seismic navigation is the actual exchange need?
-- Is a map preview required, or is a numeric summary and a table enough?
+- Should UKOOA P1/90 import ship next, given how often seismic navigation is the actual exchange need?
+- Is a map preview required, or is a numeric summary and a ring table enough?
 - How should very large navigation files be handled in a browser: a hard size limit, a streaming summary, or a worker with progress?
 
 ## Sources
