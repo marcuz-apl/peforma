@@ -434,7 +434,8 @@ export function writeMesh(model, target) {
   if (target === 'stl-binary') return writeStlBinary(model);
   if (target === 'obj') return writeObj(model);
   if (target === 'ply-ascii' || target === 'ply-binary') return writePly(model, target);
-  throw Error(`Peforma 3D cannot write ${MESH_TARGETS[target] || target} yet.`);
+  if (target === 'tsurf') return writeTsurf(model);
+  throw Error(`Unknown output format "${target}".`);
 }
 
 // ---------------------------------------------------------------------------
@@ -907,7 +908,134 @@ function writePly(model, target) {
   return { bytes, warnings, fileName, mime: 'application/octet-stream' };
 }
 
-// Replaced in Task 4.
-function parseTsurf() {
-  throw Error('GOCAD TSurf arrives in task 4.');
+// ---------------------------------------------------------------------------
+// GOCAD TSurf
+
+function tsurfId(raw, record) {
+  const id = Number(raw);
+  if (!Number.isInteger(id)) throw Error(`GOCAD ${record} id "${raw}" is not an integer.`);
+  return id;
+}
+
+function parseTsurf(bytes, fileName) {
+  const lines = decodeText(bytes).replace(/^\uFEFF/, '').split(/\r?\n/);
+  const positions = [];
+  const ids = new Map();
+  const faces = [];
+  const model = makeModel(fileName, 'tsurf');
+  const ignored = new Map();
+  let propertyCount = 0;
+  let extraValues = 0;
+  let triangleCount = 0;
+
+  for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
+    const line = lines[lineNumber].trim();
+    if (!line || line.startsWith('#')) continue;
+    if (/^GOCAD\b/i.test(line) || /^(TFACE|HEADER\s*\{?|END|\})\s*$/i.test(line)) continue;
+
+    const field = /^\*?(NAME|CRS|UNITS)\s*[:=]\s*(.+)$/i.exec(line);
+    if (field) {
+      const key = field[1].toUpperCase();
+      const value = field[2].trim();
+      if (key === 'NAME' && !model.name) model.name = value || null;
+      if (key === 'CRS') model.crs = value || null;
+      if (key === 'UNITS') model.units = value || null;
+      continue;
+    }
+
+    if (/^PROPERTY\b/i.test(line)) {
+      propertyCount++;
+      continue;
+    }
+
+    const vertex = /^VRTX\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s*$/i.exec(line);
+    if (vertex) {
+      const id = tsurfId(vertex[1], 'VRTX');
+      if (ids.has(id)) throw Error(`GOCAD vertex id ${id} is defined twice.`);
+      const xyz = vertex.slice(2).map(Number);
+      if (!xyz.every(Number.isFinite)) throw Error(`GOCAD VRTX ${id} has a non-numeric coordinate.`);
+      ids.set(id, positions.length / 3);
+      positions.push(...xyz);
+      continue;
+    }
+
+    const propertyVertex = /^PVRTX\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)(.*)$/i.exec(line);
+    if (propertyVertex) {
+      const id = tsurfId(propertyVertex[1], 'PVRTX');
+      if (ids.has(id)) throw Error(`GOCAD vertex id ${id} is defined twice.`);
+      const xyz = propertyVertex.slice(2, 5).map(Number);
+      if (!xyz.every(Number.isFinite)) throw Error(`GOCAD PVRTX ${id} has a non-numeric coordinate.`);
+      ids.set(id, positions.length / 3);
+      positions.push(...xyz);
+      if (propertyVertex[5].trim()) extraValues++;
+      continue;
+    }
+
+    const triangle = /^TRGL\s+(\S+)\s+(\S+)\s+(\S+)\s*$/i.exec(line);
+    if (triangle) {
+      triangleCount++;
+      for (const raw of triangle.slice(1)) {
+        const id = tsurfId(raw, 'TRGL');
+        if (!ids.has(id)) throw Error(`Triangle ${triangleCount} references vertex ${id}, which is not defined.`);
+        faces.push(ids.get(id));
+      }
+      continue;
+    }
+
+    const tag = line.split(/\s+/)[0].toUpperCase();
+    ignored.set(tag, (ignored.get(tag) || 0) + 1);
+  }
+
+  if (positions.length === 0) throw Error('This GOCAD TSurf has no VRTX or PVRTX vertices.');
+  if (faces.length === 0) throw Error('This GOCAD TSurf has no TRGL triangles.');
+
+  model.positions = new Float64Array(positions);
+  model.faces = new Uint32Array(faces);
+  if (propertyCount) {
+    model.warnings.push(`${propertyCount} GOCAD PROPERTY declaration${propertyCount === 1 ? '' : 's'} were not carried; only X, Y, and Z positions are read.`);
+  }
+  if (extraValues) {
+    model.warnings.push(`${extraValues} PVRTX record${extraValues === 1 ? '' : 's'} carry values beyond X, Y, and Z; those values were not carried.`);
+  }
+  if (ignored.size) {
+    const summary = [...ignored.entries()].map(([tag, count]) => `${tag} × ${count}`).join(', ');
+    model.warnings.push(`GOCAD records not carried: ${summary}.`);
+  }
+  return model;
+}
+
+function tsurfWarnings(model) {
+  const warnings = [];
+  if (model.groups.length) {
+    warnings.push(`GOCAD TSurf does not carry groups; ${model.groups.length} group name${model.groups.length === 1 ? '' : 's'} were not written.`);
+  }
+  if (model.faceNormals || model.vertexNormals) {
+    warnings.push('GOCAD TSurf does not carry normals; the stored normals were not written.');
+  }
+  return warnings;
+}
+
+function writeTsurf(model) {
+  const out = ['GOCAD TSurf 1', 'HEADER {'];
+  if (model.name) out.push(`name: ${model.name}`);
+  if (model.crs) out.push(`*CRS: ${model.crs}`);
+  if (model.units) out.push(`*UNITS: ${model.units}`);
+  out.push('}', 'TFACE');
+
+  const vertexCount = model.positions.length / 3;
+  for (let v = 0; v < vertexCount; v++) {
+    const at = v * 3;
+    out.push(`VRTX ${v + 1} ${num(model.positions[at])} ${num(model.positions[at + 1])} ${num(model.positions[at + 2])}`);
+  }
+  for (let f = 0; f < model.faces.length; f += 3) {
+    out.push(`TRGL ${model.faces[f] + 1} ${model.faces[f + 1] + 1} ${model.faces[f + 2] + 1}`);
+  }
+  out.push('END');
+
+  return {
+    text: out.join('\n') + '\n',
+    warnings: tsurfWarnings(model),
+    fileName: outputFileName(model, 'tsurf'),
+    mime: 'text/plain',
+  };
 }
