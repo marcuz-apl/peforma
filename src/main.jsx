@@ -4,18 +4,19 @@ import shp from 'shpjs';
 import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, LockKeyhole, Mail, Menu, Moon, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, Sun, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
 import VERSION from '../VERSION?raw';
 import UnitConverter from './UnitConverter.jsx';
+import LinePoints from './LinePoints.jsx';
 import { applyTheme, readThemePreference, resolveTheme, THEME_KEY } from './theme.js';
 import './style.css';
 
 const FORMATS = {
-  cps3: 'CPS-3 grid (ASCII)', earthvision: 'EarthVision grid (ASCII)', irap: 'IRAP Classic grid (ASCII)', shapefile: 'Shapefile', zmap: 'ZMAP+ grid (ASCII)'
+  cps3: 'CPS-3 grid (ASCII)', earthvision: 'EarthVision grid (ASCII)', irap: 'IRAP Classic grid (ASCII)', zmap: 'ZMAP+ grid (ASCII)'
 };
 const NULLS = { cps3: 1e30, irap: 9999900, zmap: 1e30, earthvision: 1e31 };
 // Product-family navigation. Only the grid suite is live; the rest are labelled
 // placeholders so the rail never offers a link that does nothing.
 const SUITES = [
   { key: 'grid', name: 'Peforma Grid', tool: 'Grid converter', href: '#converter', icon: Grid3x3, live: true },
-  { key: 'lines', name: 'Peforma Lines', icon: Waypoints },
+  { key: 'lines', name: 'Peforma Lines/Points', tool: 'Line & point converter', href: '#lines', icon: Waypoints, live: true },
   { key: 'polygons', name: 'Peforma Polygons', icon: Pentagon },
   { key: '3d', name: 'Peforma 3D', icon: Box },
   { key: 'seismic', name: 'Peforma Seismic', icon: AudioWaveform },
@@ -416,7 +417,6 @@ function ExportPanel({ grid, shape, format, setFormat, download }) {
           <ChevronDown size={16} />
         </div>
       </div>
-      {format === 'shapefile' && <div className="secure-note">Shapefile is source-only: exporting a grid to Shapefile would require interpolation and is not supported.</div>}
       {grid && (
         <div className="preview">
           <div className="preview-head"><span>VALUE PREVIEW</span><span>First {preview.length} of {values.length.toLocaleString()} nodes</span></div>
@@ -427,7 +427,7 @@ function ExportPanel({ grid, shape, format, setFormat, download }) {
           </div>
         </div>
       )}
-      <button className="download" disabled={!grid || format === 'shapefile'} onClick={download}>
+      <button className="download" disabled={!grid || shape} onClick={download}>
         <ArrowDownToLine size={17} />
         {shape ? 'Shapefile inspected' : grid ? `Convert & download ${FORMATS[format]}` : 'Upload a grid to continue'}
         <ArrowLeftRight className="download-arrow" size={16} />
@@ -570,7 +570,8 @@ function ThemeToggle({ preference, resolved, onChange }) {
 }
 
 function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route, themePref, resolvedTheme, onThemeChange }) {
-  const tool = route === 'units' ? 'Units' : 'Grid';
+  const tool = route === 'units' ? 'Units' : route === 'lines' ? 'Lines/Points' : 'Grid';
+  const helpLabel = route === 'units' ? 'Unit definitions' : route === 'lines' ? 'Line & point guide' : 'Format guide';
   return (
     <header className="site-header">
       <div className="topbar shell">
@@ -583,7 +584,7 @@ function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route, themePref, re
         </a>
         <div className="top-right">
           <button type="button" className="help-link" onClick={onGuide}>
-            {route === 'units' ? 'Unit definitions' : 'Format guide'} <ChevronDown size={14} aria-hidden="true" />
+            {helpLabel} <ChevronDown size={14} aria-hidden="true" />
           </button>
           <ThemeToggle preference={themePref} resolved={resolvedTheme} onChange={onThemeChange} />
           <button
@@ -773,7 +774,11 @@ function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [disclaimerOpen, setDisclaimerOpen] = useState(false);
-  const [route, setRoute] = useState(() => window.location.hash === '#units' ? 'units' : 'grid');
+  const [route, setRoute] = useState(() => {
+    if (window.location.hash === '#units') return 'units';
+    if (window.location.hash === '#lines') return 'lines';
+    return 'grid';
+  });
   const [themePref, setThemePref] = useState(readThemePreference);
   const [resolvedTheme, setResolvedTheme] = useState(() => resolveTheme(readThemePreference()));
   const [railCollapsed, setRailCollapsed] = useState(() => {
@@ -813,12 +818,16 @@ function App() {
   }, []);
 
   const openGuide = useCallback(() => {
-    const id = route === 'units' ? 'unit-note' : 'format-note';
+    const id = route === 'units' ? 'unit-note' : route === 'lines' ? 'line-note' : 'format-note';
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [route]);
 
   useEffect(() => {
-    const onHash = () => setRoute(window.location.hash === '#units' ? 'units' : 'grid');
+    const onHash = () => {
+      if (window.location.hash === '#units') setRoute('units');
+      else if (window.location.hash === '#lines') setRoute('lines');
+      else setRoute('grid');
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -826,7 +835,9 @@ function App() {
   useEffect(() => {
     document.title = route === 'units'
       ? 'Peforma Units — Engineering Unit Converter'
-      : 'Peforma Grid — Subsurface Grid Converter';
+      : route === 'lines'
+        ? 'Peforma Lines/Points — Line & Point Converter'
+        : 'Peforma Grid — Subsurface Grid Converter';
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [route]);
 
@@ -897,6 +908,22 @@ function App() {
                   <div>
                     <b>Conversion definitions</b>
                     <p>Ton is the metric tonne (1,000 kg). Month is the mean Gregorian month (2,629,746 s) and year is 365.2425 days; quarter, decade, and century follow that year. Barrel is 42 US gallons, ppg is pound per US gallon, and atmosphere is 101,325 Pa. Temperature conversions use exact offset formulas.</p>
+                  </div>
+                </section>
+              </>
+            ) : route === 'lines' ? (
+              <>
+                <section className="content-head">
+                  <div className="eyebrow"><span /> PEFORMA / LINES-POINTS</div>
+                  <h1>Move your lines.<br /><em>Keep the geometry.</em></h1>
+                  <p>Convert points and polylines between CSV, GeoJSON, and GOCAD ASCII. Local processing, no uploads.</p>
+                </section>
+                <LinePoints />
+                <section className="bottom-info" id="line-note">
+                  <div className="info-icon"><Info size={17} /></div>
+                  <div>
+                    <b>Format and geometry integrity</b>
+                    <p>CSV, GeoJSON, and GOCAD PLINE/VSET are recognised from contents. Vertex order, attributes, missing-Z distinctions, and CRS/units labels are preserved exactly. Delimited files without a header require an explicit column mapping; polygons belong to Peforma Polygons. Shapefile export is handled by the polygon tool.</p>
                   </div>
                 </section>
               </>

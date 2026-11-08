@@ -2,7 +2,7 @@
 
 Status: planned. This chapter defines the product and the intended format scope. No seismic converter is implemented yet, and nothing here should be read as a claim of current support.
 
-Peforma Seismic is the suite member for 2D seismic lines and 3D seismic cubes. Peforma Grid handles regularly sampled surfaces; Peforma Seismic handles the seismic traces, trace headers, and survey geometry that arrive with them. Polyline and point navigation belong to the separate Peforma Lines tool; this chapter covers the data itself.
+Peforma Seismic is the suite member for 2D seismic lines and 3D seismic cubes. Peforma Grid handles regularly sampled surfaces; Peforma Seismic handles the seismic traces, trace headers, and survey geometry that arrive with them. Polyline and point navigation belong to the separate Peforma Lines/Points tool; this chapter covers the data itself.
 
 ## Problem
 
@@ -78,7 +78,7 @@ Seismic exchange travels through a smaller set of formats than line and point da
 | SEG-D rev 3.x | SEG | Field acquisition data | No | No | Acquisition format, not interpretation exchange |
 | OpenZGY / ZGY | Schlumberger Petrel lineage; maintained publicly | 3D cube with compressed trace layout and header model | Yes | Yes | OpenZGY is the public implementation; Petrel ZGY files are the common production case |
 | IOGP P6/11 | IOGP Geomatics Committee, v2.0 | 3D bin-grid geometry and survey metadata | Yes | Later | Often embedded in SEG-Y extended textual headers; also a standalone reporting format |
-| IOGP P1/11 | IOGP Geomatics Committee, v2.0 | Marine positioning and navigation | Later | Later | Navigation sidecar; covered by Peforma Lines, not by this tool |
+| IOGP P1/11 | IOGP Geomatics Committee, v2.0 | Marine positioning and navigation | Later | Later | Navigation sidecar; covered by Peforma Lines/Points, not by this tool |
 | Seismic Unix (SU) | CWP/Seismic Unix | 240-byte header plus trace data in a binary container | Later | Later | Common in open processing chains; header mapping to SEG-Y is documented |
 | SEG-Y ASCII | Informal | 2D traces as whitespace-delimited samples with a text header | Yes | Yes | Produced by SEG-Y to ASCII conversion tools and often seen in teaching data |
 | RESQML SeismicCubeRepresentation | Energistics | Seismic cube as part of an EPC earth model | No | No | Different problem domain; out of scope |

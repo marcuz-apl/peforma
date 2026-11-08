@@ -19,7 +19,7 @@ The rail is a suite switcher, not a workflow tree. Products are the navigation; 
 | Section | Suite | Scope | Status |
 | --- | --- | --- | --- |
 | Data converters | Peforma Grid | CPS-3, ZMAP+, IRAP Classic, EarthVision, shapefile inspection | Live |
-| Data converters | Peforma Lines | Polyline and general-line conversion | Soon |
+| Data converters | Peforma Lines/Points | Polyline and point-set conversion (delimited, GeoJSON, GOCAD ASCII, shapefile) | Live |
 | Data converters | Peforma Polygons | Polygon and boundary conversion | Soon |
 | Data converters | Peforma 3D | 3D object exchange | Soon |
 | Data converters | Peforma Seismic | 2D lines and 3D cubes | Soon |
@@ -39,7 +39,7 @@ Desktop uses a two-column shell beneath a full-width header: a 232px suite rail 
 │ PEFORMA       │  PEFORMA / GRID                             │
 │ Data converters│  Move your grids. Keep your data.          │
 │   Peforma Grid │  Convert between five subsurface formats.  │
-│   Peforma Lines│  ┌───────────────────────────────────────┐  │
+│   Peforma Lines/Points│  ┌───────────────────────────────────────┐  │
 │   …            │  │ 01 Source data                        │  │
 │ Reference      │  │ 02 Output format                      │  │
 │   Coordinates  │  └───────────────────────────────────────┘  │

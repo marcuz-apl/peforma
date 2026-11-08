@@ -1,8 +1,8 @@
-# Peforma Lines — Lines and Points Data Exchange
+# Peforma Lines/Points — Lines and Points Data Exchange
 
-Status: planned. This chapter defines the product and the intended format scope. No line or point converter is implemented yet, and nothing here should be read as a claim of current support.
+Status: tier-1 open formats are implemented in the app. Delimited text with an explicit column mapping, Petrel-style unambiguous ASCII, GOCAD ASCII `.pl` and `.vs`, GeoJSON points and lines, and Esri Shapefile points and polylines are supported for import and export. The tier-2 navigation, SEG-Y header, RESQML, DXF, KML, and WITSML formats remain planned, and no shape should be read as a claim of support for them.
 
-Peforma Lines is the suite member for polyline and point geometry. Peforma Grid handles regularly sampled surfaces; Peforma Lines handles ordered coordinates that are not a grid: fault sticks, contour lines, culture lines, seismic navigation, well trajectories, well picks, and other point sets. Polygon topology and boundary cleanup belong to the separate Peforma Polygons tool and are not part of this scope.
+Peforma Lines/Points is the suite member for polyline and point geometry. Peforma Grid handles regularly sampled surfaces; Peforma Lines/Points handles ordered coordinates that are not a grid: fault sticks, contour lines, culture lines, seismic navigation, well trajectories, well picks, and other point sets. Polygon topology and boundary cleanup belong to the separate Peforma Polygons tool and are not part of this scope.
 
 ## Problem
 
@@ -16,7 +16,7 @@ The same geometry also arrives from outside interpretation software: navigation 
 
 Provide a small browser tool that reads supported line and point exchange files, shows exactly what geometry and attributes were found, lets the user resolve ambiguous column mappings explicitly, and writes a supported interchange file without changing coordinates, vertex order, or attributes.
 
-The tool must be honest about ambiguity. A file with no header and three numeric columns could be X Y Z, Y X Z, X Z Y, or a measured-depth curve. Peforma Lines must ask rather than guess, and must reject a dialect it does not fully understand.
+The tool must be honest about ambiguity. A file with no header and three numeric columns could be X Y Z, Y X Z, X Z Y, or a measured-depth curve. Peforma Lines/Points must ask rather than guess, and must reject a dialect it does not fully understand.
 
 ## Users
 
@@ -51,7 +51,7 @@ Oil and gas geoscientists, data managers, and interpreters who need to move poly
 
 ## Geometry model
 
-Peforma Lines uses a single internal model with two geometry kinds. Keeping it narrow makes both parsing and writing predictable.
+Peforma Lines/Points uses a single internal model with two geometry kinds. Keeping it narrow makes both parsing and writing predictable.
 
 | Concept | Meaning | Rules |
 | --- | --- | --- |

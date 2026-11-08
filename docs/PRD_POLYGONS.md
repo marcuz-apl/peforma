@@ -2,7 +2,7 @@
 
 Status: planned. This chapter defines the product and the intended format scope. No polygon converter is implemented yet, and nothing here should be read as a claim of current support.
 
-Peforma Polygons is the suite member for polygon and boundary geometry. Peforma Lines handles open polylines and point sets; Peforma Polygons handles closed geometry that bounds an area: fault polygons, horizon boundaries, prospect volumes, flow zones, and interpretation areas. Open polylines remain in Peforma Lines even when they are later closed; a polygon is a polygon only when the source declares it closed or when the geometry is topologically a closed loop.
+Peforma Polygons is the suite member for polygon and boundary geometry. Peforma Lines/Points handles open polylines and point sets; Peforma Polygons handles closed geometry that bounds an area: fault polygons, horizon boundaries, prospect volumes, flow zones, and interpretation areas. Open polylines remain in Peforma Lines/Points even when they are later closed; a polygon is a polygon only when the source declares it closed or when the geometry is topologically a closed loop.
 
 ## Problem
 
@@ -92,7 +92,7 @@ These are real, commonly produced exports. Several are not fully specified in pu
 | EarthVision fault polygon | Dynamic Graphics | Fault polygon records introduced by `FFASCI` | Later | Later | Vendor dialect; confirm against a representative file |
 | DUG `.dupoly` | DUG Insight | Picked polygon vertices | Later | Later | Vendor dialect; not publicly specified, so tier 3 until representative files exist |
 
-Two conclusions follow. First, the public, well-specified exchange set is Shapefile, GeoJSON, GOCAD closed polylines, and DXF closed entities — the same set Peforma Lines uses, with closure and orientation added. Second, the vendor ASCII dialects (IESX, CPS-3 lines, Kingdom `.plg`, ZMAP `@FALT`) are real but only partially documented, so they belong in a validation tier and must not be promoted without representative files.
+Two conclusions follow. First, the public, well-specified exchange set is Shapefile, GeoJSON, GOCAD closed polylines, and DXF closed entities — the same set Peforma Lines/Points uses, with closure and orientation added. Second, the vendor ASCII dialects (IESX, CPS-3 lines, Kingdom `.plg`, ZMAP `@FALT`) are real but only partially documented, so they belong in a validation tier and must not be promoted without representative files.
 
 ## Proposed support tiers
 
