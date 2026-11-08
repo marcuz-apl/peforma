@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Accessibility, ArrowRight, ArrowUpRight, AudioWaveform, Box, Check, ChevronDown,
+  Accessibility, ArrowDown, ArrowRight, ArrowUpRight, AudioWaveform, Box, Check, ChevronDown,
   Copy, Crosshair, Globe2, Grid3x3, Layers3, Lock, Mail, MapPin, Menu, Minus,
   Pentagon, Plus, Ruler, ScanSearch, Send, ShieldCheck, Waypoints, X,
 } from 'lucide-react';
@@ -102,7 +102,7 @@ function LandingNav({ themePref, resolvedTheme, onThemeChange, scrolled, active,
         </nav>
         <div className="lp-nav-right">
           <a className="lp-cta lp-cta-sm" href="#converter">
-            Open toolbox <ArrowRight size={15} aria-hidden="true" />
+            Open toolbox <ArrowDown size={15} aria-hidden="true" />
           </a>
           <button
             type="button"
@@ -122,7 +122,7 @@ function LandingNav({ themePref, resolvedTheme, onThemeChange, scrolled, active,
           <a key={link.id} href={`#${link.id}`} className="lp-mobile-link" onClick={close}>{link.label}</a>
         ))}
         <a href="#docs" className="lp-mobile-link" onClick={close}>Docs</a>
-        <a href="#converter" className="lp-cta" onClick={close}>Open the toolbox <ArrowRight size={16} aria-hidden="true" /></a>
+        <a href="#converter" className="lp-cta" onClick={close}>Open the toolbox <ArrowDown size={16} aria-hidden="true" /></a>
       </div>
     </header>
   );
@@ -171,7 +171,7 @@ function Hero() {
             locally, and losslessly.
           </p>
           <div className="lp-hero-actions lp-reveal">
-            <a className="lp-cta" href="#converter">Open the toolbox <ArrowRight size={17} aria-hidden="true" /></a>
+            <a className="lp-cta" href="#converter">Open the toolbox <ArrowDown size={17} aria-hidden="true" /></a>
             <a className="lp-ghost" href="#services">Explore the suites <ChevronDown size={16} aria-hidden="true" /></a>
           </div>
           <dl className="lp-stats lp-reveal">
@@ -507,7 +507,7 @@ function Contact() {
             <h3>Ready to move your data?</h3>
             <p>Open a converter and bring a file — the first conversion takes seconds.</p>
           </div>
-          <a className="lp-cta" href="#converter">Open the toolbox <ArrowRight size={17} aria-hidden="true" /></a>
+          <a className="lp-cta" href="#converter">Open the toolbox <ArrowDown size={17} aria-hidden="true" /></a>
         </div>
       </div>
     </section>
