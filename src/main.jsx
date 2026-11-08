@@ -575,7 +575,7 @@ function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route, themePref, re
     <header className="site-header">
       <div className="topbar shell">
         <a className="brand" href={`#${route}`} aria-label={`Peforma ${tool} home`}>
-          <span className="brand-icon"><Layers3 size={19} aria-hidden="true" /></span>
+          <span className="brand-icon"><Layers3 size={24} aria-hidden="true" /></span>
           <span className="brand-text">
             <Wordmark />
             <span className="brand-slogan">We morph data</span>

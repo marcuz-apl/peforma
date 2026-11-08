@@ -218,18 +218,18 @@ ul { list-style: none; margin: 0; padding: 0; }
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: var(--ink);
   text-decoration: none;
-  font: 800 18px Manrope, sans-serif;
-  letter-spacing: -.6px;
+  font: 800 27px Manrope, sans-serif;
+  letter-spacing: -.8px;
 }
 .brand-icon {
   display: grid;
   place-items: center;
-  width: 31px;
-  height: 31px;
-  border-radius: 9px;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
   background: var(--brand-bg);
   color: var(--brand-ink);
 }
@@ -240,10 +240,10 @@ ul { list-style: none; margin: 0; padding: 0; }
   line-height: 1;
 }
 .brand-slogan {
-  margin-top: 3px;
+  margin-top: 4px;
   color: var(--muted);
-  font: 400 10px/1.2 var(--font);
-  letter-spacing: 0;
+  font: 500 12px/1.2 var(--font);
+  letter-spacing: .1px;
 }
 .wordmark {
   display: inline-flex;
