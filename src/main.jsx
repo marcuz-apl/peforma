@@ -334,7 +334,7 @@ function UploadPanel({ grid, error, source, drag, setDrag, input, load, reset })
         onDragLeave={() => setDrag(false)}
         onDrop={e => { e.preventDefault(); setDrag(false); load(e.dataTransfer.files); }}
       >
-        <input ref={input} type="file" multiple accept="text/plain,*/*" aria-label="Choose a grid file" onChange={e => load(e.target.files)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); input.current?.click(); } }} />
+        <input ref={input} type="file" multiple aria-label="Choose a grid file" onChange={e => load(e.target.files)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); input.current?.click(); } }} />
         <span className="upload-icon"><FileUp size={23} /></span>
         <strong>Drop a grid file here</strong>
         <span className="drop-sub">or <span className="browse">browse files</span> from your computer</span>
