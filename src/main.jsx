@@ -576,7 +576,10 @@ function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route, themePref, re
       <div className="topbar shell">
         <a className="brand" href={`#${route}`} aria-label={`Peforma ${tool} home`}>
           <span className="brand-icon"><Layers3 size={19} aria-hidden="true" /></span>
-          <Wordmark />
+          <span className="brand-text">
+            <Wordmark />
+            <span className="brand-slogan">We morph data</span>
+          </span>
         </a>
         <div className="top-right">
           <button type="button" className="help-link" onClick={onGuide}>
@@ -600,42 +603,9 @@ function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route, themePref, re
   );
 }
 
-const FOOTER_FORMATS = ['CPS-3', 'ZMAP+', 'IRAP Classic', 'EarthVision', 'Shapefile'];
-
-function AppFooter({ onGuide, onAbout, onDisclaimer, aboutRef, disclaimerRef, route }) {
+function AppFooter({ onAbout, onDisclaimer, aboutRef, disclaimerRef }) {
   return (
     <footer className="site-footer">
-      <div className="footer-intro">
-        <a className="footer-mark" href={`#${route}`} aria-label="Peforma home">
-          <span className="footer-icon"><Layers3 size={15} aria-hidden="true" /></span>
-          <Wordmark />
-        </a>
-        <p>Subsurface data tools. Local-first by design.</p>
-      </div>
-      <div className="footer-grid">
-        <div className="footer-col">
-          <div className="footer-label">Tools</div>
-          <ul>
-            <li><a href="#converter" aria-current={route === 'grid' ? 'page' : undefined}>Grid converter</a></li>
-            <li><a href="#units" aria-current={route === 'units' ? 'page' : undefined}>Unit converter</a></li>
-            {SUITES.filter(s => !s.live).map(s => (
-              <li key={s.key}>
-                <span className="footer-soon">{s.name.replace('Peforma ', '')} <i>Soon</i></span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="footer-col">
-          <div className="footer-label">Grid formats</div>
-          <ul>{FOOTER_FORMATS.map(name => <li key={name}><span>{name}</span></li>)}</ul>
-        </div>
-        <div className="footer-col">
-          <div className="footer-label">Resources</div>
-          <ul>
-            <li><button type="button" onClick={onGuide}>{route === 'units' ? 'Unit definitions' : 'Format guide'}</button></li>
-          </ul>
-        </div>
-      </div>
       <div className="footer-legal">
         <div className="footer-legal-links">
           <button ref={aboutRef} type="button" onClick={onAbout}>About</button>
@@ -951,15 +921,13 @@ function App() {
               </>
             )}
           </main>
-          <AppFooter
-            onGuide={openGuide}
-            onAbout={() => setAboutOpen(true)}
-            onDisclaimer={() => setDisclaimerOpen(true)}
-            aboutRef={aboutRef}
-            disclaimerRef={disclaimerRef}
-            route={route}
-          />
         </div>
+        <AppFooter
+          onAbout={() => setAboutOpen(true)}
+          onDisclaimer={() => setDisclaimerOpen(true)}
+          aboutRef={aboutRef}
+          disclaimerRef={disclaimerRef}
+        />
       </div>
       {aboutOpen && <AboutDialog onClose={closeAbout} />}
       {disclaimerOpen && <DisclaimerDialog onClose={closeDisclaimer} />}
