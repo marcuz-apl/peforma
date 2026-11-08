@@ -432,12 +432,207 @@ export function summarizeMesh(model) {
 export function writeMesh(model, target) {
   if (target === 'stl-ascii') return writeStlAscii(model);
   if (target === 'stl-binary') return writeStlBinary(model);
+  if (target === 'obj') return writeObj(model);
   throw Error(`Peforma 3D cannot write ${MESH_TARGETS[target] || target} yet.`);
 }
 
-// Replaced in Task 2.
-function parseObj() {
-  throw Error('Wavefront OBJ arrives in task 2.');
+// ---------------------------------------------------------------------------
+// Wavefront OBJ
+
+function resolveObjIndex(raw, count, faceNumber, kind) {
+  const index = Number(raw);
+  if (!Number.isInteger(index) || index === 0) {
+    throw Error(`Face ${faceNumber} has an invalid ${kind} index "${raw}".`);
+  }
+  const resolved = index > 0 ? index - 1 : count + index;
+  if (resolved < 0 || resolved >= count) {
+    throw Error(`Face ${faceNumber} references ${kind} ${index}, but ${count} are defined.`);
+  }
+  return resolved;
+}
+
+function parseObj(bytes, fileName) {
+  const lines = decodeText(bytes).replace(/^\uFEFF/, '').split(/\r?\n/);
+  const positions = [];
+  const normals = [];
+  const vertexNormal = [];
+  const faces = [];
+  const faceGroups = [];
+  const groups = [];
+  const groupIds = new Map();
+  const ignored = new Map();
+  let currentGroup = -1;
+  let name = null;
+  let extraComponents = 0;
+  let anyNormalFace = false;
+  let anyPlainFace = false;
+
+  for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
+    const line = lines[lineNumber].trim();
+    if (!line || line.startsWith('#')) continue;
+    const parts = line.split(/\s+/);
+    const tag = parts[0];
+
+    if (tag === 'v') {
+      if (parts.length < 4) throw Error(`OBJ vertex on line ${lineNumber + 1} has ${parts.length - 1} coordinates; three are required.`);
+      const xyz = parts.slice(1, 4).map(Number);
+      if (!xyz.every(Number.isFinite)) throw Error(`OBJ vertex on line ${lineNumber + 1} is not numeric.`);
+      positions.push(...xyz);
+      if (parts.length > 4) extraComponents++;
+      continue;
+    }
+
+    if (tag === 'vn') {
+      if (parts.length < 4) throw Error(`OBJ normal on line ${lineNumber + 1} has ${parts.length - 1} components; three are required.`);
+      const xyz = parts.slice(1, 4).map(Number);
+      if (!xyz.every(Number.isFinite)) throw Error(`OBJ normal on line ${lineNumber + 1} is not numeric.`);
+      normals.push(...xyz);
+      continue;
+    }
+
+    if (tag === 'o') {
+      const label = parts.slice(1).join(' ').trim();
+      if (!name && label) name = label;
+      continue;
+    }
+
+    if (tag === 'g') {
+      const label = parts.slice(1).join(' ').trim();
+      if (!label) {
+        currentGroup = -1;
+      } else if (!groupIds.has(label)) {
+        const id = groups.length;
+        groupIds.set(label, id);
+        groups.push({ id, name: label, faceCount: 0 });
+        currentGroup = id;
+      } else {
+        currentGroup = groupIds.get(label);
+      }
+      continue;
+    }
+
+    if (tag === 'f') {
+      const faceNumber = faces.length / 3 + 1;
+      const tokens = parts.slice(1);
+      if (tokens.length !== 3) {
+        throw Error(`Face ${faceNumber} has ${tokens.length} vertices; Peforma 3D reads triangular meshes only.`);
+      }
+      const references = tokens.map(token => {
+        const fields = token.split('/');
+        if (!fields[0]) throw Error(`Face ${faceNumber} has no vertex index in "${token}".`);
+        return {
+          vertex: resolveObjIndex(fields[0], positions.length / 3, faceNumber, 'vertex'),
+          normal: fields[2] ? resolveObjIndex(fields[2], normals.length / 3, faceNumber, 'normal') : null,
+        };
+      });
+      const withNormal = references.filter(reference => reference.normal !== null).length;
+      if (withNormal !== 0 && withNormal !== 3) {
+        throw Error(`Face ${faceNumber} mixes vertex-normal references with tokens that have no normal; all three must agree.`);
+      }
+      if (withNormal) anyNormalFace = true;
+      else anyPlainFace = true;
+
+      references.forEach(reference => {
+        faces.push(reference.vertex);
+        if (reference.normal === null) return;
+        const at = reference.normal * 3;
+        const out = reference.vertex * 3;
+        if (Number.isFinite(vertexNormal[out])
+          && (vertexNormal[out] !== normals[at]
+            || vertexNormal[out + 1] !== normals[at + 1]
+            || vertexNormal[out + 2] !== normals[at + 2])) {
+          throw Error(`Face ${faceNumber} assigns vertex ${reference.vertex + 1} a different normal from the one used earlier.`);
+        }
+        vertexNormal[out] = normals[at];
+        vertexNormal[out + 1] = normals[at + 1];
+        vertexNormal[out + 2] = normals[at + 2];
+      });
+      faceGroups.push(currentGroup);
+      if (currentGroup >= 0) groups[currentGroup].faceCount++;
+      continue;
+    }
+
+    ignored.set(tag, (ignored.get(tag) || 0) + 1);
+  }
+
+  if (faces.length === 0) throw Error('This OBJ has no triangular faces.');
+
+  const model = makeModel(fileName, 'obj');
+  model.name = name;
+  model.positions = new Float64Array(positions);
+  model.faces = new Uint32Array(faces);
+  model.faceGroups = new Int32Array(faceGroups);
+  model.groups = groups;
+
+  if (anyNormalFace) {
+    const complete = new Float64Array((positions.length / 3) * 3).fill(NaN);
+    complete.set(vertexNormal);
+    model.vertexNormals = complete;
+  }
+
+  if (extraComponents) {
+    model.warnings.push(`${extraComponents} OBJ vertex${extraComponents === 1 ? '' : 's'} carry more than three coordinates; values beyond Z are not carried.`);
+  }
+  if (anyNormalFace && anyPlainFace) {
+    model.warnings.push('Some OBJ faces carry vertex normals and others do not; the writer keeps that distinction per face.');
+  }
+  if (ignored.size) {
+    const summary = [...ignored.entries()].map(([tag, count]) => `${tag} × ${count}`).join(', ');
+    model.warnings.push(`OBJ records not carried: ${summary}.`);
+  }
+  return model;
+}
+
+function objWarnings(model) {
+  const warnings = [];
+  if (model.faceNormals) warnings.push('OBJ does not carry face normals; the stored facet normals were not written.');
+  if (model.crs) warnings.push('OBJ does not carry a CRS; the declared CRS text was not written.');
+  if (model.units) warnings.push('OBJ does not carry units; the declared units text was not written.');
+  return warnings;
+}
+
+function writeObj(model) {
+  const out = ['# Created by Peforma 3D'];
+  const vertexCount = model.positions.length / 3;
+
+  for (let v = 0; v < vertexCount; v++) {
+    const at = v * 3;
+    out.push(`v ${num(model.positions[at])} ${num(model.positions[at + 1])} ${num(model.positions[at + 2])}`);
+  }
+
+  const normalIndex = new Map();
+  if (model.vertexNormals) {
+    for (let v = 0; v < vertexCount; v++) {
+      const at = v * 3;
+      if (!Number.isFinite(model.vertexNormals[at])) continue;
+      normalIndex.set(v, normalIndex.size + 1);
+      out.push(`vn ${num(model.vertexNormals[at])} ${num(model.vertexNormals[at + 1])} ${num(model.vertexNormals[at + 2])}`);
+    }
+  }
+
+  let currentGroup = null;
+  for (let f = 0; f < model.faces.length; f += 3) {
+    if (model.faceGroups) {
+      const group = model.faceGroups[f / 3];
+      if (group !== currentGroup) {
+        currentGroup = group;
+        out.push(group >= 0 ? `g ${model.groups[group].name}` : 'g');
+      }
+    }
+    const tokens = [0, 1, 2].map(k => {
+      const vertex = model.faces[f + k];
+      const normal = normalIndex.get(vertex);
+      return normal ? `${vertex + 1}//${normal}` : String(vertex + 1);
+    });
+    out.push(`f ${tokens.join(' ')}`);
+  }
+
+  return {
+    text: out.join('\n') + '\n',
+    warnings: objWarnings(model),
+    fileName: outputFileName(model, 'obj'),
+    mime: 'text/plain',
+  };
 }
 
 // Replaced in Task 3.
