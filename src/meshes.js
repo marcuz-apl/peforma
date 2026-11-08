@@ -433,6 +433,7 @@ export function writeMesh(model, target) {
   if (target === 'stl-ascii') return writeStlAscii(model);
   if (target === 'stl-binary') return writeStlBinary(model);
   if (target === 'obj') return writeObj(model);
+  if (target === 'ply-ascii' || target === 'ply-binary') return writePly(model, target);
   throw Error(`Peforma 3D cannot write ${MESH_TARGETS[target] || target} yet.`);
 }
 
@@ -635,9 +636,275 @@ function writeObj(model) {
   };
 }
 
-// Replaced in Task 3.
-function parsePly() {
-  throw Error('PLY arrives in task 3.');
+// ---------------------------------------------------------------------------
+// PLY
+
+const PLY_TYPES = {
+  char: { size: 1, get: 'getInt8' },
+  uchar: { size: 1, get: 'getUint8' },
+  short: { size: 2, get: 'getInt16' },
+  ushort: { size: 2, get: 'getUint16' },
+  int: { size: 4, get: 'getInt32' },
+  uint: { size: 4, get: 'getUint32' },
+  float: { size: 4, get: 'getFloat32' },
+  double: { size: 8, get: 'getFloat64' },
+};
+const PLY_INTEGERS = new Set(['char', 'uchar', 'short', 'ushort', 'int', 'uint']);
+const PLY_KNOWN_VERTEX = new Set(['x', 'y', 'z', 'nx', 'ny', 'nz']);
+const PLY_TEXTURE = new Set(['u', 'v', 's', 't']);
+
+function plyHeader(bytes) {
+  const scan = decodeText(bytes, Math.min(bytes.byteLength, HEAD_SCAN));
+  const marker = scan.indexOf('end_header');
+  if (marker < 0) throw Error('This PLY header has no end_header line.');
+  const newline = scan.indexOf('\n', marker);
+  const dataOffset = newline < 0 ? bytes.byteLength : new TextEncoder().encode(scan.slice(0, newline + 1)).byteLength;
+
+  const elements = [];
+  let current = null;
+  for (const raw of scan.slice(0, marker).split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const parts = line.split(/\s+/);
+    if (parts[0] === 'ply' || parts[0] === 'comment' || parts[0] === 'obj_info') continue;
+    if (parts[0] === 'format') continue;
+    if (parts[0] === 'element') {
+      const count = Number(parts[2]);
+      if (!Number.isInteger(count) || count < 0) throw Error(`PLY element "${parts[1]}" has an invalid count.`);
+      current = { name: parts[1], count, properties: [] };
+      elements.push(current);
+      continue;
+    }
+    if (parts[0] === 'property') {
+      if (!current) throw Error('PLY property appears before any element.');
+      if (parts[1] === 'list') {
+        if (parts.length < 5) throw Error(`PLY list property on line "${line}" is incomplete.`);
+        current.properties.push({ name: parts[4], type: 'list', countType: parts[2], itemType: parts[3] });
+      } else {
+        if (parts.length < 3) throw Error(`PLY property on line "${line}" is incomplete.`);
+        current.properties.push({ name: parts[2], type: parts[1] });
+      }
+      continue;
+    }
+    throw Error(`PLY header record "${line}" is not supported.`);
+  }
+  return { elements, dataOffset };
+}
+
+function parsePly(bytes, fileName, format) {
+  const { elements, dataOffset } = plyHeader(bytes);
+  const ascii = format === 'ply-ascii';
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const tokens = ascii ? decodeText(bytes.subarray(dataOffset), bytes.byteLength - dataOffset).split(/\s+/).filter(Boolean) : null;
+  let tokenIndex = 0;
+  let offset = dataOffset;
+
+  const readValue = type => {
+    const info = PLY_TYPES[type];
+    if (!info) throw Error(`PLY property type "${type}" is not supported.`);
+    if (ascii) {
+      if (tokenIndex >= tokens.length) throw Error('PLY data ended before every declared element was read.');
+      const token = tokens[tokenIndex++];
+      const value = Number(token);
+      if (!Number.isFinite(value)) throw Error(`PLY value "${token}" is not numeric.`);
+      return value;
+    }
+    if (offset + info.size > bytes.byteLength) throw Error('PLY data ended before every declared element was read.');
+    const value = view[info.get](offset, true);
+    offset += info.size;
+    return value;
+  };
+
+  const readRecord = properties => {
+    const record = {};
+    for (const property of properties) {
+      if (property.type === 'list') {
+        const count = readValue(property.countType);
+        if (!Number.isInteger(count) || count < 0) throw Error(`PLY list "${property.name}" has an invalid length.`);
+        const values = [];
+        for (let i = 0; i < count; i++) values.push(readValue(property.itemType));
+        record[property.name] = values;
+      } else {
+        record[property.name] = readValue(property.type);
+      }
+    }
+    return record;
+  };
+
+  const vertexElement = elements.find(element => element.name === 'vertex');
+  if (!vertexElement) throw Error('This PLY has no vertex element.');
+  for (const axis of ['x', 'y', 'z']) {
+    const property = vertexElement.properties.find(candidate => candidate.name === axis);
+    if (!property || property.type === 'list') throw Error(`PLY vertex element has no single-valued ${axis} property.`);
+  }
+  const normalProperties = ['nx', 'ny', 'nz'].map(axis => vertexElement.properties.find(property => property.name === axis));
+  const hasNormals = normalProperties.every(Boolean);
+  if (!hasNormals && normalProperties.some(Boolean)) throw Error('PLY vertex properties include only some of nx, ny, nz.');
+
+  const faceElement = elements.find(element => element.name === 'face');
+  if (!faceElement) throw Error('This PLY has no face element.');
+  const indexProperty = faceElement.properties.find(property => property.type === 'list'
+    && (property.name === 'vertex_indices' || property.name === 'vertex_index'));
+  if (!indexProperty) throw Error('PLY face element has no vertex_indices list property.');
+  if (!PLY_INTEGERS.has(indexProperty.countType) || !PLY_INTEGERS.has(indexProperty.itemType)) {
+    throw Error(`PLY face list type ${indexProperty.countType}/${indexProperty.itemType} is not an integer type.`);
+  }
+
+  const positions = new Float64Array(vertexElement.count * 3);
+  const normals = hasNormals ? new Float64Array(vertexElement.count * 3) : null;
+  const faces = [];
+  const dropped = new Set();
+  const texture = new Set();
+  let skippedElements = 0;
+  let vertexIndex = 0;
+  let faceIndex = 0;
+
+  for (const element of elements) {
+    if (element === vertexElement) {
+      for (let i = 0; i < element.count; i++) {
+        const record = readRecord(element.properties);
+        const at = vertexIndex * 3;
+        positions[at] = record.x;
+        positions[at + 1] = record.y;
+        positions[at + 2] = record.z;
+        if (hasNormals) {
+          normals[at] = record.nx;
+          normals[at + 1] = record.ny;
+          normals[at + 2] = record.nz;
+        }
+        for (const property of element.properties) {
+          if (PLY_KNOWN_VERTEX.has(property.name)) continue;
+          if (PLY_TEXTURE.has(property.name)) texture.add(property.name);
+          else dropped.add(property.name);
+        }
+        vertexIndex++;
+      }
+      continue;
+    }
+
+    if (element === faceElement) {
+      for (let i = 0; i < element.count; i++) {
+        const record = readRecord(element.properties);
+        const list = record[indexProperty.name];
+        const faceNumber = faceIndex + 1;
+        if (list.length !== 3) {
+          throw Error(`Face ${faceNumber} has ${list.length} vertices; Peforma 3D reads triangular meshes only.`);
+        }
+        for (const index of list) {
+          if (!Number.isInteger(index) || index < 0 || index >= vertexElement.count) {
+            throw Error(`Face ${faceNumber} references vertex ${index}, but ${vertexElement.count} vertices are defined.`);
+          }
+          faces.push(index);
+        }
+        for (const property of element.properties) {
+          if (property !== indexProperty) dropped.add(property.name);
+        }
+        faceIndex++;
+      }
+      continue;
+    }
+
+    if (element.properties.some(property => property.type === 'list')) {
+      throw Error(`PLY element "${element.name}" uses a list property, so its byte length cannot be computed safely.`);
+    }
+    for (let i = 0; i < element.count; i++) readRecord(element.properties);
+    skippedElements++;
+  }
+
+  if (faces.length === 0) throw Error('This PLY has no triangular faces.');
+
+  const model = makeModel(fileName, format);
+  model.positions = positions;
+  model.faces = new Uint32Array(faces);
+  model.vertexNormals = normals;
+  if (dropped.size) {
+    model.warnings.push(`PLY properties not carried: ${[...dropped].join(', ')}.`);
+  }
+  if (texture.size) {
+    model.warnings.push(`PLY texture coordinates (${[...texture].join(', ')}) are not carried.`);
+  }
+  if (skippedElements) {
+    model.warnings.push(`${skippedElements} PLY element${skippedElements === 1 ? '' : 's'} other than vertex and face were skipped.`);
+  }
+  return model;
+}
+
+function plyWarnings(model) {
+  const warnings = [];
+  if (model.groups.length) {
+    warnings.push(`PLY does not carry groups; ${model.groups.length} group name${model.groups.length === 1 ? '' : 's'} were not written.`);
+  }
+  if (model.faceNormals) warnings.push('PLY does not carry face normals; the stored facet normals were not written.');
+  if (model.crs) warnings.push('PLY does not carry a CRS; the declared CRS text was not written.');
+  if (model.units) warnings.push('PLY does not carry units; the declared units text was not written.');
+  return warnings;
+}
+
+function writePly(model, target) {
+  const ascii = target === 'ply-ascii';
+  const hasNormals = !!model.vertexNormals;
+  const vertexCount = model.positions.length / 3;
+  const faceCount = model.faces.length / 3;
+  const header = [
+    'ply',
+    ascii ? 'format ascii 1.0' : 'format binary_little_endian 1.0',
+    'comment Created by Peforma 3D',
+    `element vertex ${vertexCount}`,
+    'property double x',
+    'property double y',
+    'property double z',
+    ...(hasNormals ? ['property double nx', 'property double ny', 'property double nz'] : []),
+    `element face ${faceCount}`,
+    'property list uchar uint vertex_indices',
+    'end_header',
+  ];
+  const warnings = plyWarnings(model);
+  const fileName = outputFileName(model, target);
+
+  if (ascii) {
+    const out = header.slice();
+    for (let v = 0; v < vertexCount; v++) {
+      const at = v * 3;
+      const values = [model.positions[at], model.positions[at + 1], model.positions[at + 2]];
+      if (hasNormals) values.push(model.vertexNormals[at], model.vertexNormals[at + 1], model.vertexNormals[at + 2]);
+      out.push(values.map(num).join(' '));
+    }
+    for (let f = 0; f < model.faces.length; f += 3) {
+      out.push(`3 ${model.faces[f]} ${model.faces[f + 1]} ${model.faces[f + 2]}`);
+    }
+    return { text: out.join('\n') + '\n', warnings, fileName, mime: 'text/plain' };
+  }
+
+  const headerBytes = new TextEncoder().encode(header.join('\n') + '\n');
+  const vertexSize = (hasNormals ? 6 : 3) * 8;
+  const bytes = new ArrayBuffer(headerBytes.byteLength + vertexCount * vertexSize + faceCount * 13);
+  new Uint8Array(bytes).set(headerBytes);
+  const view = new DataView(bytes);
+  let offset = headerBytes.byteLength;
+
+  for (let v = 0; v < vertexCount; v++) {
+    const at = v * 3;
+    for (let c = 0; c < 3; c++) {
+      view.setFloat64(offset, model.positions[at + c], true);
+      offset += 8;
+    }
+    if (hasNormals) {
+      for (let c = 0; c < 3; c++) {
+        view.setFloat64(offset, model.vertexNormals[at + c], true);
+        offset += 8;
+      }
+    }
+  }
+  for (let f = 0; f < model.faces.length; f += 3) {
+    view.setUint8(offset, 3);
+    offset += 1;
+    for (let k = 0; k < 3; k++) {
+      view.setUint32(offset, model.faces[f + k], true);
+      offset += 4;
+    }
+  }
+
+  return { bytes, warnings, fileName, mime: 'application/octet-stream' };
 }
 
 // Replaced in Task 4.
