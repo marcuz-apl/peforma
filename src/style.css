@@ -526,7 +526,7 @@ a.rail-tool:hover { color: var(--ink-soft); }
   background-clip: text;
 }
 .content-head p { max-width: 52ch; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
-.culture-tabs {
+.culture-tabs, .mesh-tabs {
   display: inline-flex;
   gap: 4px;
   margin-top: 18px;
@@ -535,7 +535,7 @@ a.rail-tool:hover { color: var(--ink-soft); }
   border-radius: 9px;
   background: var(--surface-muted);
 }
-.culture-tab {
+.culture-tab, .mesh-tab {
   padding: 7px 14px;
   border-radius: 6px;
   color: var(--muted);
@@ -543,12 +543,42 @@ a.rail-tool:hover { color: var(--ink-soft); }
   text-decoration: none;
   transition: background .2s, color .2s;
 }
-.culture-tab:hover { color: var(--ink); background: var(--surface); }
-.culture-tab.active {
+.culture-tab:hover, .mesh-tab:hover { color: var(--ink); background: var(--surface); }
+.culture-tab.active, .mesh-tab.active {
   background: var(--surface);
   color: var(--ink);
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+
+/* Peforma 3D mesh preview */
+.mesh-preview-wrap {
+  margin: 0 15px 15px;
+  border: 1px solid var(--preview-line);
+  border-radius: 7px;
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+.mesh-canvas {
+  display: block;
+  width: 100%;
+  height: 320px;
+  touch-action: none;
+  cursor: grab;
+}
+.mesh-canvas:active { cursor: grabbing; }
+.mesh-preview-caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 13px;
+  border-top: 1px solid var(--preview-line);
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .mesh-canvas { height: 240px; }
 }
 
 /* Converter card */

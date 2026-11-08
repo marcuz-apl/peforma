@@ -6,6 +6,7 @@ import UnitConverter from './UnitConverter.jsx';
 import LinePoints from './LinePoints.jsx';
 import Polygon from './Polygon.jsx';
 import Shapefile from './Shapefile.jsx';
+import Mesh3D from './Mesh3D.jsx';
 import Docs from './Docs.jsx';
 import Landing from './Landing.jsx';
 import { Wordmark, ThemeToggle, AppFooter } from './chrome.jsx';
@@ -30,7 +31,13 @@ const SUITES = [
     ],
   },
   { key: 'shapefile', name: 'Peforma Shapefile', tool: 'Shapefile bundle', href: '#shapefile', icon: Files, live: true },
-  { key: '3d', name: 'Peforma 3D', icon: Box },
+  {
+    key: '3d', name: 'Peforma 3D', icon: Box,
+    children: [
+      { key: '3d-surfaces', name: 'Fault planes & horizons', href: '#3d-surfaces', live: true },
+      { key: '3d-solids', name: 'Geobodies & solids', href: '#3d-solids', live: true },
+    ],
+  },
   { key: 'seismic', name: 'Peforma Seismic', icon: AudioWaveform },
   { key: 'coordinates', name: 'Peforma Coordinates', icon: Globe2, reference: true },
   { key: 'units', name: 'Peforma Units', tool: 'Unit converter', href: '#units', icon: Ruler, reference: true, live: true },
@@ -755,6 +762,8 @@ function routeFromHash(hash) {
   if (hash === '#units') return 'units';
   if (hash === '#culture') return 'culture';
   if (hash === '#culture-polygon') return 'culture-polygon';
+  if (hash === '#3d-surfaces') return '3d-surfaces';
+  if (hash === '#3d-solids') return '3d-solids';
   if (hash === '#shapefile') return 'shapefile';
   if (hash === '#docs') return 'docs';
   if (hash === '#grid') return 'grid';
@@ -828,11 +837,15 @@ function App() {
           ? 'Peforma Culture — Vector Data Converter'
           : route === 'culture-polygon'
             ? 'Peforma Culture Polygon — Closed-Ring Converter'
-            : route === 'shapefile'
-            ? 'Peforma Shapefile — Esri Shapefile Bundle Converter'
-            : route === 'docs'
-              ? 'Peforma Docs — Format Reference & Guides'
-              : 'Peforma Horizon/Grid — Subsurface Grid Converter';
+            : route === '3d-surfaces'
+              ? 'Peforma 3D Surfaces — Move your surfaces'
+              : route === '3d-solids'
+                ? 'Peforma 3D Solids — Move your geobodies'
+                : route === 'shapefile'
+                  ? 'Peforma Shapefile — Esri Shapefile Bundle Converter'
+                  : route === 'docs'
+                    ? 'Peforma Docs — Format Reference & Guides'
+                    : 'Peforma Horizon/Grid — Subsurface Grid Converter';
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [route]);
 
@@ -973,6 +986,58 @@ function App() {
                   <div>
                     <b>Format and bundle integrity</b>
                     <p>A shapefile is a set: .shp geometry and .dbf attributes, with an .shx index and an optional .prj definition. Record order, vertex order, attribute values, and Z values are preserved. When a source mixes geometry types, each type is written as its own set inside the ZIP. Ring closure and ring orientation follow the target convention and are reported. Confirm the target application’s handling of CRS, field types, and deleted records before operational use.</p>
+                  </div>
+                </section>
+              </>
+            ) : route === '3d-surfaces' || route === '3d-solids' ? (
+              <>
+                <section className="content-head">
+                  <div className="eyebrow">
+                    <span /> {route === '3d-surfaces' ? 'PEFORMA / 3D · SURFACES' : 'PEFORMA / 3D · SOLIDS'}
+                  </div>
+                  {route === '3d-surfaces' ? (
+                    <>
+                      <h1>Move your surfaces.<br /><em>Keep every triangle.</em></h1>
+                      <p>Convert fault planes, faulted horizons, and salt top between STL, OBJ, PLY, and GOCAD TSurf.</p>
+                    </>
+                  ) : (
+                    <>
+                      <h1>Move your geobodies.<br /><em>Keep the shell.</em></h1>
+                      <p>Convert geobodies, salt bodies, and closed tetrahedral surfaces between STL, OBJ, PLY, and GOCAD TSurf.</p>
+                    </>
+                  )}
+                  <nav className="mesh-tabs" aria-label="Peforma 3D tools">
+                    <a
+                      className={`mesh-tab${route === '3d-surfaces' ? ' active' : ''}`}
+                      href="#3d-surfaces"
+                      aria-current={route === '3d-surfaces' ? 'page' : undefined}
+                    >
+                      Fault planes &amp; horizons
+                    </a>
+                    <a
+                      className={`mesh-tab${route === '3d-solids' ? ' active' : ''}`}
+                      href="#3d-solids"
+                      aria-current={route === '3d-solids' ? 'page' : undefined}
+                    >
+                      Geobodies &amp; solids
+                    </a>
+                  </nav>
+                </section>
+                <Mesh3D kind={route === '3d-surfaces' ? 'surface' : 'solid'} />
+                <section className="bottom-info" id={route === '3d-surfaces' ? 'surface-note' : 'solid-note'}>
+                  <div className="info-icon"><Info size={17} /></div>
+                  <div>
+                    {route === '3d-surfaces' ? (
+                      <>
+                        <b>Surface integrity</b>
+                        <p>Fault planes, horizons, and salt tops are surfaces, not solids. An open boundary is reported as stored and is never capped or thickened. Normals are never flipped or recomputed.</p>
+                      </>
+                    ) : (
+                      <>
+                        <b>Solid integrity</b>
+                        <p>Closure is detected from shared edges and reported, never repaired. An open shell is flagged before export and is not filled, capped, or welded. Vertex positions, face order, connectivity, group names, and normals are preserved; no mesh is decimated, smoothed, or reprojected.</p>
+                      </>
+                    )}
                   </div>
                 </section>
               </>
