@@ -4,7 +4,7 @@
    Services and Contact follow the active light/dark tokens. */
 
 .landing {
-  --lp-nav-h: 72px;
+  --lp-nav-h: 76px;
   --lp-hero-ink: #eef9ff;
   --lp-hero-soft: rgba(230, 236, 245, .78);
   --lp-hero-faint: rgba(230, 236, 245, .55);
@@ -32,10 +32,22 @@ body:has(.landing)::-webkit-scrollbar-thumb:hover { background: var(--scroll-thu
   transition: background .25s ease, border-color .25s ease, color .25s ease, backdrop-filter .25s ease;
 }
 .lp-nav.scrolled, .lp-nav.menu-open {
-  background: var(--header-bg);
+  background-color: var(--header-bg);
+  background-image: radial-gradient(720px 140px at 18% 0%, var(--glow-1), transparent 72%);
+  background-repeat: no-repeat;
   border-bottom-color: var(--line);
   color: var(--ink);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px) saturate(1.15);
+}
+.lp-nav.scrolled::after, .lp-nav.menu-open::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--header-sheen), rgba(124, 92, 255, .26), transparent);
 }
 .lp-nav-inner {
   display: flex;
@@ -47,13 +59,13 @@ body:has(.landing)::-webkit-scrollbar-thumb:hover { background: var(--scroll-thu
 .lp-brand {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
   color: inherit;
   text-decoration: none;
-  font: 800 24px Manrope, sans-serif;
-  letter-spacing: -.7px;
+  font: 800 27px Manrope, sans-serif;
+  letter-spacing: -.8px;
 }
-.lp-brand .brand-icon { width: 37px; height: 37px; border-radius: 10px; }
+.lp-brand .brand-icon { width: 40px; height: 40px; border-radius: 11px; }
 .lp-brand .brand-slogan { color: var(--lp-hero-faint); }
 .lp-nav.scrolled .lp-brand .brand-slogan, .lp-nav.menu-open .lp-brand .brand-slogan { color: var(--muted); }
 .lp-links { display: flex; align-items: center; gap: 6px; }
@@ -760,7 +772,7 @@ body:not(.light) .lp-map-canvas .leaflet-tile-pane {
   .lp-map-canvas { min-height: 320px; }
 }
 @media (max-width: 760px) {
-  .landing { --lp-nav-h: 64px; }
+  .landing { --lp-nav-h: 68px; }
   .lp-section { padding: 60px 0; }
   .lp-hero { min-height: max(560px, 92vh); }
   .lp-hero-inner { padding-top: 28px; padding-bottom: 28px; }
@@ -769,8 +781,6 @@ body:not(.light) .lp-map-canvas .leaflet-tile-pane {
   .lp-guarantees { grid-template-columns: 1fr; }
   .lp-format-ribbon { padding-bottom: 84px; }
   .lp-closing { padding: 24px; }
-  .lp-brand { font-size: 21px; }
-  .lp-brand .brand-icon { width: 33px; height: 33px; }
 }
 @media (max-width: 420px) {
   .lp-hero-actions .lp-cta, .lp-hero-actions .lp-ghost { width: 100%; justify-content: center; }
