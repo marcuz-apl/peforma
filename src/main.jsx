@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import shp from 'shpjs';
-import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, LockKeyhole, Menu, Moon, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, Sun, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, AudioWaveform, Box, Check, ChevronDown, FileSpreadsheet, FileUp, Globe2, Grid3x3, Layers3, LockKeyhole, Mail, Menu, Moon, PanelLeftClose, PanelLeftOpen, Pentagon, RotateCcw, Ruler, Sun, TriangleAlert, Info, Waypoints, X } from 'lucide-react';
 import VERSION from '../VERSION?raw';
 import UnitConverter from './UnitConverter.jsx';
 import { applyTheme, readThemePreference, resolveTheme, THEME_KEY } from './theme.js';
@@ -602,7 +602,7 @@ function SiteHeader({ drawerOpen, onOpen, menuRef, onGuide, route, themePref, re
 
 const FOOTER_FORMATS = ['CPS-3', 'ZMAP+', 'IRAP Classic', 'EarthVision', 'Shapefile'];
 
-function AppFooter({ onGuide, onAbout, aboutRef, route }) {
+function AppFooter({ onGuide, onAbout, onDisclaimer, aboutRef, disclaimerRef, route }) {
   return (
     <footer className="site-footer">
       <div className="footer-intro">
@@ -632,16 +632,38 @@ function AppFooter({ onGuide, onAbout, aboutRef, route }) {
         <div className="footer-col">
           <div className="footer-label">Resources</div>
           <ul>
-            <li><button ref={aboutRef} type="button" onClick={onAbout}>About</button></li>
             <li><button type="button" onClick={onGuide}>{route === 'units' ? 'Unit definitions' : 'Format guide'}</button></li>
           </ul>
         </div>
       </div>
-      <div className="footer-bottom">
-        <span>© 2026 Peforma</span>
-        <span>Peforma · Made for the field</span>
+      <div className="footer-legal">
+        <div className="footer-legal-links">
+          <button ref={aboutRef} type="button" onClick={onAbout}>About</button>
+          <button ref={disclaimerRef} type="button" onClick={onDisclaimer}>Disclaimer</button>
+        </div>
+        <div className="footer-legal-copy">© 2026 Peforma, an Alfazen product. All rights reserved.</div>
+        <div className="footer-social">
+          <a href="https://www.alfazen.org" target="_blank" rel="noreferrer" aria-label="Peforma on the web">
+            <Globe2 size={16} aria-hidden="true" />
+          </a>
+          <a href="mailto:info@alfazen.org" aria-label="Email Alfazen">
+            <Mail size={16} aria-hidden="true" />
+          </a>
+          <a href="https://www.linkedin.com/in/marcuszou" target="_blank" rel="noreferrer" aria-label="Alfazen on LinkedIn">
+            <LinkedinIcon size={16} />
+          </a>
+        </div>
       </div>
     </footer>
+  );
+}
+
+// lucide-react has no brand icon, so LinkedIn is a self-drawn monochrome mark.
+function LinkedinIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S.02 4.88.02 3.5 1.13 1 2.5 1s2.48 1.12 2.48 2.5ZM.5 8h4V24h-4V8Zm7.5 0h3.8v2.18h.05c.53-.99 1.83-2.05 3.75-2.05 4 0 4.75 2.63 4.75 6.04V24h-4v-8.5c0-2.03-.04-4.63-2.82-4.63-2.82 0-3.25 2.2-3.25 4.47V24H8V8Z" />
+    </svg>
   );
 }
 
@@ -710,11 +732,77 @@ function AboutDialog({ onClose }) {
   );
 }
 
+function DisclaimerDialog({ onClose }) {
+  const dialogRef = useRef(null);
+  const closeRef = useRef(null);
+
+  useEffect(() => {
+    const previous = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
+    const onKey = event => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = overflow;
+      if (previous instanceof HTMLElement) previous.focus();
+    };
+  }, [onClose]);
+
+  const onDialogKeyDown = event => {
+    if (event.key !== 'Tab') return;
+    const focusable = dialogRef.current?.querySelectorAll('button, a[href]');
+    if (!focusable?.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}
+    >
+      <div
+        ref={dialogRef}
+        className="about-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="disclaimer-title"
+        onKeyDown={onDialogKeyDown}
+      >
+        <button ref={closeRef} type="button" className="about-close" onClick={onClose} aria-label="Close disclaimer">
+          <X size={17} aria-hidden="true" />
+        </button>
+        <Wordmark label="Peforma" className="about-wordmark" />
+        <h2 id="disclaimer-title">Disclaimer</h2>
+        <p className="about-copy">
+          Peforma tools are provided for convenience. Always verify converted files in your receiving
+          application before production use, and confirm coordinate units, datum, and null conventions
+          match your project.
+        </p>
+        <div className="about-privacy">
+          <LockKeyhole size={15} aria-hidden="true" />
+          <span>All processing happens in your browser. Source files never leave this device.</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const { grid, shape, error, source, format, setFormat, input, load, download, reset } = useGridFile();
   const [drag, setDrag] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [disclaimerOpen, setDisclaimerOpen] = useState(false);
   const [route, setRoute] = useState(() => window.location.hash === '#units' ? 'units' : 'grid');
   const [themePref, setThemePref] = useState(readThemePreference);
   const [resolvedTheme, setResolvedTheme] = useState(() => resolveTheme(readThemePreference()));
@@ -724,6 +812,7 @@ function App() {
   });
   const menuRef = useRef(null);
   const aboutRef = useRef(null);
+  const disclaimerRef = useRef(null);
 
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
@@ -733,6 +822,11 @@ function App() {
   const closeAbout = useCallback(() => {
     setAboutOpen(false);
     requestAnimationFrame(() => aboutRef.current?.focus());
+  }, []);
+
+  const closeDisclaimer = useCallback(() => {
+    setDisclaimerOpen(false);
+    requestAnimationFrame(() => disclaimerRef.current?.focus());
   }, []);
 
   const changeTheme = useCallback(value => {
@@ -857,10 +951,18 @@ function App() {
               </>
             )}
           </main>
-          <AppFooter onGuide={openGuide} onAbout={() => setAboutOpen(true)} aboutRef={aboutRef} route={route} />
+          <AppFooter
+            onGuide={openGuide}
+            onAbout={() => setAboutOpen(true)}
+            onDisclaimer={() => setDisclaimerOpen(true)}
+            aboutRef={aboutRef}
+            disclaimerRef={disclaimerRef}
+            route={route}
+          />
         </div>
       </div>
       {aboutOpen && <AboutDialog onClose={closeAbout} />}
+      {disclaimerOpen && <DisclaimerDialog onClose={closeDisclaimer} />}
     </>
   );
 }
