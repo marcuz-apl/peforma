@@ -359,7 +359,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .app-shell {
   display: grid;
   grid-template-columns: 232px minmax(0, 1fr);
-  gap: 36px;
+  gap: 48px;
   align-items: start;
   width: 100%;
   max-width: 1400px;
@@ -491,10 +491,6 @@ a.rail-tool:hover { color: var(--ink-soft); }
 /* Tool heading */
 .content-head {
   padding: 40px 0 26px;
-  background-image:
-    radial-gradient(620px 230px at 0% 0%, var(--glow-1), transparent 72%),
-    radial-gradient(460px 200px at 62% -8%, var(--glow-2), transparent 74%);
-  background-repeat: no-repeat;
 }
 .eyebrow {
   display: flex;
