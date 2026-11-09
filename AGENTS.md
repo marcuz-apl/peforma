@@ -16,6 +16,6 @@
 - Do not add or run tests unless requested.
 
 ## Documentation
-- `PRD.md` at the project root is the single product requirements document, with one chapter per tool.
-- `docs/FORMATS.md` records supported formats and parser/export assumptions.
+- `PRD.md` at the project root is the concise suite overview and links to the detailed `docs/PRD_*.md` requirements.
+- `docs/FORMAT_REFERENCE.md` records supported formats and parser/export assumptions.
 - Update documentation when supported formats or behavior change.
