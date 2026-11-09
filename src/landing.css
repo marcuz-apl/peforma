@@ -481,42 +481,6 @@ body:has(.landing)::-webkit-scrollbar-thumb:hover { background: var(--scroll-thu
 .lp-suite-open svg { transition: transform .2s; }
 .lp-suite-card:hover .lp-suite-open svg { transform: translate(2px, -2px); }
 
-.lp-roadmap {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 14px 22px;
-  margin-top: 22px;
-  padding: 16px 20px;
-  border: 1px dashed var(--line);
-  border-radius: 14px;
-}
-.lp-roadmap-label {
-  color: var(--muted);
-  font: 600 11px var(--font);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-.lp-roadmap-items { display: flex; flex-wrap: wrap; gap: 10px 20px; }
-.lp-roadmap-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font: 500 13px var(--font);
-}
-.lp-roadmap-item svg { color: var(--faint); }
-.lp-soon {
-  padding: 2px 7px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--faint);
-  font: 600 9.5px var(--font);
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
 .lp-morph-band {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

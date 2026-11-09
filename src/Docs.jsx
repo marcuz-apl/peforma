@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowUp, AudioWaveform, BookOpen, Box, Check, Copy, Files, FileText, Grid3x3, Info, LockKeyhole, Ruler, ShieldCheck, TriangleAlert, Waypoints } from 'lucide-react';
+import { ArrowUp, AudioWaveform, BookOpen, Box, Check, Copy, Files, FileText, Globe2, Grid3x3, Info, LockKeyhole, Ruler, ShieldCheck, TriangleAlert, Waypoints } from 'lucide-react';
 
 // In-page navigation. The hash router owns top-level routes (#grid, #units,
 // #culture, #docs), so these anchors never change the hash: clicking one scrolls the
@@ -59,6 +59,13 @@ const TOC = [
       { id: 'seismic-p611', label: 'OGP P6/11' },
       { id: 'seismic-segy', label: 'SEG-Y' },
       { id: 'seismic-integrity', label: 'Seismic integrity' },
+    ],
+  },
+  {
+    id: 'coordinates-formats', label: 'Coordinates', icon: Globe2, children: [
+      { id: 'coords-reading', label: 'Reading notations' },
+      { id: 'coords-writing', label: 'Writing notations' },
+      { id: 'coords-integrity', label: 'Notation integrity' },
     ],
   },
   {
@@ -269,7 +276,7 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
-            <p>Six tools are live today. <b>Peforma Horizon/Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points/Fault-sticks converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma 3D</b> moves triangulated surfaces and geobody shells between STL, OBJ, PLY, and GOCAD TSurf. <b>Peforma Seismic</b> normalises SEG-Y trace files and converts UKOOA P1/90, OGP P1/11, and OGP P6/11 navigation. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Seven tools are live today. <b>Peforma Horizon/Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points/Fault-sticks converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma 3D</b> moves triangulated surfaces and geobody shells between STL, OBJ, PLY, and GOCAD TSurf. <b>Peforma Seismic</b> normalises SEG-Y trace files and converts UKOOA P1/90, OGP P1/11, and OGP P6/11 navigation. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Coordinates</b> rewrites latitude and longitude between decimal degrees, DMS, and decimal minutes without moving a position. <b>Peforma Units</b> converts ten engineering categories with exact factors.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
@@ -743,6 +750,54 @@ roads.cpg   text encoding, when present`} />
               </ul>
               <Callout tone="caution" title="Confirm in the receiving software before operational use">
                 <p>SEG-Y sample encoding, coordinate scalars, CRS records, and navigation conventions vary between acquisition systems. Peforma reports the header facts it finds and copies bytes without reinterpretation. Compare trace count, sample interval, coordinate ranges, CRS, and position values in the target application before relying on an exchange.</p>
+              </Callout>
+            </Sub>
+          </section>
+
+          <section className="docs-section" id="coordinates-formats">
+            <div className="section-head">
+              <span className="section-glyph"><Globe2 size={20} aria-hidden="true" /></span>
+              <div><h2>Coordinates</h2><p className="section-sub">Notation conversion · Peforma Coordinates</p></div>
+            </div>
+            <p>Peforma Coordinates reads a delimited table with a latitude column and a longitude column, then writes the same table with the pair rewritten in the notation you choose. Only the written form changes: 51.5074, 51°30′26.64″N, and 51°30.4440′N name the same position. No coordinate is reprojected, no datum is assumed, and no unit is converted.</p>
+
+            <Sub id="coords-reading" title="Reading notations">
+              <Table
+                caption="Accepted written forms. Each cell is read on its own, so a column may mix notations."
+                head={['Notation', 'Examples', 'Rule']}
+                rows={[
+                  ['Decimal degrees', <code className="inline-code">51.5074</code>, 'Signed number; a hemisphere letter may follow (51.5N)'],
+                  ['Degrees minutes seconds', <code className="inline-code">51°30′26.4″N</code>, 'Also 51:30:26.4N and 51 30 26.4 N; whole degrees and minutes'],
+                  ['Degrees decimal minutes', <code className="inline-code">51°30.44′N</code>, 'Also 51 30.44 N; whole degrees'],
+                  ['Packed DMS', <code className="inline-code">513026.4N</code>, 'DDMMSS.s for latitude, DDDMMSS.s for longitude; hemisphere letter required'],
+                  ['Packed decimal minutes', <code className="inline-code">5130.44N</code>, 'DDMM.m for latitude, DDDMM.m for longitude; hemisphere letter required'],
+                ]}
+              />
+              <ul className="doc-list">
+                <li>A hemisphere letter may lead or trail the value. N/S belong to latitude and E/W to longitude; a letter from the other axis is an error.</li>
+                <li>A minus sign and a hemisphere letter that disagree, minutes or seconds of 60 or more, and values outside ±90° latitude or ±180° longitude are errors, not warnings.</li>
+                <li>A bare number is always decimal degrees. Packed forms are recognised only by their exact digit count with a hemisphere letter, so 513026 without a letter is read as decimal degrees and reported as out of range.</li>
+                <li>A non-numeric first row is a header and pre-seeds the column mapping from labels such as lat, latitude, lon, longitude, x, or y. Without a header, the columns must be assigned explicitly.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="coords-writing" title="Writing notations">
+              <ul className="doc-list">
+                <li>Output is CSV. Every source column is copied verbatim and the converted pair is appended as <code className="inline-code">latitude_dd</code>/<code className="inline-code">longitude_dd</code>, <code className="inline-code">latitude_dms</code>/<code className="inline-code">longitude_dms</code>, or <code className="inline-code">latitude_dm</code>/<code className="inline-code">longitude_dm</code>.</li>
+                <li>Decimal degrees keep the sign and no letter. DMS and DDM use absolute parts with an N/S or E/W letter and the Unicode degree, prime, and double-prime marks.</li>
+                <li>The fractional-digit setting controls decimal places (0–10), seconds (0–4), or minutes (0–6). Rounding carries through seconds into minutes and degrees, so a value never prints as 60 seconds.</li>
+                <li>A row that could not be fully read keeps its source cells, gets blank converted cells, and is named in a trailing <code className="inline-code">peforma_note</code> column with the reason and the original line number.</li>
+              </ul>
+            </Sub>
+
+            <Sub id="coords-integrity" title="Notation integrity">
+              <ul className="doc-list">
+                <li>Row order and every source cell are preserved. The converted pair is appended, never written over the source.</li>
+                <li>Files up to 8 MB and 100,000 rows are read; a larger file is rejected with its size stated.</li>
+                <li>Mixed notations, packed values, and unreadable rows are reported with counts and line numbers.</li>
+              </ul>
+              <Callout tone="caution" title="A notation is not a reference frame">
+                <p>Converting 51°30′N to 51.5 does not change the datum, and this tool cannot tell you which datum a value belongs to. Latitude and longitude on NAD27, NAD83, WGS 84, or ED50 are different positions with the same numbers. Confirm the reference frame in the source and target systems before relying on an exchange.</p>
               </Callout>
             </Sub>
           </section>

@@ -45,14 +45,15 @@ const LIVE_SUITES = [
     formats: ['SEG-Y', 'P1/90', 'P1/11', 'P6/11'],
   },
   {
+    key: 'coordinates', icon: Globe2, name: 'Peforma Coordinates', href: '#coordinates',
+    blurb: 'Latitude and longitude rewritten between decimal degrees, DMS, and decimal minutes — the same position, a different notation.',
+    formats: ['Decimal degrees', 'DMS', 'Decimal minutes'],
+  },
+  {
     key: 'units', icon: Ruler, name: 'Peforma Units', href: '#units',
     blurb: 'Ten engineering categories on exact factors — pressure, volume, density, temperature, and the rest.',
     formats: ['10 categories', 'Exact factors'],
   },
-];
-
-const ROADMAP = [
-  { key: 'coordinates', icon: Globe2, name: 'Peforma Coordinates' },
 ];
 
 const GUARANTEES = [
@@ -64,7 +65,7 @@ const GUARANTEES = [
 
 const STATS = [
   { value: '4', label: 'grid dialects' },
-  { value: '6', label: 'live tools' },
+  { value: '7', label: 'live tools' },
   { value: '10', label: 'unit categories' },
   { value: '0', label: 'values lost' },
 ];
@@ -227,7 +228,7 @@ function Services() {
         <div className="lp-section-head lp-reveal">
           <div className="lp-kicker">The toolbox</div>
           <h2>One family. <em>Every exchange.</em></h2>
-          <p>Start with the converters that are live today. The rest of the family is on the way — same shell, same guarantees.</p>
+          <p>Every converter in the family is live today — same shell, same guarantees.</p>
         </div>
         <div className="lp-suite-grid">
           {LIVE_SUITES.map((suite, i) => (
@@ -244,18 +245,6 @@ function Services() {
               <span className="lp-suite-open">Open converter <ArrowUpRight size={15} aria-hidden="true" /></span>
             </a>
           ))}
-        </div>
-        <div className="lp-roadmap lp-reveal">
-          <span className="lp-roadmap-label">On the roadmap</span>
-          <div className="lp-roadmap-items">
-            {ROADMAP.map(item => (
-              <span key={item.key} className="lp-roadmap-item">
-                <item.icon size={16} aria-hidden="true" />
-                {item.name}
-                <span className="lp-soon">Soon</span>
-              </span>
-            ))}
-          </div>
         </div>
 
         <div className="lp-morph-band">

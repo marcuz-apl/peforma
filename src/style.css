@@ -976,6 +976,32 @@ body.light .download:hover:not(:disabled) { box-shadow: 0 14px 32px rgba(59, 111
 }
 .line-mapping-preview .download { margin-top: 14px; }
 .line-mapping-hint { margin-top: 10px; color: var(--faint); font-size: 12px; }
+
+.coords-paste { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.coords-paste textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--control-line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--control-ink);
+  font: 500 12px/1.6 ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+  resize: vertical;
+  min-height: 84px;
+}
+.coords-paste textarea::placeholder { color: var(--faint); }
+.coords-paste-button {
+  align-self: flex-start;
+  padding: 9px 16px;
+  border: 1px solid var(--chip-line-active);
+  border-radius: 7px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font: 600 12px 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+.coords-paste-button:disabled { opacity: .45; cursor: default; }
+.coords-precision { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; max-width: 180px; }
 @media (min-width: 761px) {
   .line-workspace .format-select select { width: 230px; min-width: 0; }
 }

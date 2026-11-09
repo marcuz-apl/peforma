@@ -98,3 +98,15 @@ P1/90 output is exactly 80 columns per record: `H`, a two-digit record type, a o
 Files up to 256 MB are read fully; a larger file is rejected with its size stated. No coordinate is reprojected, no CRS is inferred, and no missing value is filled in.
 
 SEG-Y interoperability caution: sample encoding, coordinate scalars, CRS records, and navigation conventions vary between acquisition systems. Peforma copies bytes and reports the header facts it finds. Confirm trace count, sample interval, coordinate ranges, CRS, and position values in the target application before operational use.
+
+## Coordinates (Peforma Coordinates)
+
+Peforma Coordinates (`#coordinates`) reads a delimited table — CSV, TSV, semicolon, or whitespace — from a file or pasted rows, and writes CSV with the latitude/longitude pair rewritten in a chosen notation. A non-numeric first row is a header and pre-seeds the column mapping from labels such as lat, latitude, y, lon, long, longitude, or x; without a header the user assigns both columns explicitly. Files up to 8 MB and 100,000 rows are read.
+
+Each coordinate cell is read on its own, so a column may mix notations. Accepted forms: signed decimal degrees (`51.5074`, optionally with a trailing hemisphere letter); degrees minutes seconds with marks, colons, or spaces (`51°30′26.4″N`, `51:30:26.4N`, `51 30 26.4 N`); degrees decimal minutes (`51°30.44′N`, `51 30.44 N`); packed DMS (`513026.4N`, `1140426W`) and packed decimal minutes (`5130.44N`, `11404.26W`). Packed forms are recognised only by their exact digit count with a hemisphere letter — DDMMSS.s / DDMM.m for latitude and DDDMMSS.s / DDDMM.m for longitude — so a bare number is always decimal degrees. A hemisphere letter may lead or trail; N/S belong to latitude and E/W to longitude.
+
+A minus sign and a disagreeing hemisphere letter, minutes or seconds of 60 or more, a letter from the wrong axis, and values outside ±90° latitude or ±180° longitude are row errors. An unreadable row keeps its source cells, gets blank converted cells, and is named with its reason and original line number.
+
+Output preserves every source column verbatim and appends the converted pair: `latitude_dd`/`longitude_dd` (signed, no letter), `latitude_dms`/`longitude_dms`, or `latitude_dm`/`longitude_dm` (absolute parts with an N/S or E/W letter and Unicode ° ′ ″ marks). Fractional digits are chosen per notation: 0–10 decimal places, 0–4 second decimals, or 0–6 minute decimals. Rounding carries through seconds into minutes and degrees. When any row failed, a trailing `peforma_note` column records the reason per row.
+
+Only the written form changes. No coordinate is reprojected, no datum is assumed or transformed, and no unit is converted. A notation is not a reference frame: the same numbers on NAD27, NAD83, WGS 84, or ED50 name different positions, so confirm the datum in the source and target systems before operational use.

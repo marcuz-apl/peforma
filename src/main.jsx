@@ -8,6 +8,7 @@ import Polygon from './Polygon.jsx';
 import Shapefile from './Shapefile.jsx';
 import Mesh3D from './Mesh3D.jsx';
 import Seismic from './Seismic.jsx';
+import Coordinates from './Coordinates.jsx';
 import Docs from './Docs.jsx';
 import Landing from './Landing.jsx';
 import { Wordmark, ThemeToggle, AppFooter } from './chrome.jsx';
@@ -47,7 +48,7 @@ const SUITES = [
       { key: 'seismic-3d', name: '3D cube', href: '#seismic-3d', live: true },
     ],
   },
-  { key: 'coordinates', name: 'Peforma Coordinates', icon: Globe2, reference: true },
+  { key: 'coordinates', name: 'Peforma Coordinates', tool: 'Notation converter', href: '#coordinates', icon: Globe2, reference: true, live: true },
   { key: 'units', name: 'Peforma Units', tool: 'Unit converter', href: '#units', icon: Ruler, reference: true, live: true },
 ];
 const SUITE_GROUPS = [
@@ -768,6 +769,7 @@ function PrivacyDialog({ onClose }) {
 // keep route === 'home' so native anchor scrolling is not interrupted.
 function routeFromHash(hash) {
   if (hash === '#units') return 'units';
+  if (hash === '#coordinates') return 'coordinates';
   if (hash === '#seismic-navigation') return 'seismic-navigation';
   if (hash === '#seismic-2d') return 'seismic-2d';
   if (hash === '#seismic-3d') return 'seismic-3d';
@@ -844,7 +846,9 @@ function App() {
       ? 'Peforma — Subsurface Data Exchange Toolbox'
       : route === 'units'
         ? 'Peforma Units — Engineering Unit Converter'
-        : route === 'seismic-navigation'
+        : route === 'coordinates'
+          ? 'Peforma Coordinates — Coordinate Notation Converter'
+          : route === 'seismic-navigation'
           ? 'Peforma Seismic Navigation — P1/90, P1/11, P6/11'
           : route === 'seismic-2d'
             ? 'Peforma Seismic 2D — Seismic Line Converter'
@@ -948,6 +952,22 @@ function App() {
                   <div>
                     <b>Conversion definitions</b>
                     <p>Ton is the metric tonne (1,000 kg). Month is the mean Gregorian month (2,629,746 s) and year is 365.2425 days; quarter, decade, and century follow that year. Barrel is 42 US gallons, ppg is pound per US gallon, and atmosphere is 101,325 Pa. Temperature conversions use exact offset formulas.</p>
+                  </div>
+                </section>
+              </>
+            ) : route === 'coordinates' ? (
+              <>
+                <section className="content-head">
+                  <div className="eyebrow"><span /> PEFORMA / COORDINATES</div>
+                  <h1>Rewrite your coordinates.<br /><em>Keep the position.</em></h1>
+                  <p>Convert latitude and longitude between decimal degrees, DMS, and decimal minutes.</p>
+                </section>
+                <Coordinates />
+                <section className="bottom-info" id="coordinates-note">
+                  <div className="info-icon"><Info size={17} /></div>
+                  <div>
+                    <b>Notation integrity</b>
+                    <p>Only the written form changes: decimal degrees, degrees minutes seconds, and degrees decimal minutes name the same position. No coordinate is reprojected, no datum is assumed, and no unit is converted. Every source column is copied verbatim and the converted pair is appended. A value that cannot be read unambiguously is reported with its line number and written as a blank cell, never guessed.</p>
                   </div>
                 </section>
               </>
