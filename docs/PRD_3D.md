@@ -163,7 +163,7 @@ Warnings must be specific: which face has no normal, which boundary edge is open
 - Reject a PLY property list that has a type the binary reader cannot decode.
 - Reject a binary STL whose byte size does not match the declared record count.
 - Report open edges and inconsistent normals; never repair them silently.
-- Reject a COLLADA file that uses a primitive type outside the supported set.
+- Reject a COLLADA file with a tier-2 message rather than parsing its primitives.
 - Report a GOCAD `TSurf` that has triangles referencing vertex indices beyond the declared count.
 - Detect a declared CRS that contradicts the coordinate range and surface it as a warning.
 - Never crash the page on malformed input; keep the previous result intact.
@@ -177,7 +177,7 @@ Warnings must be specific: which face has no normal, which boundary edge is open
 - Group and object names in OBJ carry the stratigraphic or facies identity in many geobody workflows. A target format that cannot carry group names must have that limitation reported, not silently dropped.
 - GOCAD `TSurf` may declare a coordinate reference system in a free-text field. Preserve the text and do not interpret it as an EPSG code.
 - Per-unit geobody exports (one OBJ per stratigraphic unit) carry unit identity in the file name. The tool should let the user confirm the unit-to-file mapping before writing a single combined file.
-- A mesh with one million triangles does not need to be read in full to be summarized. The preview limit must be stated, not hidden.
+- The summary is computed over the whole mesh, never a sample; only the preview is sampled, and the sample size is stated, not hidden.
 - Output compatibility should be confirmed in the target application, including CRS, units, face orientation, and attribute mapping.
 
 ## Acceptance criteria

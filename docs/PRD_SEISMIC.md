@@ -31,7 +31,7 @@ Oil and gas geoscientists and geophysicists who need to move 2D lines or 3D cube
 - Detect geometry from the inline and crossline trace-header fields, report inline and crossline ranges, the expected bin count, and missing bins, and optionally re-sort traces into inline-then-crossline order while moving each trace as a whole.
 - Show file-level facts: trace count, sample count, sample interval, sample format, byte order, header revision, extended-header count, trailer count, textual-header lines, coordinate bounds, and the header fields actually used.
 - Read and write UKOOA P1/90 as 80-column records, including common headers, S/G/Q/A position records, R receiver records, and EOF.
-- Read OGP P1/11 identification, HC header, and P1/S1 position records; write P1/11 with CRS A and CRS B carried verbatim.
+- Read OGP P1/11 identification, HC header, and P1/S1 position records; write P1/11 with CRS A and CRS B carried verbatim from a P1/11 source. A P1/90 source declares no projected CRS, so both fields are written as WGS 84 geographic 2D (EPSG 4326) and the substitution is reported.
 - Read OGP P6/11 header, B6 bin-node, and M6 perimeter records; write a delimited table.
 - Write delimited CSV for every navigation source, preserving blank fields as blank.
 - Process files fully in the browser, with no network request carrying source data.

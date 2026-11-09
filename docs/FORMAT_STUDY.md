@@ -79,7 +79,7 @@ Peforma Horizon/Grid stores grids internally in the IRAP/EarthVision order: row-
 
 - The example is a `.shp`, `.shx`, `.dbf` and `.prj` bundle in ED50 / UTM zone 34N.
 - It contains boundary geometry, not grid node values.
-- Turning the boundary into a regular grid would require an interpolation method and cell size, so the app inspects shapefiles but does not convert them.
+- Turning the boundary into a regular grid would require an interpolation method and cell size, so Peforma Horizon/Grid does not convert it. Shapefile feature exchange is handled by the sibling [Peforma Shapefile](PRD_SHAPEFILE.md) tool.
 
 ## Defects this study exposed
 

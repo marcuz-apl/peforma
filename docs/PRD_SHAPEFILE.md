@@ -2,7 +2,7 @@
 
 Status: implemented at `#shapefile`. The tool reads Esri Shapefile sets (`.shp`, `.shx`, `.dbf`, `.prj`, `.cpg`) and GeoJSON, then writes either a GeoJSON FeatureCollection or a shapefile ZIP. Multi-file bundle download, per-record geometry, DBF attributes, Z values, CRS text, and ring conventions are handled; no reprojection, unit conversion, topology repair, or shapefile compression is performed.
 
-Peforma Shapefile is the suite member for the Esri Shapefile container. It is separate from Peforma Culture: Culture converts vector geometry between open formats, while Shapefile owns the bundle itself — the `.shp` records, the `.shx` index, the `.dbf` attribute table, and the `.prj` definition. Culture Polygon remains planned and does not read or write shapefiles.
+Peforma Shapefile is the suite member for the Esri Shapefile container. It is separate from Peforma Culture: Culture converts vector geometry between open formats, while Shapefile owns the bundle itself — the `.shp` records, the `.shx` index, the `.dbf` attribute table, and the `.prj` definition. The Culture Polygon converter is implemented and does not read or write shapefiles.
 
 ## Problem
 
