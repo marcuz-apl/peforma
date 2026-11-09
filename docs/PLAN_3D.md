@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19, JavaScript/JSX, Vite (rolldown), Canvas 2D, Node 24 for external verification harnesses. No new dependencies.
 
-**Spec:** [docs/superpowers/specs/2026-11-08-peforma-3d-design.md](../specs/2026-11-08-peforma-3d-design.md)
+**Spec:** [DESIGN_3D.md](DESIGN_3D.md)
 
 ## Global Constraints
 

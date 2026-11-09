@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19, JavaScript, Vite, Canvas-free summary UI, Node 24 verification harnesses outside the repository.
 
-**Spec:** `docs/superpowers/specs/2026-11-08-peforma-seismic-design.md`
+**Spec:** [DESIGN_SEISMIC.md](DESIGN_SEISMIC.md)
 
 ## Global Constraints
 
