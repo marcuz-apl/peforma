@@ -2,13 +2,8 @@
 HOOKDIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$HOOKDIR/versionlib.sh"
 
-bump=patch
-
-old=$(read_version)
+# The version bump is computed in prepare-commit-msg, where the commit message
+# (and therefore the feat/non-feat type) is available. Here we only validate the
+# current identifier so a malformed VERSION still blocks the commit early.
+old=$(read_version) || exit 1
 validate_identifier "$old"
-new=$(next_identifier "$old" "$(utc_yymmdd)" "$bump") || exit 1
-
-printf '%s\n' "$new" > "$VERSION_FILE"
-newver=$(printf '%s' "${new#v}" | sed -E 's/[+-][0-9]{6}[0-9A-Za-z]$//')
-node "$HOOKDIR/sync-manifest-version.mjs" "$newver" || exit 1
-git add -- "$VERSION_FILE" package.json package-lock.json

@@ -48,7 +48,12 @@ bump_semver() {
       die "Major version bump (m) detected. Major version increments require explicit user approval. Set ALFAZEN_MAJOR_APPROVED=1 to proceed, or stage as minor/patch."
       ;;
     minor) echo "v${m}.$((n + 1)).0" ;;
-    patch) echo "v${m}.${n}.$((p + 1))" ;;
+    patch)
+      p=$((p + 1))
+      if [ "$p" -gt 9 ]; then p=0; n=$((n + 1)); fi
+      if [ "$n" -gt 9 ]; then n=0; m=$((m + 1)); fi
+      echo "v${m}.${n}.${p}"
+      ;;
     *)     echo "v${m}.${n}.${p}" ;;
   esac
 }

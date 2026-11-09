@@ -1,0 +1,16 @@
+#!/bin/sh
+HOOKDIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+. "$HOOKDIR/versionlib.sh"
+
+# Git freezes the commit tree before prepare-commit-msg runs, so the bumped
+# VERSION/manifests written there are not yet in the commit. Fold them in with a
+# single amend. The amend re-runs prepare-commit-msg, which sees the subject
+# already carries the current identifier and does not bump again; once the
+# committed VERSION matches the working one, this hook exits without amending.
+disk=$(read_version) || exit 0
+committed=$(git cat-file blob HEAD:VERSION 2>/dev/null | tr -d '\r\n\t ')
+[ -n "$committed" ] || exit 0
+[ "$committed" = "$disk" ] && exit 0
+
+git add -- "$VERSION_FILE" package.json package-lock.json
+git commit --amend --no-edit --quiet
