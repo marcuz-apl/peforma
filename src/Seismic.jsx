@@ -324,7 +324,7 @@ function SeismicSegy({ tab }) {
   }, [model, reorder, busy]);
 
   return (
-    <section className="workspace line-workspace" aria-label={tab === 'seismic-3d' ? 'Peforma Seismic 3D cube converter' : 'Peforma Seismic 2D lines converter'}>
+    <section className="workspace line-workspace" aria-label={tab === 'seismic-3d' ? 'Peforma cube converter' : 'Peforma 2D lines converter'}>
       <div className="line-block">
         <SegySource
           tab={tab}
@@ -544,7 +544,7 @@ function SeismicNavigation() {
   }, [model, target, busy]);
 
   return (
-    <section className="workspace line-workspace" aria-label="Peforma Seismic navigation converter">
+    <section className="workspace line-workspace" aria-label="Seismic navigation converter">
       <div className="line-block">
         <NavSource
           model={model}

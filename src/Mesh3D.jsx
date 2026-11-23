@@ -418,7 +418,7 @@ export default function Mesh3D({ kind }) {
   const openSolid = kind === 'solid' && summary && !summary.closed;
 
   return (
-    <section className="workspace line-workspace" aria-label={kind === 'solid' ? 'Peforma 3D solids converter' : 'Peforma 3D surfaces converter'}>
+    <section className="workspace line-workspace" aria-label={kind === 'solid' ? 'Geobody solids converter' : '3D surfaces converter'}>
       <div className="line-block">
         <SourcePanel
           model={model}
@@ -439,7 +439,7 @@ export default function Mesh3D({ kind }) {
             <TriangleAlert size={17} />
             <span>
               This mesh is not watertight: {summary.openEdges.toLocaleString()} boundary edge{summary.openEdges === 1 ? ' is' : 's are'} open.
-              {' '}Peforma 3D reports the gap and will not fill, cap, or weld it. Confirm the target application’s handling before use.
+              {' '}Peforma reports the gap and will not fill, cap, or weld it. Confirm the target application’s handling before use.
             </span>
           </div>
         )}

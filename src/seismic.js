@@ -1,4 +1,4 @@
-// Peforma Seismic — SEG-Y and IOGP navigation exchange.
+// Peforma — SEG-Y and IOGP navigation exchange.
 //
 // SEG-Y is treated as a byte-preserving container: the textual header, every trace
 // header, and every sample byte are copied unchanged. Only the binary-header fields
@@ -115,7 +115,7 @@ function formatBytes(bytes) {
 // revision bytes, which is unambiguous for every defined format code.
 function endiannessOf(bytes) {
   const marker = raw32(bytes, 3296);
-  if (marker === 0x02010403) throw Error('This SEG-Y file uses byte-swapped 16-bit ordering, which Peforma Seismic does not decode.');
+  if (marker === 0x02010403) throw Error('This SEG-Y file uses byte-swapped 16-bit ordering, which Peforma does not decode.');
   if (marker === 0x01020304) return 'big';
   if (marker === 0x04030201) return 'little';
 
@@ -163,7 +163,7 @@ export function detectSeismicFormat(bytes, fileName) {
     const code = first.split(',')[2]?.trim();
     if (code === '6') return 'p611';
     if (code === '1') return 'p111';
-    throw Error(`The OGP identification record names format code ${code || '(blank)'}; Peforma Seismic reads P1/11 (1) and P6/11 (6).`);
+    throw Error(`The OGP identification record names format code ${code || '(blank)'}; Peforma reads P1/11 (1) and P6/11 (6).`);
   }
   if (/^(B6|M6|H6),/i.test(first)) return 'p611';
   if (/^(HC|P1|S1|R1|X1|A1|N1),/i.test(first)) {
@@ -268,7 +268,7 @@ function parseSegy(bytes, fileName) {
   };
 
   if (binary.extendedCount < 0) {
-    throw Error('This file declares a variable number of extended textual headers ((SEG: EndText) termination), which Peforma Seismic does not locate.');
+    throw Error('This file declares a variable number of extended textual headers ((SEG: EndText) termination), which Peforma does not locate.');
   }
   const extendedStart = 3600;
   const extendedBytes = binary.extendedCount * 3200;
@@ -491,7 +491,7 @@ function parseSegy(bytes, fileName) {
 
 export function loadSeismicFile(bytes, fileName) {
   if (bytes.length > MAX_SEISMIC_BYTES) {
-    throw Error(`This file is ${formatBytes(bytes.length)}. Peforma Seismic reads ${MAX_SEISMIC_BYTES / 1048576} MB or less in the browser and will not truncate a seismic file.`);
+    throw Error(`This file is ${formatBytes(bytes.length)}. Peforma reads ${MAX_SEISMIC_BYTES / 1048576} MB or less in the browser and will not truncate a seismic file.`);
   }
   const format = detectSeismicFormat(bytes, fileName);
   if (format === 'segy') return parseSegy(bytes, fileName);
@@ -577,7 +577,7 @@ export function writeSegy(model, { reorder = 'source' } = {}) {
 
 function replaceExtension(fileName, extension) {
   const base = fileName.replace(/\.[^.\\/]+$/, '');
-  return `${base || 'peforma-seismic'}.${extension}`;
+  return `${base || 'Peforma'}.${extension}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -994,12 +994,12 @@ function writeP190(model) {
   lines.push(header('01', 'DESCRIPTION OF SURVEY AREA', model.fileName));
   lines.push(header('02', 'DATE OF SURVEY', stamp));
   lines.push(header('02', 'DATE OF ISSUE OF POST-PLOT TAPE', stamp, '1'));
-  lines.push(header('02', 'TAPE VERSION IDENTIFIER', 'PEFORMA SEISMIC', '2'));
+  lines.push(header('02', 'TAPE VERSION IDENTIFIER', 'Peforma', '2'));
   lines.push(header('03', 'DETAILS OF CLIENT', 'N/A'));
   lines.push(header('04', 'DETAILS OF GEOPHYSICAL CONTRACTOR', 'N/A'));
   lines.push(header('05', 'DETAILS OF POSITIONING CONTRACTOR', 'N/A'));
   lines.push(header('06', 'DETAILS OF POSITIONING PROCESSING CONTRACTOR', 'N/A'));
-  lines.push(header('07', 'POSITIONING AND COMPUTER SYSTEMS', 'PEFORMA SEISMIC'));
+  lines.push(header('07', 'POSITIONING AND COMPUTER SYSTEMS', 'Peforma'));
   lines.push(header('08', 'COORDINATE LOCATION', 'N/A'));
   lines.push(header('09', 'OFFSETS FROM SHIP SYSTEM POSITION', 'N/A'));
   lines.push(header('10', 'CLOCK TIME IN RESPECT OF GMT', 'GMT +0'));
@@ -1013,7 +1013,7 @@ function writeP190(model) {
   lines.push(header('18', 'PROJECTION TYPE', 'N/A'));
   lines.push(header('19', 'PROJECTION ZONE', 'N/A'));
   lines.push(header('20', 'DESCRIPTION OF GRID UNITS', 'N/A'));
-  lines.push(header('26', 'ANY OTHER RELEVANT INFORMATION', `CONVERTED FROM ${SEISMIC_SOURCE_LABELS[model.format]} BY PEFORMA SEISMIC`));
+  lines.push(header('26', 'ANY OTHER RELEVANT INFORMATION', `CONVERTED FROM ${SEISMIC_SOURCE_LABELS[model.format]} BY Peforma`));
 
   if (model.format === 'p111') {
     warnings.push('P1/11 coordinates are written to the latitude and longitude columns. Easting and northing are left blank because the source does not declare that CRS A is a projected grid.');

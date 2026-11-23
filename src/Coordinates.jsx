@@ -364,7 +364,7 @@ export default function Coordinates() {
   }, [model, notation, precision, busy]);
 
   return (
-    <section className="workspace line-workspace" aria-label="Peforma Coordinates converter">
+    <section className="workspace line-workspace" aria-label="Coordinate notation converter">
       <div className="line-block">
         <SourcePanel
           pending={pending}

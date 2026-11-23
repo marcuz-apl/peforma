@@ -1,4 +1,4 @@
-// Peforma Shapefile — Esri Shapefile bundle parsing and writing.
+// Peforma — Esri Shapefile bundle parsing and writing.
 //
 // A shapefile is a bundle: .shp holds geometry, .shx is the record index,
 // .dbf holds attributes, and .prj optionally names the coordinate reference

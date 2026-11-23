@@ -1,17 +1,17 @@
-# Peforma 3D — mesh and geobody exchange design
+# Peforma — mesh and geobody exchange design
 
 Date: 2026-11-08
 Status: approved for implementation (tier 1)
 
 ## Goal
 
-Add Peforma 3D to the live suite: a local browser converter for triangulated surfaces and closed geobody meshes. The first release reads and writes ASCII STL, binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD `TSurf`. Vertex positions, face connectivity, face order, group names, and normals are preserved. Closure and normal consistency are detected and reported, never repaired.
+Add Peforma to the live suite: a local browser converter for triangulated surfaces and closed geobody meshes. The first release reads and writes ASCII STL, binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD `TSurf`. Vertex positions, face connectivity, face order, group names, and normals are preserved. Closure and normal consistency are detected and reported, never repaired.
 
 ## Non-goals
 
 - Tier 2 formats: GOCAD `TSolid` (`.so`) and COLLADA (`.dae`). They stay labelled as planned.
-- Seismic data. A trace volume is not a mesh; Peforma Seismic owns it.
-- Fault sticks, well trajectories, and other open polylines. Peforma Culture Lines/Points owns them.
+- Seismic data. A trace volume is not a mesh; Peforma owns it.
+- Fault sticks, well trajectories, and other open polylines. Peforma — Lines/Points owns them.
 - Fault pillars, corner-point grids, and reservoir property arrays.
 - Mesh repair: welding vertices, filling holes, decimating, smoothing, re-tessellating, or computing new normals.
 - Reprojection, datum transformation, or unit conversion.
@@ -20,12 +20,12 @@ Add Peforma 3D to the live suite: a local browser converter for triangulated sur
 
 ## Suite placement
 
-Peforma 3D becomes a live suite with two children, mirroring the Culture pattern. The rail header expands the children; it does not navigate.
+Peforma becomes a live suite with two children, mirroring the Culture pattern. The rail header expands the children; it does not navigate.
 
 | Rail and tab label | Route | Document title |
 | --- | --- | --- |
-| Fault planes & horizons | `#3d-surfaces` | Peforma 3D Surfaces — Move your surfaces |
-| Geobodies & solids | `#3d-solids` | Peforma 3D Solids — Move your geobodies |
+| Fault planes & horizons | `#3d-surfaces` | Peforma — 3D surfaces — Move your surfaces |
+| Geobodies & solids | `#3d-solids` | Peforma — Geobody solids — Move your geobodies |
 
 The full class names appear in the page subtitle:
 
@@ -94,7 +94,7 @@ Content decides; the extension is only a hint.
 3. Binary STL — byte length is at least 84 and exactly `84 + 50 × triangleCount`, where `triangleCount` is the little-endian uint32 at byte 80. The computed count is reported.
 4. ASCII STL — the text begins with `solid` and contains `facet normal` and `endfacet`.
 5. OBJ — at least one `v ` record and at least one `f ` record.
-6. Otherwise: "Unrecognised mesh file. Peforma 3D reads STL, OBJ, PLY, and GOCAD TSurf."
+6. Otherwise: "Unrecognised mesh file. Peforma reads STL, OBJ, PLY, and GOCAD TSurf."
 
 Binary STL detection runs before the ASCII test because a binary header may begin with `solid`.
 
@@ -113,7 +113,7 @@ Binary STL detection runs before the ASCII test because a binary header may begi
 - `o` and `g` set the current group. The full trimmed remainder of the line is the group name; multiple names on one `g` line are kept literally.
 - Read `f` tokens in the forms `v`, `v//vn`, `v/vt/vn`, and `v/vt`. Negative indices resolve relative to the counts at that point in the file.
 - All tokens of one face must reference normals consistently or reference none. Mixed references are rejected.
-- Faces with fewer than three or more than three vertices are rejected with the 1-based face number: "Face 128 has 4 vertices; Peforma 3D reads triangular meshes only."
+- Faces with fewer than three or more than three vertices are rejected with the 1-based face number: "Face 128 has 4 vertices; Peforma reads triangular meshes only."
 - `vt`, `mtllib`, `usemtl`, `s`, and other records are ignored; the counts are aggregated into one warning.
 - Indices outside the vertex list are rejected with the face number and index.
 
@@ -205,7 +205,7 @@ The view reuses the existing converter layout: dropzone, loaded summary, output 
 
 When `kind === 'solid'` and the mesh is open, show a visible warning:
 
-> This mesh is not watertight: N boundary edges are open. Peforma 3D reports the gap and will not fill, cap, or weld it. Confirm the target application's handling before use.
+> This mesh is not watertight: N boundary edges are open. Peforma reports the gap and will not fill, cap, or weld it. Confirm the target application's handling before use.
 
 ### Surface note
 
@@ -230,9 +230,9 @@ The surface bottom note states:
 ## Documentation updates
 
 - `docs/PRD_3D.md`: status becomes "Tier 1 implemented; tier 2 planned", the open questions record the decisions made here, and the size section matches the 64 MB cap.
-- `docs/FORMATS.md`: a Peforma 3D section with detection order, per-format read/write rules, closure detection, and losses.
+- `docs/FORMATS.md`: a Peforma section with detection order, per-format read/write rules, closure detection, and losses.
 - `src/Docs.jsx`: a 3D section with object classes, mesh integrity, one subsection per format, and tier-2 status. Add it to the table of contents.
-- `README.md`: add Peforma 3D to the tool list.
+- `README.md`: add Peforma to the tool list.
 - Landing page: 3D becomes a live tool card; no "coming soon".
 
 ## Verification

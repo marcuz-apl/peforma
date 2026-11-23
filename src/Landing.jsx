@@ -20,37 +20,37 @@ const NAV_LINKS = [
 
 const LIVE_SUITES = [
   {
-    key: 'grid', icon: Grid3x3, name: 'Peforma Horizon/Grid', href: '#grid',
+    key: 'grid', icon: Grid3x3, name: 'Grid surfaces', href: '#grid',
     blurb: 'Depth or time grid surfaces moved between the four ASCII dialects interpretation packages actually read.',
     formats: ['CPS-3', 'EarthVision', 'IRAP Classic', 'ZMAP+'],
   },
   {
-    key: 'culture', icon: Waypoints, name: 'Peforma Culture', href: '#culture',
+    key: 'culture', icon: Waypoints, name: 'Vectors', href: '#culture',
     blurb: 'Point, polyline, and polygon vectors exchanged with vertex order, ring structure, attributes, and missing-Z distinctions left intact.',
     formats: ['CSV', 'GeoJSON', 'GOCAD'],
   },
   {
-    key: '3d', icon: Box, name: 'Peforma 3D', href: '#3d-surfaces',
+    key: '3d', icon: Box, name: '3D meshes', href: '#3d-surfaces',
     blurb: 'Triangulated horizons, fault planes, and geobody shells moved between STL, OBJ, PLY, and GOCAD TSurf with every vertex and triangle kept.',
     formats: ['STL', 'OBJ', 'PLY', 'GOCAD TSurf'],
   },
   {
-    key: 'shapefile', icon: Files, name: 'Peforma Shapefile', href: '#shapefile',
+    key: 'shapefile', icon: Files, name: 'Shapefile', href: '#shapefile',
     blurb: 'Esri Shapefile sets and GeoJSON exchanged with every record, attribute, and CRS definition kept in place.',
     formats: ['SHP', 'DBF', 'PRJ', 'GeoJSON'],
   },
   {
-    key: 'seismic', icon: AudioWaveform, name: 'Peforma Seismic', href: '#seismic-navigation',
+    key: 'seismic', icon: AudioWaveform, name: 'Seismic', href: '#seismic-navigation',
     blurb: 'SEG-Y cubes, 2D lines, and UKOOA/IOGP navigation moved with every trace header and sample byte left untouched.',
     formats: ['SEG-Y', 'P1/90', 'P1/11', 'P6/11'],
   },
   {
-    key: 'coordinates', icon: Globe2, name: 'Peforma Coordinates', href: '#coordinates',
+    key: 'coordinates', icon: Globe2, name: 'Coordinates', href: '#coordinates',
     blurb: 'Latitude and longitude rewritten between decimal degrees, DMS, and decimal minutes — the same position, a different notation.',
     formats: ['Decimal degrees', 'DMS', 'Decimal minutes'],
   },
   {
-    key: 'units', icon: Ruler, name: 'Peforma Units', href: '#units',
+    key: 'units', icon: Ruler, name: 'Units', href: '#units',
     blurb: 'Ten engineering categories on exact factors — pressure, volume, density, temperature, and the rest.',
     formats: ['10 categories', 'Exact factors'],
   },

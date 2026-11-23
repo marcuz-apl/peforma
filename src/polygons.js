@@ -1,4 +1,4 @@
-// Peforma Culture Polygon — closed-ring exchange for the tier-1 open formats.
+// Peforma — closed-ring exchange for the tier-1 open formats.
 //
 // A polygon is an ordered list of rings: the first ring is the exterior and each
 // later ring is a hole. Source ring order, vertex order, stored orientation,

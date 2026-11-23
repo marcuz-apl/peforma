@@ -2,7 +2,7 @@
 
 ## Goal
 
-Give Peforma Grid a professional application shell that introduces the wider Peforma suite without implying the other tools already exist. The change covers a suite rail, a revised header, a real footer, and a corrected type scale. Converters and file handling are untouched.
+Give Peforma a professional application shell that introduces the wider Peforma suite without implying the other tools already exist. The change covers a suite rail, a revised header, a real footer, and a corrected type scale. Converters and file handling are untouched.
 
 ## Non-goals
 
@@ -18,15 +18,15 @@ The rail is a suite switcher, not a workflow tree. Products are the navigation; 
 
 | Section | Suite | Scope | Status |
 | --- | --- | --- | --- |
-| Data converters | Peforma Grid | CPS-3, ZMAP+, IRAP Classic, EarthVision, shapefile inspection | Live |
-| Data converters | Peforma Lines/Points | Polyline and point-set conversion (delimited, GeoJSON, GOCAD ASCII, shapefile) | Live |
-| Data converters | Peforma Polygons | Polygon and boundary conversion | Soon |
-| Data converters | Peforma 3D | 3D object exchange | Soon |
-| Data converters | Peforma Seismic | 2D lines and 3D cubes | Soon |
-| Reference | Peforma Coordinates | ED50↔WGS84, UTM↔Lambert Conformal Conic | Soon |
-| Reference | Peforma Units | Oil-sector unit conversion | Soon |
+| Data converter | Grid conversion | CPS-3, ZMAP+, IRAP Classic, EarthVision, shapefile inspection | Live |
+| Data converter | Vector conversion | Polyline and point-set conversion (delimited, GeoJSON, GOCAD ASCII) | Live |
+| Data converter | Polygon conversion | Polygon and boundary conversion | Soon |
+| Data converter | 3D mesh conversion | 3D object exchange | Soon |
+| Data converter | Seismic conversion | 2D lines and 3D cubes | Soon |
+| Reference | Coordinate conversion | ED50↔WGS84, UTM↔Lambert Conformal Conic | Soon |
+| Reference | Unit conversion | Oil-sector unit conversion | Soon |
 
-Only Peforma Grid expands, showing `Grid converter` as the active tool. Every other row is a `<span aria-disabled="true">` with a visible `Soon` tag, excluded from the tab order and with no `href`.
+Only grid conversion expands, showing `Grid converter` as the active tool. Every other row is a `<span aria-disabled="true">` with a visible `Soon` tag, excluded from the tab order and with no `href`.
 
 ## Layout
 
@@ -34,12 +34,12 @@ Desktop uses a two-column shell beneath a full-width header: a 232px suite rail 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ [icon] peforma grid  v…        ● Local processing  Format guide │
+│ [icon] Peforma  v…        ● Local processing  Format guide │
 ├───────────────┬─────────────────────────────────────────────┤
 │ PEFORMA       │  PEFORMA / GRID                             │
 │ Data converters│  Move your grids. Keep your data.          │
-│   Peforma Grid │  Convert between five subsurface formats.  │
-│   Peforma Lines/Points│  ┌───────────────────────────────────────┐  │
+│   Grid conversion │  Convert between five subsurface formats.  │
+│   Vector conversion│  ┌───────────────────────────────────────┐  │
 │   …            │  │ 01 Source data                        │  │
 │ Reference      │  │ 02 Output format                      │  │
 │   Coordinates  │  └───────────────────────────────────────┘  │
@@ -61,7 +61,7 @@ Desktop uses a two-column shell beneath a full-width header: a 232px suite rail 
 - Header row: `PEFORMA` label in 11px mono with a collapse control.
 - Section labels `DATA CONVERTERS` and `REFERENCE` in 11px mono, muted.
 - Product rows are 13px medium text with 16px icons, a 10px right chevron on expandable rows, and an active state using a soft green background, dark ink, and a 2px accent bar on the left.
-- Peforma Grid expands to `Grid converter`, marked `aria-current="page"`.
+- Peforma expands to `Grid converter`, marked `aria-current="page"`.
 - Collapse control reduces the rail to 64px icon-only mode with `title` and accessible labels on every item. The collapsed state is remembered in `localStorage` under `peforma.rail`; failures to read or write storage are ignored.
 - At 761–1023px the rail is icon-only by default and the collapse control is hidden.
 - At 760px and below the rail becomes a left drawer, 280px or 85vw, with a backdrop, close button, Escape handling, body scroll lock, and focus returned to the menu button on close.
@@ -79,7 +79,7 @@ Desktop uses a two-column shell beneath a full-width header: a 232px suite rail 
 
 - Three columns on desktop: `Tools` (the seven suites with status), `Formats` (the five supported inputs), and `Build` (version, local processing, format guide).
 - 11px mono column labels, 12px links, 1.6 line-height.
-- Bottom row: `© 2026 Peforma · Peforma Grid · Made for the field.` in 11px muted text.
+- Bottom row: `© 2026 Peforma · Peforma · Made for the field.` in 11px muted text.
 - On mobile the columns stack, with Tools using two columns.
 
 ## Typography

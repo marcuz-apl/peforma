@@ -1,8 +1,8 @@
-# Peforma 3D Tier 1 Implementation Plan
+# Peforma — 3D Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add Peforma 3D to the live suite: a local browser converter for triangulated surfaces and closed geobodies that reads and writes ASCII STL, binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD `TSurf` without altering vertex order, face order, connectivity, group names, or normals.
+**Goal:** Add Peforma to the live suite: a local browser converter for triangulated surfaces and closed geobodies that reads and writes ASCII STL, binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD `TSurf` without altering vertex order, face order, connectivity, group names, or normals.
 
 **Architecture:** One engine (`src/meshes.js`) owns detection, parsing, summary, and writing. One view (`src/Mesh3D.jsx`) is mounted twice with `kind="surface"` and `kind="solid"`. `src/main.jsx` adds two routes, rail children, tab links, titles, page copy, and bottom notes. `src/style.css` reuses the Culture tab styles and adds a canvas preview block. Docs, README, PRD, FORMATS, and the landing page mark 3D as live.
 
@@ -22,7 +22,7 @@
 - Never add upload-denial copy. The forbidden sentence is "Nothing is uploaded" and any equivalent reassurance.
 - Do not change a working function or rewrite unrelated code. Touch only what each task lists.
 - Update `docs/PRD_3D.md`, `docs/FORMATS.md`, `README.md`, `src/Docs.jsx`, and the landing page in the same task that changes behavior.
-- Use "Peforma 3D", "Fault planes & horizons", and "Geobodies & solids" exactly as written. The retired "Petro Gridr" name never appears.
+- Use "Peforma", "Fault planes & horizons", and "Geobodies & solids" exactly as written. The retired "Petro Gridr" name never appears.
 
 ## File Map
 
@@ -35,7 +35,7 @@
 | `src/Docs.jsx` | 3D TOC group and section, overview update, `Box` icon import. |
 | `src/Landing.jsx` | 3D live suite card, roadmap removal, live-converter count. |
 | `docs/PRD_3D.md` | Tier-1 status, shipped scope, 64 MB limit, recorded decisions. |
-| `docs/FORMATS.md` | Peforma 3D detection, per-format rules, integrity, losses. |
+| `docs/FORMATS.md` | Peforma detection, per-format rules, integrity, losses. |
 | `README.md` | 3D tool list entry. |
 
 ---
@@ -43,24 +43,24 @@
 ### Task 0: Commit the plan
 
 **Files:**
-- Create: `docs/superpowers/plans/2026-11-08-peforma-3d.md` (this file)
+- Create: `docs/superpowers/plans/2026-11-08-Peforma.md` (this file)
 
 **Interfaces:**
-- Consumes: the approved spec at `docs/superpowers/specs/2026-11-08-peforma-3d-design.md`.
+- Consumes: the approved spec at `docs/superpowers/specs/2026-11-08-Peforma-design.md`.
 - Produces: a committed plan that later tasks can cite.
 
 - [ ] **Step 1: Commit the plan**
 
 ```bash
-git add docs/superpowers/plans/2026-11-08-peforma-3d.md
-git commit -m "docs: add Peforma 3D tier 1 implementation plan"
+git add docs/superpowers/plans/2026-11-08-Peforma.md
+git commit -m "docs: add Peforma tier 1 implementation plan"
 git push
 ```
 
 - [ ] **Step 2: Confirm the hook stamped the commit**
 
 Run: `git log -1 --format=%s`
-Expected: a subject beginning with `v0.1.` and `+261108`, followed by `docs: add Peforma 3D tier 1 implementation plan`.
+Expected: a subject beginning with `v0.1.` and `+261108`, followed by `docs: add Peforma tier 1 implementation plan`.
 
 ---
 
@@ -68,8 +68,8 @@ Expected: a subject beginning with `v0.1.` and `+261108`, followed by `docs: add
 
 **Files:**
 - Create: `src/meshes.js`
-- Create: `C:\tmp\peforma-3d-fixtures.mjs`
-- Create: `C:\tmp\peforma-3d-stl.mjs`
+- Create: `C:\tmp\Peforma-fixtures.mjs`
+- Create: `C:\tmp\Peforma-stl.mjs`
 
 **Interfaces:**
 - Produces:
@@ -86,7 +86,7 @@ Expected: a subject beginning with `v0.1.` and `+261108`, followed by `docs: add
 Create `src/meshes.js` with exactly this content:
 
 ```js
-// Peforma 3D — triangulated surface and geobody exchange for the tier-1 open
+// Peforma — triangulated surface and geobody exchange for the tier-1 open
 // formats. Vertex order, face order, connectivity, groups, and normals are
 // preserved. Closure and normal consistency are reported, never repaired.
 
@@ -145,7 +145,7 @@ export function detectMeshFormat(bytes) {
     if (format[1] === 'ascii') return 'ply-ascii';
     if (format[1] === 'binary_little_endian') return 'ply-binary';
     if (format[1] === 'binary_big_endian') {
-      throw Error(`This PLY declares binary_big_endian ${format[2]}; Peforma 3D reads little-endian binary PLY only.`);
+      throw Error(`This PLY declares binary_big_endian ${format[2]}; Peforma reads little-endian binary PLY only.`);
     }
     throw Error(`This PLY declares an unknown format, "${format[1]} ${format[2]}".`);
   }
@@ -155,12 +155,12 @@ export function detectMeshFormat(bytes) {
     const type = first.split(/\s+/)[1] || '';
     if (/^TSurf$/i.test(type)) return 'tsurf';
     if (/^TSolid$/i.test(type)) {
-      throw Error('This is a GOCAD TSolid. Tetrahedral solids arrive in tier 2; Peforma 3D reads GOCAD TSurf today.');
+      throw Error('This is a GOCAD TSolid. Tetrahedral solids arrive in tier 2; Peforma reads GOCAD TSurf today.');
     }
     if (/^(PLINE|VSet)$/i.test(type)) {
-      throw Error(`This is GOCAD ${type}; open lines and points belong to Peforma Culture Lines/Points.`);
+      throw Error(`This is GOCAD ${type}; open lines and points belong to Peforma — Lines/Points.`);
     }
-    throw Error(`GOCAD ${type || 'file'} is not a supported mesh type. Peforma 3D reads GOCAD TSurf.`);
+    throw Error(`GOCAD ${type || 'file'} is not a supported mesh type. Peforma reads GOCAD TSurf.`);
   }
 
   if (bytes.byteLength >= 84) {
@@ -172,13 +172,13 @@ export function detectMeshFormat(bytes) {
   if (/^\s*solid\b/i.test(head) && /facet\s+normal/i.test(head) && /endfacet/i.test(head)) return 'stl-ascii';
   if (/^\s*v\s+\S+\s+\S+\s+\S+/m.test(head) && /^\s*f\s+\S+/m.test(head)) return 'obj';
 
-  throw Error('Unrecognised mesh file. Peforma 3D reads STL, OBJ, PLY, and GOCAD TSurf.');
+  throw Error('Unrecognised mesh file. Peforma reads STL, OBJ, PLY, and GOCAD TSurf.');
 }
 
 export function loadMeshFile(bytes, fileName) {
   if (!bytes || bytes.byteLength === 0) throw Error('This file is empty.');
   if (bytes.byteLength > MAX_MESH_BYTES) {
-    throw Error(`${fileName} is ${(bytes.byteLength / 1048576).toFixed(1)} MB; Peforma 3D reads mesh files up to 64 MB.`);
+    throw Error(`${fileName} is ${(bytes.byteLength / 1048576).toFixed(1)} MB; Peforma reads mesh files up to 64 MB.`);
   }
   const format = detectMeshFormat(bytes);
   if (format === 'stl-ascii') return parseStlAscii(bytes, fileName);
@@ -334,7 +334,7 @@ function stlWarnings(model) {
 }
 
 function stlSolidName(model) {
-  return model.name || 'Peforma 3D mesh';
+  return model.name || 'Peforma mesh';
 }
 
 function writeStlAscii(model) {
@@ -514,7 +514,7 @@ export function summarizeMesh(model) {
 export function writeMesh(model, target) {
   if (target === 'stl-ascii') return writeStlAscii(model);
   if (target === 'stl-binary') return writeStlBinary(model);
-  throw Error(`Peforma 3D cannot write ${MESH_TARGETS[target] || target} yet.`);
+  throw Error(`Peforma cannot write ${MESH_TARGETS[target] || target} yet.`);
 }
 
 // Replaced in Task 2.
@@ -535,7 +535,7 @@ function parseTsurf() {
 
 - [ ] **Step 2: Create the fixture generator**
 
-Create `C:\tmp\peforma-3d-fixtures.mjs` with exactly this content:
+Create `C:\tmp\Peforma-fixtures.mjs` with exactly this content:
 
 ```js
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -584,7 +584,7 @@ function binaryStl(vertices, faces, name = 'tetra') {
 function plyAscii() {
   return `ply
 format ascii 1.0
-comment Peforma 3D fixture
+comment Peforma fixture
 element vertex 4
 property double x
 property double y
@@ -607,7 +607,7 @@ end_header
 function plyBinary() {
   const header = `ply
 format binary_little_endian 1.0
-comment Peforma 3D fixture
+comment Peforma fixture
 element vertex 4
 property float x
 property float y
@@ -655,7 +655,7 @@ function objFixture() {
   return lines.join('\n') + '\n';
 }
 
-export function writeFixtures(directory = 'C:/tmp/peforma-3d-fixtures') {
+export function writeFixtures(directory = 'C:/tmp/Peforma-fixtures') {
   mkdirSync(directory, { recursive: true });
 
   writeFileSync(`${directory}/surface.stl`, `solid surface
@@ -744,13 +744,13 @@ end_header
 
 - [ ] **Step 3: Create the STL engine harness**
 
-Create `C:\tmp\peforma-3d-stl.mjs` with exactly this content:
+Create `C:\tmp\Peforma-stl.mjs` with exactly this content:
 
 ```js
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { loadMeshFile, summarizeMesh, writeMesh } from 'file:///E:/projects/peforma/src/meshes.js';
-import { writeFixtures } from './peforma-3d-fixtures.mjs';
+import { writeFixtures } from './Peforma-fixtures.mjs';
 
 const directory = writeFixtures();
 const read = name => loadMeshFile(new Uint8Array(readFileSync(`${directory}/${name}`)), name);
@@ -808,14 +808,14 @@ console.log('STL engine checks passed.');
 
 - [ ] **Step 4: Run the harness**
 
-Run: `node C:/tmp/peforma-3d-stl.mjs`
+Run: `node C:/tmp/Peforma-stl.mjs`
 Expected: `STL engine checks passed.` with exit code 0.
 
 - [ ] **Step 5: Commit the engine core**
 
 ```bash
 git add src/meshes.js
-git commit -m "feat: add the Peforma 3D mesh engine with STL and mesh integrity"
+git commit -m "feat: add the Peforma mesh engine with STL and mesh integrity"
 ```
 
 ---
@@ -824,7 +824,7 @@ git commit -m "feat: add the Peforma 3D mesh engine with STL and mesh integrity"
 
 **Files:**
 - Modify: `src/meshes.js` (replace the `parseObj` stub; add `writeObj` and dispatch; add `objWarnings`)
-- Create: `C:\tmp\peforma-3d-obj.mjs`
+- Create: `C:\tmp\Peforma-obj.mjs`
 
 **Interfaces:**
 - Consumes: `makeModel`, `decodeText`, `num`, `outputFileName`, `loadMeshFile`, `summarizeMesh`.
@@ -920,7 +920,7 @@ function parseObj(bytes, fileName) {
       const faceNumber = faces.length / 3 + 1;
       const tokens = parts.slice(1);
       if (tokens.length !== 3) {
-        throw Error(`Face ${faceNumber} has ${tokens.length} vertices; Peforma 3D reads triangular meshes only.`);
+        throw Error(`Face ${faceNumber} has ${tokens.length} vertices; Peforma reads triangular meshes only.`);
       }
       const references = tokens.map(token => {
         const fields = token.split('/');
@@ -997,7 +997,7 @@ function objWarnings(model) {
 }
 
 function writeObj(model) {
-  const out = ['# Created by Peforma 3D'];
+  const out = ['# Created by Peforma'];
   const vertexCount = model.positions.length / 3;
 
   for (let v = 0; v < vertexCount; v++) {
@@ -1050,19 +1050,19 @@ export function writeMesh(model, target) {
   if (target === 'stl-ascii') return writeStlAscii(model);
   if (target === 'stl-binary') return writeStlBinary(model);
   if (target === 'obj') return writeObj(model);
-  throw Error(`Peforma 3D cannot write ${MESH_TARGETS[target] || target} yet.`);
+  throw Error(`Peforma cannot write ${MESH_TARGETS[target] || target} yet.`);
 }
 ```
 
 - [ ] **Step 3: Create the OBJ harness**
 
-Create `C:\tmp\peforma-3d-obj.mjs` with exactly this content:
+Create `C:\tmp\Peforma-obj.mjs` with exactly this content:
 
 ```js
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { loadMeshFile, summarizeMesh, writeMesh } from 'file:///E:/projects/peforma/src/meshes.js';
-import { writeFixtures } from './peforma-3d-fixtures.mjs';
+import { writeFixtures } from './Peforma-fixtures.mjs';
 
 const directory = writeFixtures();
 const read = name => loadMeshFile(new Uint8Array(readFileSync(`${directory}/${name}`)), name);
@@ -1112,14 +1112,14 @@ console.log('OBJ engine checks passed.');
 
 - [ ] **Step 4: Run both harnesses**
 
-Run: `node C:/tmp/peforma-3d-stl.mjs && node C:/tmp/peforma-3d-obj.mjs`
+Run: `node C:/tmp/Peforma-stl.mjs && node C:/tmp/Peforma-obj.mjs`
 Expected: `STL engine checks passed.` then `OBJ engine checks passed.`
 
 - [ ] **Step 5: Commit OBJ support**
 
 ```bash
 git add src/meshes.js
-git commit -m "feat: add Wavefront OBJ read and write to Peforma 3D"
+git commit -m "feat: add Wavefront OBJ read and write to Peforma"
 ```
 
 ---
@@ -1128,7 +1128,7 @@ git commit -m "feat: add Wavefront OBJ read and write to Peforma 3D"
 
 **Files:**
 - Modify: `src/meshes.js` (replace the `parsePly` stub; add PLY helpers, `writePly`, dispatch)
-- Create: `C:\tmp\peforma-3d-ply.mjs`
+- Create: `C:\tmp\Peforma-ply.mjs`
 
 **Interfaces:**
 - Consumes: `makeModel`, `decodeText`, `num`, `outputFileName`, `summarizeMesh`.
@@ -1301,7 +1301,7 @@ function parsePly(bytes, fileName, format) {
         const list = record[indexProperty.name];
         const faceNumber = faceIndex + 1;
         if (list.length !== 3) {
-          throw Error(`Face ${faceNumber} has ${list.length} vertices; Peforma 3D reads triangular meshes only.`);
+          throw Error(`Face ${faceNumber} has ${list.length} vertices; Peforma reads triangular meshes only.`);
         }
         for (const index of list) {
           if (!Number.isInteger(index) || index < 0 || index >= vertexElement.count) {
@@ -1361,7 +1361,7 @@ function writePly(model, target) {
   const header = [
     'ply',
     ascii ? 'format ascii 1.0' : 'format binary_little_endian 1.0',
-    'comment Created by Peforma 3D',
+    'comment Created by Peforma',
     `element vertex ${vertexCount}`,
     'property double x',
     'property double y',
@@ -1431,19 +1431,19 @@ export function writeMesh(model, target) {
   if (target === 'stl-binary') return writeStlBinary(model);
   if (target === 'obj') return writeObj(model);
   if (target === 'ply-ascii' || target === 'ply-binary') return writePly(model, target);
-  throw Error(`Peforma 3D cannot write ${MESH_TARGETS[target] || target} yet.`);
+  throw Error(`Peforma cannot write ${MESH_TARGETS[target] || target} yet.`);
 }
 ```
 
 - [ ] **Step 3: Create the PLY harness**
 
-Create `C:\tmp\peforma-3d-ply.mjs` with exactly this content:
+Create `C:\tmp\Peforma-ply.mjs` with exactly this content:
 
 ```js
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { loadMeshFile, summarizeMesh, writeMesh } from 'file:///E:/projects/peforma/src/meshes.js';
-import { writeFixtures } from './peforma-3d-fixtures.mjs';
+import { writeFixtures } from './Peforma-fixtures.mjs';
 
 const directory = writeFixtures();
 const read = name => loadMeshFile(new Uint8Array(readFileSync(`${directory}/${name}`)), name);
@@ -1509,14 +1509,14 @@ console.log('PLY engine checks passed.');
 
 - [ ] **Step 4: Run all engine harnesses**
 
-Run: `node C:/tmp/peforma-3d-stl.mjs && node C:/tmp/peforma-3d-obj.mjs && node C:/tmp/peforma-3d-ply.mjs`
+Run: `node C:/tmp/Peforma-stl.mjs && node C:/tmp/Peforma-obj.mjs && node C:/tmp/Peforma-ply.mjs`
 Expected: three pass lines, exit code 0.
 
 - [ ] **Step 5: Commit PLY support**
 
 ```bash
 git add src/meshes.js
-git commit -m "feat: add PLY ASCII and binary read and write to Peforma 3D"
+git commit -m "feat: add PLY ASCII and binary read and write to Peforma"
 ```
 
 ---
@@ -1525,7 +1525,7 @@ git commit -m "feat: add PLY ASCII and binary read and write to Peforma 3D"
 
 **Files:**
 - Modify: `src/meshes.js` (replace the `parseTsurf` stub; add `writeTsurf`, dispatch)
-- Create: `C:\tmp\peforma-3d-tsurf.mjs`
+- Create: `C:\tmp\Peforma-tsurf.mjs`
 
 **Interfaces:**
 - Consumes: `makeModel`, `decodeText`, `num`, `outputFileName`.
@@ -1696,13 +1696,13 @@ export function writeMesh(model, target) {
 
 - [ ] **Step 3: Create the TSurf harness**
 
-Create `C:\tmp\peforma-3d-tsurf.mjs` with exactly this content:
+Create `C:\tmp\Peforma-tsurf.mjs` with exactly this content:
 
 ```js
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { loadMeshFile, summarizeMesh, writeMesh } from 'file:///E:/projects/peforma/src/meshes.js';
-import { writeFixtures } from './peforma-3d-fixtures.mjs';
+import { writeFixtures } from './Peforma-fixtures.mjs';
 
 const directory = writeFixtures();
 const read = name => loadMeshFile(new Uint8Array(readFileSync(`${directory}/${name}`)), name);
@@ -1750,14 +1750,14 @@ console.log('GOCAD TSurf engine checks passed.');
 
 - [ ] **Step 4: Run every engine harness**
 
-Run: `node C:/tmp/peforma-3d-stl.mjs && node C:/tmp/peforma-3d-obj.mjs && node C:/tmp/peforma-3d-ply.mjs && node C:/tmp/peforma-3d-tsurf.mjs`
+Run: `node C:/tmp/Peforma-stl.mjs && node C:/tmp/Peforma-obj.mjs && node C:/tmp/Peforma-ply.mjs && node C:/tmp/Peforma-tsurf.mjs`
 Expected: four pass lines, exit code 0.
 
 - [ ] **Step 5: Commit TSurf support**
 
 ```bash
 git add src/meshes.js
-git commit -m "feat: add GOCAD TSurf read and write to Peforma 3D"
+git commit -m "feat: add GOCAD TSurf read and write to Peforma"
 ```
 
 ---
@@ -2199,7 +2199,7 @@ export default function Mesh3D({ kind }) {
   const openSolid = kind === 'solid' && summary && !summary.closed;
 
   return (
-    <section className="workspace line-workspace" aria-label={kind === 'solid' ? 'Peforma 3D solids converter' : 'Peforma 3D surfaces converter'}>
+    <section className="workspace line-workspace" aria-label={kind === 'solid' ? 'Geobody solids converter' : '3D surfaces converter'}>
       <div className="line-block">
         <SourcePanel
           model={model}
@@ -2220,7 +2220,7 @@ export default function Mesh3D({ kind }) {
             <TriangleAlert size={17} />
             <span>
               This mesh is not watertight: {summary.openEdges.toLocaleString()} boundary edge{summary.openEdges === 1 ? ' is' : 's are'} open.
-              {' '}Peforma 3D reports the gap and will not fill, cap, or weld it. Confirm the target application’s handling before use.
+              {' '}Peforma reports the gap and will not fill, cap, or weld it. Confirm the target application’s handling before use.
             </span>
           </div>
         )}
@@ -2246,11 +2246,11 @@ In `src/main.jsx`, add the import after `import Shapefile from './Shapefile.jsx'
 import Mesh3D from './Mesh3D.jsx';
 ```
 
-Replace the `{ key: '3d', name: 'Peforma 3D', icon: Box },` line in `SUITES` with:
+Replace the `{ key: '3d', name: 'Peforma', icon: Box },` line in `SUITES` with:
 
 ```js
   {
-    key: '3d', name: 'Peforma 3D', icon: Box,
+    key: '3d', name: 'Peforma', icon: Box,
     children: [
       { key: '3d-surfaces', name: 'Fault planes & horizons', href: '#3d-surfaces', live: true },
       { key: '3d-solids', name: 'Geobodies & solids', href: '#3d-solids', live: true },
@@ -2273,20 +2273,20 @@ Replace the whole `document.title = ...` assignment with:
     document.title = route === 'home'
       ? 'Peforma — Subsurface Data Exchange Toolbox'
       : route === 'units'
-        ? 'Peforma Units — Engineering Unit Converter'
+        ? 'Peforma — Engineering Unit Converter'
         : route === 'culture'
-          ? 'Peforma Culture — Vector Data Converter'
+          ? 'Peforma — Vector Data Converter'
           : route === 'culture-polygon'
-            ? 'Peforma Culture Polygon — Closed-Ring Converter'
+            ? 'Peforma — Closed-Ring Converter'
             : route === '3d-surfaces'
-              ? 'Peforma 3D Surfaces — Move your surfaces'
+              ? 'Peforma — 3D surfaces — Move your surfaces'
               : route === '3d-solids'
-                ? 'Peforma 3D Solids — Move your geobodies'
+                ? 'Peforma — Geobody solids — Move your geobodies'
                 : route === 'shapefile'
-                  ? 'Peforma Shapefile — Esri Shapefile Bundle Converter'
+                  ? 'Peforma — Esri Shapefile Bundle Converter'
                   : route === 'docs'
-                    ? 'Peforma Docs — Format Reference & Guides'
-                    : 'Peforma Horizon/Grid — Subsurface Grid Converter';
+                    ? 'Peforma — Format Reference & Guides'
+                    : 'Peforma — Subsurface Grid Converter';
 ```
 
 - [ ] **Step 4: Add the page branch**
@@ -2311,7 +2311,7 @@ Insert this branch after the Shapefile branch and before the grid fallback `) : 
                       <p>Convert geobodies, salt bodies, and closed tetrahedral surfaces between STL, OBJ, PLY, and GOCAD TSurf.</p>
                     </>
                   )}
-                  <nav className="mesh-tabs" aria-label="Peforma 3D tools">
+                  <nav className="mesh-tabs" aria-label="Peforma tools">
                     <a
                       className={`mesh-tab${route === '3d-surfaces' ? ' active' : ''}`}
                       href="#3d-surfaces"
@@ -2382,7 +2382,7 @@ In `src/style.css`, replace the tab selectors at lines 529-552 with:
 Immediately after that block, append:
 
 ```css
-/* Peforma 3D mesh preview */
+/* Peforma mesh preview */
 .mesh-preview-wrap {
   margin: 0 15px 15px;
   border: 1px solid var(--preview-line);
@@ -2422,7 +2422,7 @@ Expected: the build completes with no errors and emits `dist/`.
 
 ```bash
 git add src/Mesh3D.jsx src/main.jsx src/style.css
-git commit -m "feat: add the Peforma 3D converter view and routes"
+git commit -m "feat: add the Peforma converter view and routes"
 ```
 
 ---
@@ -2475,13 +2475,13 @@ Insert this block in `TOC` after the `shapefile-formats` entry and before the `u
 In `src/Docs.jsx`, replace the overview paragraph at line 252:
 
 ```jsx
-            <p>Four tools are live today. <b>Peforma Horizon/Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Four tools are live today. <b>Peforma</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma</b> is the vector tool; its Lines/Points converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma</b> converts ten engineering categories with exact factors. 3D, Seismic, and Coordinates are planned and labelled as such in the suite rail.</p>
 ```
 
 with:
 
 ```jsx
-            <p>Five tools are live today. <b>Peforma Horizon/Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points/Fault-sticks converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma 3D</b> moves triangulated surfaces and geobody shells between STL, OBJ, PLY, and GOCAD TSurf. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Units</b> converts ten engineering categories with exact factors. Seismic and Coordinates are planned and labelled as such in the suite rail.</p>
+            <p>Five tools are live today. <b>Peforma</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma</b> is the vector tool; its Lines/Points/Fault-sticks converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma</b> moves triangulated surfaces and geobody shells between STL, OBJ, PLY, and GOCAD TSurf. <b>Peforma</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma</b> converts ten engineering categories with exact factors. Seismic and Coordinates are planned and labelled as such in the suite rail.</p>
 ```
 
 - [ ] **Step 3: Add the 3D Docs section**
@@ -2492,9 +2492,9 @@ Insert this section immediately before `<section className="docs-section" id="un
           <section className="docs-section" id="mesh-formats">
             <div className="section-head">
               <span className="section-glyph"><Box size={20} aria-hidden="true" /></span>
-              <div><h2>3D meshes</h2><p className="section-sub">Triangulated surfaces &amp; geobody shells · Peforma 3D</p></div>
+              <div><h2>3D meshes</h2><p className="section-sub">Triangulated surfaces &amp; geobody shells · Peforma</p></div>
             </div>
-            <p>Peforma 3D reads and writes triangular meshes in ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf. Vertex order, face connectivity, group names, and the normals a file carries are preserved. Closure and normal consistency are measured and reported; nothing is welded, capped, flipped, or re-tessellated.</p>
+            <p>Peforma reads and writes triangular meshes in ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf. Vertex order, face connectivity, group names, and the normals a file carries are preserved. Closure and normal consistency are measured and reported; nothing is welded, capped, flipped, or re-tessellated.</p>
 
             <Sub id="mesh-objects" title="Surfaces &amp; solids">
               <p>Both pages use the same reader, writer, and summary. <b>Fault planes &amp; horizons</b> at <code className="inline-code">#3d-surfaces</code> covers fault planes, faulted horizons, and salt tops — surfaces that are usually open at their edges. <b>Geobodies &amp; solids</b> at <code className="inline-code">#3d-solids</code> covers faceted geobodies, salt bodies, and tetrahedral solids, and flags a shell that is not watertight before export.</p>
@@ -2503,14 +2503,14 @@ Insert this section immediately before `<section className="docs-section" id="un
                 head={['Object', 'Geometry', 'Tool']}
                 rows={[
                   ['Fault stick, well trajectory', 'Open polyline', 'Culture Lines/Points/Fault-sticks'],
-                  ['Fault plane, horizon, salt top', 'Triangulated surface', 'Peforma 3D surfaces'],
-                  ['Geobody, salt body, tetrahedral solid', 'Closed mesh or tetrahedral cells', 'Peforma 3D solids'],
+                  ['Fault plane, horizon, salt top', 'Triangulated surface', '3D surfaces'],
+                  ['Geobody, salt body, tetrahedral solid', 'Closed mesh or tetrahedral cells', 'Geobody solids'],
                   ['Fault polygon, prospect outline', 'Closed planar ring', 'Culture Polygon or Shapefile'],
                   ['Fault pillar, corner-point grid', 'Paired pillars and cell topology', 'Not a mesh format — out of scope'],
-                  ['2D seismic line, 3D cube', 'Volume of traces', 'Peforma Seismic'],
+                  ['2D seismic line, 3D cube', 'Volume of traces', 'Peforma'],
                 ]}
               />
-              <p>A fault stick and the fault plane built through it are different objects. Peforma 3D never infers a surface from sticks, and no tessellation format carries fault pillars or corner-point topology.</p>
+              <p>A fault stick and the fault plane built through it are different objects. Peforma never infers a surface from sticks, and no tessellation format carries fault pillars or corner-point topology.</p>
             </Sub>
 
             <Sub id="mesh-stl" title="STL">
@@ -2569,13 +2569,13 @@ Insert this section immediately before `<section className="docs-section" id="un
 
 ```
 
-- [ ] **Step 4: Mark Peforma 3D live on the landing page**
+- [ ] **Step 4: Mark Peforma live on the landing page**
 
 In `src/Landing.jsx`, insert this entry in `LIVE_SUITES` after the Culture entry and before the Shapefile entry:
 
 ```js
   {
-    key: '3d', icon: Box, name: 'Peforma 3D', href: '#3d-surfaces',
+    key: '3d', icon: Box, name: 'Peforma', href: '#3d-surfaces',
     blurb: 'Triangulated horizons, fault planes, and geobody shells moved between STL, OBJ, PLY, and GOCAD TSurf with every vertex and triangle kept.',
     formats: ['STL', 'OBJ', 'PLY', 'GOCAD TSurf'],
   },
@@ -2584,7 +2584,7 @@ In `src/Landing.jsx`, insert this entry in `LIVE_SUITES` after the Culture entry
 Remove this line from `ROADMAP`:
 
 ```js
-  { key: '3d', icon: Box, name: 'Peforma 3D' },
+  { key: '3d', icon: Box, name: 'Peforma' },
 ```
 
 Replace the live-converter stat:
@@ -2604,13 +2604,13 @@ with:
 In `README.md`, replace the final sentence of the live-tools paragraph:
 
 ```
-The planned 2D/3D seismic tool is scoped in [the Peforma Seismic chapter](docs/PRD_SEISMIC.md) and the planned 3D mesh and geobody tool in [the Peforma 3D chapter](docs/PRD_3D.md).
+The planned 2D/3D seismic tool is scoped in [the Peforma chapter](docs/PRD_SEISMIC.md) and the planned 3D mesh and geobody tool in [the Peforma chapter](docs/PRD_3D.md).
 ```
 
 with:
 
 ```
-Peforma 3D is live at `#3d-surfaces` for triangulated surfaces and at `#3d-solids` for geobodies and solids, reading and writing ASCII and binary STL, Wavefront OBJ, PLY, and GOCAD TSurf with vertex and face order preserved; it is specified in [the Peforma 3D chapter](docs/PRD_3D.md). The planned 2D/3D seismic tool is scoped in [the Peforma Seismic chapter](docs/PRD_SEISMIC.md).
+Peforma is live at `#3d-surfaces` for triangulated surfaces and at `#3d-solids` for geobodies and solids, reading and writing ASCII and binary STL, Wavefront OBJ, PLY, and GOCAD TSurf with vertex and face order preserved; it is specified in [the Peforma chapter](docs/PRD_3D.md). The planned 2D/3D seismic tool is scoped in [the Peforma chapter](docs/PRD_SEISMIC.md).
 ```
 
 - [ ] **Step 6: Record the tier-1 scope in the 3D PRD**
@@ -2704,7 +2704,7 @@ with:
 ```
 ## Size and preview model
 
-A geobody mesh can be large. Peforma 3D sets one hard limit and states it before conversion.
+A geobody mesh can be large. Peforma sets one hard limit and states it before conversion.
 
 - Files up to 64 MB are read fully into memory; the summary is computed over the whole mesh, not a sample.
 - A file larger than 64 MB is rejected with its size and the read cap stated. It is never truncated or partially read.
@@ -2756,7 +2756,7 @@ Replace the entire `## Open questions` section with:
 ```
 ## Recorded decisions
 
-- **OBJ anchoring.** A generic triangular OBJ is the read anchor, so a Leapfrog Geo per-unit export and a generic triangulation tool are both accepted as ordinary `v`/`vn`/`f`/`g` records. Per-unit files are converted one at a time; Peforma 3D does not combine them into one mesh, because combining changes the object count and can merge unrelated units.
+- **OBJ anchoring.** A generic triangular OBJ is the read anchor, so a Leapfrog Geo per-unit export and a generic triangulation tool are both accepted as ordinary `v`/`vn`/`f`/`g` records. Per-unit files are converted one at a time; Peforma does not combine them into one mesh, because combining changes the object count and can merge unrelated units.
 - **GOCAD TSolid is tier 2.** It is the only public format that carries a true solid, but no representative file set has been validated. It is detected and rejected with a message naming tier 2.
 - **The preview is numeric plus a sampled canvas.** A map view is not meaningful for an arbitrary 3D mesh, so the release shows the full numeric summary and a rotating orthographic preview sampled to 20,000 faces.
 - **UV coordinates, materials, and face normals are dropped with a count.** A target format that cannot carry them reports how many records were not written rather than refusing the export. The source file remains unchanged.
@@ -2768,9 +2768,9 @@ Replace the entire `## Open questions` section with:
 Append to `docs/FORMATS.md`:
 
 ```markdown
-## 3D meshes (Peforma 3D)
+## 3D meshes (Peforma)
 
-Peforma 3D reads and writes triangular meshes in ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf. Detection is by content: the PLY `format` line, a GOCAD `TSurf` header, the exact binary STL length `84 + 50 × count`, an ASCII STL `facet normal` record, or an OBJ with `v` and `f` records. A `TSolid` or COLLADA file is detected and rejected with a tier-2 message; a GOCAD `PLINE`/`VSet` is directed to Culture Lines/Points.
+Peforma reads and writes triangular meshes in ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf. Detection is by content: the PLY `format` line, a GOCAD `TSurf` header, the exact binary STL length `84 + 50 × count`, an ASCII STL `facet normal` record, or an OBJ with `v` and `f` records. A `TSolid` or COLLADA file is detected and rejected with a tier-2 message; a GOCAD `PLINE`/`VSet` is directed to Culture Lines/Points.
 
 STL stores each facet's three vertices separately, so closure is detected by exact coordinate matching. Binary STL is rejected when its byte length does not match the declared record count; a non-zero attribute word is counted and not carried. ASCII STL and binary STL both keep a per-facet normal.
 
@@ -2790,7 +2790,7 @@ Expected: the build completes with no errors.
 
 ```bash
 git add src/Docs.jsx src/Landing.jsx README.md docs/PRD_3D.md docs/FORMATS.md
-git commit -m "docs: record Peforma 3D as a live tool"
+git commit -m "docs: record Peforma as a live tool"
 ```
 
 ---
@@ -2799,11 +2799,11 @@ git commit -m "docs: record Peforma 3D as a live tool"
 
 **Files:**
 - No repository files are created or modified by the harness.
-- Create outside the repository: `C:\tmp\peforma-3d-e2e.mjs`
+- Create outside the repository: `C:\tmp\Peforma-e2e.mjs`
 - Read: `src/meshes.js`, `src/Mesh3D.jsx`, `src/main.jsx`, `src/Docs.jsx`, `src/Landing.jsx`
 
 **Interfaces:**
-- Consumes: every export from `src/meshes.js`, the routes and copy from Task 5, the Docs anchors from Task 6, and the fixtures from `C:\tmp\peforma-3d-fixtures.mjs`.
+- Consumes: every export from `src/meshes.js`, the routes and copy from Task 5, the Docs anchors from Task 6, and the fixtures from `C:\tmp\Peforma-fixtures.mjs`.
 - Produces: a verified build and a pushed commit. The report states the commit hash and the hook-stamped version.
 
 - [ ] **Step 1: Start the dev server**
@@ -2814,37 +2814,37 @@ Run in a background terminal from the repository root:
 npm run dev
 ```
 
-Expected: Vite reports a local URL on port 5173. Leave it running for the browser checks.
+Expected: Vite reports a local URL on port 3050. Leave it running for the browser checks.
 
 - [ ] **Step 2: Run every engine harness**
 
 Run each command and require a zero exit code:
 
 ```bash
-node C:/tmp/peforma-3d-stl.mjs
-node C:/tmp/peforma-3d-obj.mjs
-node C:/tmp/peforma-3d-ply.mjs
-node C:/tmp/peforma-3d-tsurf.mjs
+node C:/tmp/Peforma-stl.mjs
+node C:/tmp/Peforma-obj.mjs
+node C:/tmp/Peforma-ply.mjs
+node C:/tmp/Peforma-tsurf.mjs
 ```
 
 Expected: each harness prints its round-trip lines and exits without an assertion error.
 
 - [ ] **Step 3: Create the browser harness**
 
-Create `C:\tmp\peforma-3d-e2e.mjs` with exactly this content:
+Create `C:\tmp\Peforma-e2e.mjs` with exactly this content:
 
 ```js
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
-import { writeFixtures } from './peforma-3d-fixtures.mjs';
+import { writeFixtures } from './Peforma-fixtures.mjs';
 
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const PORT = 9349;
 const PROFILE = 'C:/tmp/peforma-chrome-3d';
-const DOWNLOADS = 'C:/tmp/peforma-3d-downloads';
-const FIXTURES = 'C:/tmp/peforma-3d-fixtures';
-const APP = 'http://localhost:5173';
+const DOWNLOADS = 'C:/tmp/Peforma-downloads';
+const FIXTURES = 'C:/tmp/Peforma-fixtures';
+const APP = 'http://localhost:3050';
 
 assert.ok(existsSync(CHROME), `Chrome executable not found at ${CHROME}`);
 rmSync(PROFILE, { recursive: true, force: true });
@@ -3003,7 +3003,7 @@ await send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: DOWNLO
 
 // Surfaces route: OBJ in, summary and TSurf out.
 await open('#3d-surfaces');
-assert.equal(await evaluate(`document.title`), 'Peforma 3D Surfaces — Move your surfaces');
+assert.equal(await evaluate(`document.title`), 'Peforma — 3D surfaces — Move your surfaces');
 assert.equal(await evaluate(`document.querySelector('.mesh-tab.active').textContent.trim()`), 'Fault planes & horizons');
 assert.equal(await evaluate(`document.querySelector('.download').textContent`), 'Choose a file to continue');
 
@@ -3066,7 +3066,7 @@ assert.equal(await evaluate(`document.querySelector('.download').textContent`), 
 
 // Solids route: an open shell is flagged, a closed binary PLY is not.
 await open('#3d-solids');
-assert.equal(await evaluate(`document.title`), 'Peforma 3D Solids — Move your geobodies');
+assert.equal(await evaluate(`document.title`), 'Peforma — Geobody solids — Move your geobodies');
 assert.equal(await evaluate(`document.querySelector('.mesh-tab.active').textContent.trim()`), 'Geobodies & solids');
 await upload('surface.stl');
 assert.deepEqual(await stats(), ['6', '2', 'Open', 'Consistent']);
@@ -3118,18 +3118,18 @@ assert.match(await bodyText(), /3D meshes/);
 assert.doesNotMatch(await bodyText(), /3D, Seismic, and Coordinates are planned/);
 
 await open('');
-assert.match(await bodyText(), /Peforma 3D/);
+assert.match(await bodyText(), /Peforma/);
 assert.match(await bodyText(), /5\s*\n?\s*live tools/);
 
 assert.deepEqual(exceptions, []);
-console.log('Peforma 3D browser checks passed: surfaces, solids, TSurf, binary STL, open shell, rejection, light/dark, 390/1440, docs, landing.');
+console.log('Peforma browser checks passed: surfaces, solids, TSurf, binary STL, open shell, rejection, light/dark, 390/1440, docs, landing.');
 socket.close();
 chrome.kill();
 ```
 
 - [ ] **Step 4: Run the browser harness**
 
-Run: `node C:/tmp/peforma-3d-e2e.mjs`
+Run: `node C:/tmp/Peforma-e2e.mjs`
 Expected: the script prints the passing line and exits 0. A failed assertion names the surface that broke, so fix the implementation rather than the assertion.
 
 - [ ] **Step 5: Confirm the production build**
@@ -3151,8 +3151,8 @@ Expected: only `src/meshes.js`, `src/Mesh3D.jsx`, `src/main.jsx`, `src/style.css
 - [ ] **Step 7: Commit and push**
 
 ```bash
-git add src/meshes.js src/Mesh3D.jsx src/main.jsx src/style.css src/Docs.jsx src/Landing.jsx README.md docs/PRD_3D.md docs/FORMATS.md docs/superpowers/plans/2026-11-08-peforma-3d.md
-git commit -m "feat: add Peforma 3D tier-1 mesh exchange"
+git add src/meshes.js src/Mesh3D.jsx src/main.jsx src/style.css src/Docs.jsx src/Landing.jsx README.md docs/PRD_3D.md docs/FORMATS.md docs/superpowers/plans/2026-11-08-Peforma.md
+git commit -m "feat: add Peforma tier-1 mesh exchange"
 git push
 ```
 

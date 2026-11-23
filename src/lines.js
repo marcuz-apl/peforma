@@ -1,4 +1,4 @@
-// Peforma Culture Lines/Points — tier-1 open-format parsing and writing.
+// Peforma — Lines/Points — tier-1 open-format parsing and writing.
 //
 // Every format is identified from its contents or the file extension; nothing is
 // ever sent to a server. The internal model keeps two geometry kinds (point set,

@@ -547,7 +547,7 @@ a.rail-tool:hover { color: var(--ink-soft); }
   box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
 }
 
-/* Peforma 3D mesh preview */
+/* Peforma mesh preview */
 .mesh-preview-wrap {
   margin: 0 15px 15px;
   border: 1px solid var(--preview-line);

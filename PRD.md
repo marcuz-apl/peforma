@@ -16,13 +16,13 @@ The root document defines the shared product direction. Each detailed PRD below 
 
 | Tool | Purpose | Detailed requirements |
 | --- | --- | --- |
-| Peforma Horizon/Grid | Regularly sampled depth-or-time surfaces | [PRD_GRID.md](docs/PRD_GRID.md) |
-| Peforma Culture | Vector points, lines, fault sticks, and polygon rings | [PRD_CULTURE.md](docs/PRD_CULTURE.md) |
-| Peforma Shapefile | Esri Shapefile bundles and GeoJSON features | [PRD_SHAPEFILE.md](docs/PRD_SHAPEFILE.md) |
-| Peforma 3D | Triangulated surfaces and closed geobodies | [PRD_3D.md](docs/PRD_3D.md) |
-| Peforma Seismic | Navigation, 2D lines, and 3D seismic cubes | [PRD_SEISMIC.md](docs/PRD_SEISMIC.md) |
-| Peforma Coordinates | Latitude/longitude notation conversion | [PRD_COORDINATES.md](docs/PRD_COORDINATES.md) |
-| Peforma Units | Engineering unit conversion | [UNIT_REFERENCE.md](docs/UNIT_REFERENCE.md) |
+| Grid conversion | Regularly sampled depth-or-time surfaces | [PRD_GRID.md](docs/PRD_GRID.md) |
+| Vector conversion | Points, lines, fault sticks, and polygon rings | [PRD_CULTURE.md](docs/PRD_CULTURE.md) |
+| Shapefile exchange | Esri Shapefile bundles and GeoJSON features | [PRD_SHAPEFILE.md](docs/PRD_SHAPEFILE.md) |
+| 3D mesh exchange | Triangulated surfaces and closed geobodies | [PRD_3D.md](docs/PRD_3D.md) |
+| Seismic exchange | Navigation, 2D lines, and 3D seismic cubes | [PRD_SEISMIC.md](docs/PRD_SEISMIC.md) |
+| Coordinate notation | Latitude/longitude notation conversion | [PRD_COORDINATES.md](docs/PRD_COORDINATES.md) |
+| Unit conversion | Engineering unit conversion | [UNIT_REFERENCE.md](docs/UNIT_REFERENCE.md) |
 
 ## Supporting documentation
 

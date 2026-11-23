@@ -1,8 +1,8 @@
-# Peforma Seismic Implementation Plan
+# Peforma — Seismic Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship Peforma Seismic with Navigation, 2D Lines, and 3D Cube tabs over a pure-JavaScript SEG-Y and IOGP navigation engine.
+**Goal:** Ship Peforma with Navigation, 2D Lines, and 3D Cube tabs over a pure-JavaScript SEG-Y and IOGP navigation engine.
 
 **Architecture:** One engine module parses SEG-Y as a byte-preserving trace table and parses P1/90, P1/11, and P6/11 into a common navigation model. One view module switches panels by tab. Routing, docs, landing, and format notes follow the existing 3D pattern.
 

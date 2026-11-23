@@ -1,8 +1,8 @@
-# Peforma Horizon/Grid
+# Peforma
 
-Peforma Horizon/Grid is the grid data-exchange tool in the broader Peforma product family. It focuses on oil and gas subsurface grid formats — 2D map surfaces in depth or time — alongside sibling tools for vectors, meshes, seismic, shapefiles, coordinates, and units.
+Peforma is a browser-based application for exchanging oil and gas subsurface data. It includes grid, vector, shapefile, 3D mesh, seismic, coordinate, and engineering unit converters.
 
-This browser-based app inspects and converts supported subsurface grid formats. “Peforma” is the product family; “Grid” is the current tool.
+The application inspects and converts supported formats while keeping source files in the browser.
 
 ## Development
 
@@ -13,8 +13,22 @@ npm install
 npm run dev
 ```
 
+Open [Peforma locally](http://localhost:3050/).
+
+## Docker
+
+Run `docker compose up --build` from the repository root. Nginx serves the production build on port 80 inside the container, and Compose publishes it at [localhost:3050](http://localhost:3050/). Stop the Vite dev server first if it is using port 3050.
+
+## Tools and formats
+
 Grid files are processed in the browser. See [the PRD](PRD.md) and [format reference](docs/FORMAT_REFERENCE.md).
 
-The Peforma Units converter covers ten engineering categories at `#units`; its factors and definitions are recorded in [unit reference](docs/UNIT_REFERENCE.md). Peforma Culture is live at `#culture` for vector lines and points and at `#culture-polygon` for closed polygon rings, with both converters specified in [the Peforma Culture chapter](docs/PRD_CULTURE.md). Peforma Shapefile is live at `#shapefile`, reading and writing Esri Shapefile bundles and GeoJSON features with attributes and CRS intact; it is specified in [the Peforma Shapefile chapter](docs/PRD_SHAPEFILE.md). Peforma 3D is live at `#3d-surfaces` for triangulated surfaces and at `#3d-solids` for geobodies and solids, reading and writing ASCII and binary STL, Wavefront OBJ, PLY, and GOCAD TSurf with vertex and face order preserved; it is specified in [the Peforma 3D chapter](docs/PRD_3D.md). Peforma Seismic is live at `#seismic-2d` and `#seismic-3d` for SEG-Y trace files and at `#seismic-navigation` for UKOOA P1/90, OGP P1/11, and OGP P6/11 navigation; it is specified in [the Peforma Seismic chapter](docs/PRD_SEISMIC.md). Peforma Coordinates is live at `#coordinates`, rewriting latitude and longitude between decimal degrees, degrees minutes seconds, and degrees decimal minutes with every source column preserved; it is specified in [the Peforma Coordinates chapter](docs/PRD_COORDINATES.md).
+The unit converter covers ten engineering categories at `#units`; its factors and definitions are recorded in [the unit reference](docs/UNIT_REFERENCE.md). Vector conversion is available at `#culture` for lines and points and at `#culture-polygon` for closed polygon rings, with requirements in [the vector exchange chapter](docs/PRD_CULTURE.md). Shapefile conversion is available at `#shapefile` for Esri Shapefile bundles and GeoJSON features with attributes and CRS intact; see [the Shapefile chapter](docs/PRD_SHAPEFILE.md). Mesh conversion is available at `#3d-surfaces` and `#3d-solids`, reading and writing STL, Wavefront OBJ, PLY, and GOCAD TSurf with vertex and face order preserved; see [the mesh exchange chapter](docs/PRD_3D.md). Seismic conversion is available at `#seismic-2d`, `#seismic-3d`, and `#seismic-navigation` for SEG-Y traces and UKOOA/IOGP navigation; see [the seismic chapter](docs/PRD_SEISMIC.md). Coordinate notation conversion is available at `#coordinates`, preserving every source column; see [the coordinates chapter](docs/PRD_COORDINATES.md).
 
 The exact EarthVision and IRAP/ZMAP dialects must be validated using representative Petrel and Kingdom files before relying on the converter for production exchange.
+
+## Versioning
+
+The root `VERSION` file is the source of truth in `vM.m.p+YYMMDDc` form. The Git hooks advance its UTC build identifier for each commit, apply the configured SemVer bump for feature or release commits, and sync the `M.m.p` value to `package.json` and `package-lock.json`.
+
+After cloning, enable the hooks with `git config --local core.hooksPath .githooks`. Use `feat:` or `release(patch):` for a patch bump, or `release(minor):` for a minor bump. Ordinary fixes and documentation commits advance the build identifier.

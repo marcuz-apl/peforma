@@ -7,6 +7,8 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   server: {
     host: true,
+    port: 3050,
+    strictPort: true,
     allowedHosts: true,
   },
 });

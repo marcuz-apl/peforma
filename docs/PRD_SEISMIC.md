@@ -1,10 +1,10 @@
-# Peforma Seismic — 2D Lines and 3D Cube Data Exchange
+# Peforma — 2D Lines and 3D Cube Data Exchange
 
 This chapter is part of the [Peforma product requirements](../PRD.md).
 
-Status: shipped Tier 1. Peforma Seismic is live at `#seismic-navigation`, `#seismic-2d`, and `#seismic-3d`. This chapter records the product decisions and the format scope that shipped; formats listed as later tiers are not supported.
+Status: shipped Tier 1. Peforma is live at `#seismic-navigation`, `#seismic-2d`, and `#seismic-3d`. This chapter records the product decisions and the format scope that shipped; formats listed as later tiers are not supported.
 
-Peforma Seismic is the suite member for 2D seismic lines, 3D seismic cubes, and their navigation sidecars. Peforma Horizon/Grid handles regularly sampled surfaces; Peforma Seismic handles the seismic traces, trace headers, and survey geometry that arrive with them. Navigation files (UKOOA P1/90, OGP P1/11, OGP P6/11) are read by the Navigation tab of this tool; they are positions and bin grids, not trace data.
+This chapter covers 2D seismic lines, 3D seismic cubes, and their navigation sidecars. Grid conversion covers regularly sampled surfaces; seismic conversion handles the traces, trace headers, and survey geometry that arrive with them. Navigation files (UKOOA P1/90, OGP P1/11, OGP P6/11) are read by the Navigation tab; they are positions and bin grids, not trace data.
 
 ## Problem
 
@@ -52,7 +52,7 @@ Oil and gas geoscientists and geophysicists who need to move 2D lines or 3D cube
 
 ## Seismic data model
 
-Peforma Seismic uses one internal model with two shapes.
+Peforma uses one internal model with two shapes.
 
 | Concept | Meaning | Rules |
 | --- | --- | --- |

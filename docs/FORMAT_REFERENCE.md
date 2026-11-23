@@ -12,7 +12,7 @@ EarthVision `Field:` records may carry a unit suffix (for example `# Field: 3 z 
 
 ## EarthVision ASCII
 
-The provided Petrel-style export is version 6 scattered data. Its header includes `Grid_size: 152 x 252`, `Grid_space` bounds, and X/Y/Z/column/row fields. The node records carry 1-based column and row indices. Peforma Horizon/Grid uses those indices to restore the regular grid without interpolating. `Z_units` is preserved as descriptive metadata; values are not rescaled.
+The provided Petrel-style export is version 6 scattered data. Its header includes `Grid_size: 152 x 252`, `Grid_space` bounds, and X/Y/Z/column/row fields. The node records carry 1-based column and row indices. Peforma uses those indices to restore the regular grid without interpolating. `Z_units` is preserved as descriptive metadata; values are not rescaled.
 
 ## CPS-3 ASCII
 
@@ -30,17 +30,17 @@ The replacement example is a real ZMAP+ grid: an `@Grid HEADER, GRID, 5` record,
 
 File dialects and node traversal conventions vary by application. Compare converted grids in the target software, including orientation, null nodes, coordinates, units, and CRS, before operational use. No reprojection or vertical unit conversion is performed.
 
-## Culture Lines/Points (Peforma Culture)
+## Culture Lines/Points
 
-Peforma Culture is the vector tool; its Lines/Points converter handles open line and point formats. Delimited text (CSV, TSV, XYZ), Petrel-style ASCII points and lines, GeoJSON, and GOCAD ASCII `PLINE`/`VSET` are recognised from their contents or the selected file extension; a `.geojson`/`.json` file is parsed as GeoJSON, and a `UP TO`/`PLINE`/`VSET` marker near the top selects GOCAD.
+The Lines/Points converter handles open line and point formats. Delimited text (CSV, TSV, XYZ), Petrel-style ASCII points and lines, GeoJSON, and GOCAD ASCII `PLINE`/`VSET` are recognised from their contents or the selected file extension; a `.geojson`/`.json` file is parsed as GeoJSON, and a `UP TO`/`PLINE`/`VSET` marker near the top selects GOCAD.
 
 Vertex order, attribute values, the distinction between a missing and a zero Z coordinate, and CRS/units labels are preserved exactly as read. No reprojection or unit conversion is performed.
 
-A delimited file with a header has its column mapping pre-seeded from labels that clearly name each axis; a file without a header has anonymous columns, so the user must assign the X and Y columns explicitly before the rows are treated as geometry. In line mode, consecutive rows are grouped into one polyline, split whenever the mapped Name column changes. Fault sticks are ordinary polylines: a fault name or ID column groups the vertices of one stick and is carried as an attribute. Fault planes are triangulated surfaces handled by Peforma 3D.
+A delimited file with a header has its column mapping pre-seeded from labels that clearly name each axis; a file without a header has anonymous columns, so the user must assign the X and Y columns explicitly before the rows are treated as geometry. In line mode, consecutive rows are grouped into one polyline, split whenever the mapped Name column changes. Fault sticks are ordinary polylines: a fault name or ID column groups the vertices of one stick and is carried as an attribute. Fault planes are triangulated surfaces handled by Peforma.
 
 Closed polygon geometry (GeoJSON Polygon/MultiPolygon and closed GOCAD curves) belongs to the Culture Polygon converter and is not offered as a Lines/Points case. The vendor fault-polygon dialects remain planned.
 
-## Culture Polygon (Peforma Culture)
+## Culture Polygon
 
 The Polygon converter reads GeoJSON `Polygon` and `MultiPolygon` geometry and GOCAD ASCII closed PLINE curves, and writes GeoJSON or GOCAD. Detection is by extension first (`.geojson`/`.json` is GeoJSON) and then by contents: a `UP TO` header or a leading `PLINE` selects GOCAD, and any other file must parse as JSON to be accepted as GeoJSON.
 
@@ -52,9 +52,9 @@ Ring orientation (clockwise or counter-clockwise) is computed from the signed ar
 
 GeoJSON output closes every ring and applies RFC 7946 orientation: exterior rings counter-clockwise and holes clockwise. Every ring that had to be closed or reversed is counted in a warning. GOCAD output writes each ring as its own closed `PLINE` by repeating the first vertex; it warns that holes and multipart areas become separate curves and that attributes other than the object name cannot be carried. GOCAD headers may declare `CRS` and `UNITS` as free text; both are preserved verbatim and never interpreted as EPSG codes. GeoJSON CRS metadata is read from `peforma_crs_wkt` first and then the legacy `crs` member, and is written back in the same form. No reprojection or unit conversion is performed.
 
-## Esri Shapefile (Peforma Shapefile)
+## Esri Shapefile
 
-Peforma Shapefile reads a bundle of `.shp`, `.shx`, `.dbf`, and optional `.prj` files, or a GeoJSON file, and writes either a GeoJSON FeatureCollection or a ZIP of shapefile sets.
+Peforma reads a bundle of `.shp`, `.shx`, `.dbf`, and optional `.prj` files, or a GeoJSON file, and writes either a GeoJSON FeatureCollection or a ZIP of shapefile sets.
 
 A `.shp` and a `.dbf` are required together; `.shx` is optional but, when present, its record count must match `.shp`. Record counts in `.dbf` are also checked against `.shp`, and null shape records are skipped with a warning. Shape types 1 (point), 3 (polyline), 5 (polygon), 8 (multipoint) and their Z variants 11, 13, 15, 18 are read; M-only variants are not treated as a separate geometry kind.
 
@@ -65,9 +65,9 @@ DBF attributes are carried by field name and value. Text is read as UTF-8 when i
 A `.prj` file is treated as WKT and stored as text without interpretation; GeoJSON round-trips through the legacy `crs` member or the `peforma_crs_wkt` member. No reprojection, datum transformation, or unit conversion is performed. When a model mixes geometry kinds, one shapefile set is written per kind inside the ZIP.
 
 
-## 3D meshes (Peforma 3D)
+## 3D meshes
 
-Peforma 3D reads and writes triangular meshes in ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf. Detection is by content: the PLY `format` line, a GOCAD `TSurf` header, the exact binary STL length `84 + 50 × count`, an ASCII STL `facet normal` record, or an OBJ with `v` and `f` records. A `TSolid` or COLLADA file is detected and rejected with a tier-2 message; a GOCAD `PLINE`/`VSet` is directed to Culture Lines/Points.
+Peforma reads and writes triangular meshes in ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf. Detection is by content: the PLY `format` line, a GOCAD `TSurf` header, the exact binary STL length `84 + 50 × count`, an ASCII STL `facet normal` record, or an OBJ with `v` and `f` records. A `TSolid` or COLLADA file is detected and rejected with a tier-2 message; a GOCAD `PLINE`/`VSet` is directed to Culture Lines/Points.
 
 STL stores each facet's three vertices separately, so closure is detected by exact coordinate matching. Binary STL is rejected when its byte length does not match the declared record count; a non-zero attribute word is counted and not carried. ASCII STL and binary STL both keep a per-facet normal.
 
@@ -79,9 +79,9 @@ GOCAD TSurf is read from `VRTX`/`PVRTX` and `TRGL` records, mapping GOCAD ids to
 
 Closure is reported, never repaired: an edge used by one face is open, an edge used by more than two faces is non-manifold, and a mesh is closed only when every edge is used exactly twice. Normal consistency is reported from the direction each shared edge is traversed. Nothing is welded, capped, filled, flipped, smoothed, or re-tessellated, and no reprojection or unit conversion is performed. Files up to 64 MB are read fully; a larger file is rejected with its size stated. The 3D preview draws at most 20,000 faces and states when the preview is a sample.
 
-## Seismic (Peforma Seismic)
+## Seismic
 
-Peforma Seismic has a Navigation tab (`#seismic-navigation`) for position and bin-grid sidecars and 2D Lines (`#seismic-2d`) and 3D Cube (`#seismic-3d`) tabs for SEG-Y. The same component handles both SEG-Y tabs, so a file loaded on one tab stays loaded when the other is opened; the 3D tab adds inline-major trace ordering.
+Peforma has a Navigation tab (`#seismic-navigation`) for position and bin-grid sidecars and 2D Lines (`#seismic-2d`) and 3D Cube (`#seismic-3d`) tabs for SEG-Y. The same component handles both SEG-Y tabs, so a file loaded on one tab stays loaded when the other is opened; the 3D tab adds inline-major trace ordering.
 
 SEG-Y is detected from the binary header: a defined sample-format code at bytes 3225–3226, a revision at bytes 3501–3502, and, for revision 2, the byte-order constant at bytes 3297–3300. Revisions 0, 1, 2.0, and 2.1 layouts are read. Big- and little-endian files are resolved from the byte-order constant when present; older files are resolved from the sample-format code and revision. Byte-swapped 16-bit ordering is rejected.
 
@@ -99,9 +99,9 @@ Files up to 256 MB are read fully; a larger file is rejected with its size state
 
 SEG-Y interoperability caution: sample encoding, coordinate scalars, CRS records, and navigation conventions vary between acquisition systems. Peforma copies bytes and reports the header facts it finds. Confirm trace count, sample interval, coordinate ranges, CRS, and position values in the target application before operational use.
 
-## Coordinates (Peforma Coordinates)
+## Coordinates
 
-Peforma Coordinates (`#coordinates`) reads a delimited table — CSV, TSV, semicolon, or whitespace — from a file or pasted rows, and writes CSV with the latitude/longitude pair rewritten in a chosen notation. A non-numeric first row is a header and pre-seeds the column mapping from labels such as lat, latitude, y, lon, long, longitude, or x; without a header the user assigns both columns explicitly. Files up to 8 MB and 100,000 rows are read.
+The coordinate converter (`#coordinates`) reads a delimited table — CSV, TSV, semicolon, or whitespace — from a file or pasted rows, and writes CSV with the latitude/longitude pair rewritten in a chosen notation. A non-numeric first row is a header and pre-seeds the column mapping from labels such as lat, latitude, y, lon, long, longitude, or x; without a header the user assigns both columns explicitly. Files up to 8 MB and 100,000 rows are read.
 
 Each coordinate cell is read on its own, so a column may mix notations. Accepted forms: signed decimal degrees (`51.5074`, optionally with a trailing hemisphere letter); degrees minutes seconds with marks, colons, or spaces (`51°30′26.4″N`, `51:30:26.4N`, `51 30 26.4 N`); degrees decimal minutes (`51°30.44′N`, `51 30.44 N`); packed DMS (`513026.4N`, `1140426W`) and packed decimal minutes (`5130.44N`, `11404.26W`). Packed forms are recognised only by their exact digit count with a hemisphere letter — DDMMSS.s / DDMM.m for latitude and DDDMMSS.s / DDDMM.m for longitude — so a bare number is always decimal degrees. A hemisphere letter may lead or trail; N/S belong to latitude and E/W to longitude.
 

@@ -1,6 +1,6 @@
 # Unit Converter
 
-Peforma Units converts ten engineering categories without sending anything to a server. Linear units are defined by an exact factor to the category base unit; temperature uses offset formulas because its scales do not share a zero point.
+Peforma converts ten engineering categories without sending anything to a server. Linear units are defined by an exact factor to the category base unit; temperature uses offset formulas because its scales do not share a zero point.
 
 ## Categories and factors
 

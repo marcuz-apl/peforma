@@ -1,9 +1,9 @@
-# Peforma Horizon/Grid
+# Peforma
 
 ## Product naming
-- Product family: Peforma.
-- Current tool: Peforma Horizon/Grid.
-- Use “Peforma Horizon/Grid” in user-facing docs and app chrome. Avoid the retired “Petro Gridr” name.
+- Product name: Peforma.
+- Use “Peforma” as the sole product name in user-facing docs and app chrome. Describe functions with separate feature names such as grid conversion or unit conversion.
+- Avoid the retired “Petro Gridr” name.
 - Keep future oil-sector tools under the Peforma family without implying they exist yet.
 
 ## Project guidance

@@ -1,10 +1,10 @@
-# Peforma 3D — Mesh and Geobody Data Exchange
+# Peforma — Mesh and Geobody Data Exchange
 
 This chapter is part of the [Peforma product requirements](../PRD.md).
 
 Status: tier 1 implemented; tier 2 planned. ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf are live at `#3d-surfaces` and `#3d-solids`. GOCAD TSolid and COLLADA are detected and rejected with a tier-2 message. The rest of this chapter records the product and format scope.
 
-Peforma 3D is the suite member for triangular surface meshes and closed solid "geobodies". Peforma Horizon/Grid handles regularly sampled surfaces; Peforma Culture handles points, open polylines, and closed planar rings — fault sticks, well trajectories, fault polygons, and prospect outlines; Peforma Seismic handles 2D seismic lines and 3D cubes; Peforma 3D handles the tessellated objects that come from 3D geological modeling workflows: horizon and fault surfaces, faceted geobody boundaries, salt bodies, and the STL/OBJ/PLY/COLLADA/GOCAD files that interpretation and 3D-print tools exchange. Seismic volumes are trace data, not mesh objects, and are never read here. Geobody- and fault-specific semantics (stratigraphic ordering, facies, fault separation) are carried as attributes, not as a separate data model.
+This chapter covers triangular surface meshes and closed solid "geobodies". Grid conversion handles regularly sampled surfaces; vector conversion handles points, open polylines, and closed planar rings; seismic conversion handles 2D lines and 3D cubes. Mesh conversion handles tessellated objects from 3D geological modeling workflows: horizon and fault surfaces, faceted geobody boundaries, salt bodies, and the STL/OBJ/PLY/COLLADA/GOCAD files that interpretation and 3D-print tools exchange. Seismic volumes are trace data, not mesh objects, and are never read here. Geobody- and fault-specific semantics (stratigraphic ordering, facies, fault separation) are carried as attributes, not as a separate data model.
 
 ## Problem
 
@@ -43,8 +43,8 @@ Oil and gas geoscientists, reservoir modelers, and 3D-print or visualization spe
 ### Out of scope
 
 - Vendor project databases and binary project stores for Petrel, OpenWorks, Kingdom, Petra, Roxar RMS, JewelSuite, and GeoGraphix.
-- Seismic data: 2D lines, 3D cubes, SEG-Y, ZGY, trace headers, and survey geometry belong to Peforma Seismic. A seismic volume is not a mesh and is never read here.
-- Fault sticks, well trajectories, and other open polylines: Peforma Culture Lines/Points reads and writes these.
+- Seismic data: 2D lines, 3D cubes, SEG-Y, ZGY, trace headers, and survey geometry belong to Peforma. A seismic volume is not a mesh and is never read here.
+- Fault sticks, well trajectories, and other open polylines: Peforma — Lines/Points reads and writes these.
 - Fault pillars, structural frameworks, corner-point grids, and reservoir property arrays: grid-topology objects that no tessellation format carries.
 - Mesh repair: welding vertices, filling holes, decimating, smoothing, re-tessellating, or computing new normals.
 - Stratigraphic and facies re-assignment. Unit and facies labels that are present are carried through; labels that are not present are not inferred.
@@ -55,7 +55,7 @@ Oil and gas geoscientists, reservoir modelers, and 3D-print or visualization spe
 
 ## 3D data model
 
-Peforma 3D uses one internal model built from triangles and their groups.
+Peforma uses one internal model built from triangles and their groups.
 
 | Concept | Meaning | Rules |
 | --- | --- | --- |
@@ -73,7 +73,7 @@ A mesh that arrives open in one format may arrive closed in another if the expor
 
 ## Object classification
 
-A fault appears as three different objects, and they are not interchangeable. A **fault stick** is a picked polyline — one open path of X, Y, Z vertices. A **fault plane** is the interpreted surface built through one or more sticks: a triangulated, usually open surface. A **fault pillar** is the grid skeleton a corner-point model is built on — paired pillars with split nodes that encode throw across the fault. Only the surface is a Peforma 3D object. The stick is a Culture Lines/Points polyline, and the pillar belongs to reservoir-grid modelling. Peforma 3D never infers one from another.
+A fault appears as three different objects, and they are not interchangeable. A **fault stick** is a picked polyline — one open path of X, Y, Z vertices. A **fault plane** is the interpreted surface built through one or more sticks: a triangulated, usually open surface. A **fault pillar** is the grid skeleton a corner-point model is built on — paired pillars with split nodes that encode throw across the fault. Only the surface is a Peforma object. The stick is a Culture Lines/Points polyline, and the pillar belongs to reservoir-grid modelling. Peforma never infers one from another.
 
 | Object | Geometry | Typical exchange | Suite owner |
 | --- | --- | --- | --- |
@@ -141,7 +141,7 @@ Tier 1 is implemented. A tier-2 format is detected and rejected with a message n
 
 ## Size and preview model
 
-A geobody mesh can be large. Peforma 3D sets one hard limit and states it before conversion.
+A geobody mesh can be large. Peforma sets one hard limit and states it before conversion.
 
 - Files up to 64 MB are read fully into memory; the summary is computed over the whole mesh, not a sample.
 - A file larger than 64 MB is rejected with its size and the read cap stated. It is never truncated or partially read.
@@ -195,7 +195,7 @@ Warnings must be specific: which face has no normal, which boundary edge is open
 
 ## Recorded decisions
 
-- **OBJ anchoring.** A generic triangular OBJ is the read anchor, so a Leapfrog Geo per-unit export and a generic triangulation tool are both accepted as ordinary `v`/`vn`/`f`/`g` records. Per-unit files are converted one at a time; Peforma 3D does not combine them into one mesh, because combining changes the object count and can merge unrelated units.
+- **OBJ anchoring.** A generic triangular OBJ is the read anchor, so a Leapfrog Geo per-unit export and a generic triangulation tool are both accepted as ordinary `v`/`vn`/`f`/`g` records. Per-unit files are converted one at a time; Peforma does not combine them into one mesh, because combining changes the object count and can merge unrelated units.
 - **GOCAD TSolid is tier 2.** It is the only public format that carries a true solid, but no representative file set has been validated. It is detected and rejected with a message naming tier 2.
 - **The preview is numeric plus a sampled canvas.** A map view is not meaningful for an arbitrary 3D mesh, so the release shows the full numeric summary and a rotating orthographic preview sampled to 20,000 faces.
 - **UV coordinates, materials, and face normals are dropped with a count.** A target format that cannot carry them reports how many records were not written rather than refusing the export. The source file remains unchanged.

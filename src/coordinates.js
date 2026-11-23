@@ -1,4 +1,4 @@
-// Peforma Coordinates — tier-1 coordinate notation conversion.
+// Peforma — tier-1 coordinate notation conversion.
 //
 // Converts how a latitude/longitude pair is written (decimal degrees, degrees
 // minutes seconds, degrees decimal minutes) without changing the value it

@@ -1,0 +1,7 @@
+services:
+  peforma:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3050:80"

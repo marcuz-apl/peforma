@@ -276,7 +276,7 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h2>Overview</h2>
             <p className="doc-lead">Peforma is a family of local-first data-exchange tools for the oil and gas subsurface. Each converter morphs a file from one format into another without changing a single coordinate, value, or attribute.</p>
-            <p>Seven tools are live today. <b>Peforma Horizon/Grid</b> converts regular grid surfaces — depth or time horizons — between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Peforma Culture</b> is the vector tool; its Lines/Points/Fault-sticks converter moves open line and point geometry between delimited text, GeoJSON, and GOCAD ASCII, and its Polygon converter moves closed rings between GeoJSON and GOCAD ASCII. <b>Peforma 3D</b> moves triangulated surfaces and geobody shells between STL, OBJ, PLY, and GOCAD TSurf. <b>Peforma Seismic</b> normalises SEG-Y trace files and converts UKOOA P1/90, OGP P1/11, and OGP P6/11 navigation. <b>Peforma Shapefile</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Peforma Coordinates</b> rewrites latitude and longitude between decimal degrees, DMS, and decimal minutes without moving a position. <b>Peforma Units</b> converts ten engineering categories with exact factors.</p>
+            <p>Seven tools are live today. <b>Grid conversion</b> moves depth-or-time surfaces between CPS-3, ZMAP+, IRAP Classic, and EarthVision ASCII. <b>Vector conversion</b> exchanges open line and point geometry as well as closed polygon rings. <b>3D mesh conversion</b> moves triangulated surfaces and geobody shells between STL, OBJ, PLY, and GOCAD TSurf. <b>Seismic conversion</b> handles SEG-Y traces and UKOOA/IOGP navigation. <b>Shapefile exchange</b> reads and writes Esri Shapefile sets and GeoJSON, including polygons. <b>Coordinate conversion</b> rewrites latitude and longitude between decimal degrees, DMS, and decimal minutes without moving a position. <b>Unit conversion</b> covers ten engineering categories with exact factors.</p>
             <div className="doc-principles">
               <div className="principle"><span className="principle-icon"><LockKeyhole size={18} aria-hidden="true" /></span><b>Local by design</b><p>Parsing, reordering, and writing happen in your browser, and the result downloads as a new file.</p></div>
               <div className="principle"><span className="principle-icon"><ShieldCheck size={18} aria-hidden="true" /></span><b>Nothing invented</b><p>Geometry, values, node order, attributes, and nulls are preserved. Unsupported variants are rejected, never silently guessed.</p></div>
@@ -290,9 +290,9 @@ export default function Docs() {
           <section className="docs-section" id="grid-formats">
             <div className="section-head">
               <span className="section-glyph"><Grid3x3 size={20} aria-hidden="true" /></span>
-              <div><h2>Grid formats</h2><p className="section-sub">Depth &amp; time surfaces · Peforma Horizon/Grid</p></div>
+              <div><h2>Grid formats</h2><p className="section-sub">Depth &amp; time surfaces · Peforma</p></div>
             </div>
-            <p>Peforma Horizon/Grid reads four ASCII grid dialects and writes the same four. Internally every grid is stored once, in a single canonical order, and each exporter reorders from that model. This is why a CPS-3 file and an EarthVision file of the same surface produce identical node values after conversion. The Z values may be depth, two-way time, or another sampled attribute; they are copied verbatim and never rescaled, so a time horizon converts exactly like a depth structure map.</p>
+            <p>Peforma reads four ASCII grid dialects and writes the same four. Internally every grid is stored once, in a single canonical order, and each exporter reorders from that model. This is why a CPS-3 file and an EarthVision file of the same surface produce identical node values after conversion. The Z values may be depth, two-way time, or another sampled attribute; they are copied verbatim and never rescaled, so a time horizon converts exactly like a depth structure map.</p>
 
             <Table
               caption="The four grid inputs at a glance. Every dialect is both read and written as a node grid."
@@ -430,9 +430,9 @@ EarthVision    (explicit 1-based column / row indices):
           <section className="docs-section" id="line-formats">
             <div className="section-head">
               <span className="section-glyph"><Waypoints size={20} aria-hidden="true" /></span>
-              <div><h2>Culture — Lines, Points &amp; Fault Sticks</h2><p className="section-sub">Open line and point geometry · Peforma Culture</p></div>
+              <div><h2>Culture — Lines, Points &amp; Fault Sticks</h2><p className="section-sub">Open line and point geometry · Peforma</p></div>
             </div>
-            <p>The Culture Lines/Points/Fault-sticks converter handles open geometry — point sets and polylines, including fault sticks — across three formats. Closed polygon geometry belongs to the Polygon converter in the next section; shapefile interchange belongs to Peforma Shapefile, so neither is offered here.</p>
+            <p>The Culture Lines/Points/Fault-sticks converter handles open geometry — point sets and polylines, including fault sticks — across three formats. Closed polygon geometry belongs to the Polygon converter in the next section; shapefile interchange belongs to Peforma, so neither is offered here.</p>
 
             <Sub id="lines-delimited" title="Delimited text">
               <p>Comma, semicolon, tab, and whitespace-separated files (CSV, TSV, XYZ) are all read. The delimiter is detected from the first line. The first row decides whether a header is present:</p>
@@ -445,7 +445,7 @@ EarthVision    (explicit 1-based column / row indices):
 358463,3142584,6018.10,FAULT_A
 358513,3142634,6025.77,FAULT_A`} />
               <p>Suggested columns come only from unambiguous labels: <code className="inline-code">x / lon / easting</code>, <code className="inline-code">y / lat / northing</code>, <code className="inline-code">z / elevation / depth / tvd / md</code>, and <code className="inline-code">name / id / line / well / fault</code>. Anything else stays unmatched so you decide.</p>
-              <p>A fault stick is an ordinary polyline. In line mode, consecutive rows that share a fault name form one stick, and the fault name travels as an attribute. A fault plane is a triangulated surface, not line data, so it belongs to Peforma 3D rather than this converter.</p>
+              <p>A fault stick is an ordinary polyline. In line mode, consecutive rows that share a fault name form one stick, and the fault name travels as an attribute. A fault plane is a triangulated surface, not line data, so it belongs to Peforma rather than this converter.</p>
               <Callout tone="info" title="Headerless files need an explicit mapping">
                 <p>Without a header there are no labels to suggest from, so you must assign the X and Y columns before the rows are treated as geometry. In line mode, consecutive rows are grouped into one polyline and a new line starts whenever the mapped Name column changes; a polyline needs at least two vertices.</p>
               </Callout>
@@ -499,7 +499,7 @@ VSET 1 WELL_01
           <section className="docs-section" id="polygon-formats">
             <div className="section-head">
               <span className="section-glyph"><Waypoints size={20} aria-hidden="true" /></span>
-              <div><h2>Culture — Polygon</h2><p className="section-sub">Closed rings, holes, and orientation · Peforma Culture</p></div>
+              <div><h2>Culture — Polygon</h2><p className="section-sub">Closed rings, holes, and orientation · Peforma</p></div>
             </div>
             <p>The Polygon converter handles closed area geometry. A polygon is an ordered list of rings: the first ring is the exterior and every later ring is a hole. It reads GeoJSON <code className="inline-code">Polygon</code>/<code className="inline-code">MultiPolygon</code> and closed GOCAD PLINE curves, and writes either format.</p>
 
@@ -546,9 +546,9 @@ PLINE 5 4 PROSPECT_A
           <section className="docs-section" id="shapefile-formats">
             <div className="section-head">
               <span className="section-glyph"><Files size={20} aria-hidden="true" /></span>
-              <div><h2>Shapefile</h2><p className="section-sub">Esri Shapefile sets &amp; GeoJSON · Peforma Shapefile</p></div>
+              <div><h2>Shapefile</h2><p className="section-sub">Esri Shapefile sets &amp; GeoJSON · Peforma</p></div>
             </div>
-            <p>Peforma Shapefile reads and writes the Esri Shapefile bundle and GeoJSON, including point, multipoint, polyline, polygon, and multipolygon geometry. Record order, vertex order, attribute values, and present Z values are preserved. No reprojection or unit conversion is performed.</p>
+            <p>Peforma reads and writes the Esri Shapefile bundle and GeoJSON, including point, multipoint, polyline, polygon, and multipolygon geometry. Record order, vertex order, attribute values, and present Z values are preserved. No reprojection or unit conversion is performed.</p>
 
             <Sub id="shapefile-bundle" title="The bundle">
               <p>A shapefile is a set of files that share one base name. All parts are read together:</p>
@@ -569,7 +569,7 @@ roads.cpg   text encoding, when present`} />
             <Sub id="shapefile-geometry" title="Geometry types">
               <p>The shape type is read from each record, not assumed from the file header. Z variants are decoded as Z; measure (M) variants are read but M values are ignored and reported.</p>
               <Table
-                caption="Shape type codes Peforma Shapefile reads and writes."
+                caption="Shape type codes Peforma reads and writes."
                 head={['Shape type', 'Geometry', 'Z variant']}
                 rows={[
                   ['1', 'Point', '11'],
@@ -604,9 +604,9 @@ roads.cpg   text encoding, when present`} />
           <section className="docs-section" id="mesh-formats">
             <div className="section-head">
               <span className="section-glyph"><Box size={20} aria-hidden="true" /></span>
-              <div><h2>3D meshes</h2><p className="section-sub">Triangulated surfaces &amp; geobody shells · Peforma 3D</p></div>
+              <div><h2>3D meshes</h2><p className="section-sub">Triangulated surfaces &amp; geobody shells · Peforma</p></div>
             </div>
-            <p>Peforma 3D reads and writes triangular meshes in ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf. Vertex order, face connectivity, group names, and the normals a file carries are preserved. Closure and normal consistency are measured and reported; nothing is welded, capped, flipped, or re-tessellated.</p>
+            <p>Peforma reads and writes triangular meshes in ASCII and binary STL, Wavefront OBJ, PLY (ASCII and binary little-endian), and GOCAD TSurf. Vertex order, face connectivity, group names, and the normals a file carries are preserved. Closure and normal consistency are measured and reported; nothing is welded, capped, flipped, or re-tessellated.</p>
 
             <Sub id="mesh-objects" title="Surfaces &amp; solids">
               <p>Both pages use the same reader, writer, and summary. <b>Fault planes &amp; horizons</b> at <code className="inline-code">#3d-surfaces</code> covers fault planes, faulted horizons, and salt tops — surfaces that are usually open at their edges. <b>Geobodies &amp; solids</b> at <code className="inline-code">#3d-solids</code> covers faceted geobodies, salt bodies, and tetrahedral solids, and flags a shell that is not watertight before export.</p>
@@ -615,14 +615,14 @@ roads.cpg   text encoding, when present`} />
                 head={['Object', 'Geometry', 'Tool']}
                 rows={[
                   ['Fault stick, well trajectory', 'Open polyline', 'Culture Lines/Points/Fault-sticks'],
-                  ['Fault plane, horizon, salt top', 'Triangulated surface', 'Peforma 3D surfaces'],
-                  ['Geobody, salt body, tetrahedral solid', 'Closed mesh or tetrahedral cells', 'Peforma 3D solids'],
+                  ['Fault plane, horizon, salt top', 'Triangulated surface', '3D surfaces'],
+                  ['Geobody, salt body, tetrahedral solid', 'Closed mesh or tetrahedral cells', 'Geobody solids'],
                   ['Fault polygon, prospect outline', 'Closed planar ring', 'Culture Polygon or Shapefile'],
                   ['Fault pillar, corner-point grid', 'Paired pillars and cell topology', 'Not a mesh format — out of scope'],
-                  ['2D seismic line, 3D cube', 'Volume of traces', 'Peforma Seismic'],
+                  ['2D seismic line, 3D cube', 'Volume of traces', 'Seismic conversion'],
                 ]}
               />
-              <p>A fault stick and the fault plane built through it are different objects. Peforma 3D never infers a surface from sticks, and no tessellation format carries fault pillars or corner-point topology.</p>
+              <p>A fault stick and the fault plane built through it are different objects. Peforma never infers a surface from sticks, and no tessellation format carries fault pillars or corner-point topology.</p>
             </Sub>
 
             <Sub id="mesh-stl" title="STL">
@@ -682,15 +682,15 @@ roads.cpg   text encoding, when present`} />
           <section className="docs-section" id="seismic-formats">
             <div className="section-head">
               <span className="section-glyph"><AudioWaveform size={20} aria-hidden="true" /></span>
-              <div><h2>Seismic</h2><p className="section-sub">SEG-Y traces &amp; IOGP navigation · Peforma Seismic</p></div>
+              <div><h2>Seismic</h2><p className="section-sub">SEG-Y traces &amp; IOGP navigation · Peforma</p></div>
             </div>
-            <p>Peforma Seismic has three pages that share one summary. <b>Navigation</b> at <code className="inline-code">#seismic-navigation</code> reads UKOOA P1/90, OGP P1/11, and OGP P6/11 position files. <b>2D lines</b> at <code className="inline-code">#seismic-2d</code> and <b>3D cube</b> at <code className="inline-code">#seismic-3d</code> read SEG-Y and write SEG-Y rev 2.0. SEG-Y is treated as a byte container: samples are never decoded, so the tool reports header and geometry facts instead of drawing amplitudes.</p>
+            <p>Peforma has three pages that share one summary. <b>Navigation</b> at <code className="inline-code">#seismic-navigation</code> reads UKOOA P1/90, OGP P1/11, and OGP P6/11 position files. <b>2D lines</b> at <code className="inline-code">#seismic-2d</code> and <b>3D cube</b> at <code className="inline-code">#seismic-3d</code> read SEG-Y and write SEG-Y rev 2.0. SEG-Y is treated as a byte container: samples are never decoded, so the tool reports header and geometry facts instead of drawing amplitudes.</p>
 
             <Sub id="seismic-navigation" title="Navigation files">
               <p>A navigation sidecar is a list of positions, not a volume of traces. Peforma reads it as records and keeps blank fields blank, so a missing coordinate stays missing rather than becoming zero.</p>
               <Table
                 caption="Where a navigation object belongs."
-                head={['Record', 'Meaning', 'Peforma Seismic handling']}
+                head={['Record', 'Meaning', 'Peforma handling']}
                 rows={[
                   ['P1/90 S, G, Q, A', 'Source, group, and auxiliary positions', 'Read; written to P1/90 and converted to P1/11 rows'],
                   ['P1/90 R', 'Receiver group offsets on a 3D line', 'Counted and reported; not carried into P1/11'],
@@ -757,9 +757,9 @@ roads.cpg   text encoding, when present`} />
           <section className="docs-section" id="coordinates-formats">
             <div className="section-head">
               <span className="section-glyph"><Globe2 size={20} aria-hidden="true" /></span>
-              <div><h2>Coordinates</h2><p className="section-sub">Notation conversion · Peforma Coordinates</p></div>
+              <div><h2>Coordinates</h2><p className="section-sub">Notation conversion · Peforma</p></div>
             </div>
-            <p>Peforma Coordinates reads a delimited table with a latitude column and a longitude column, then writes the same table with the pair rewritten in the notation you choose. Only the written form changes: 51.5074, 51°30′26.64″N, and 51°30.4440′N name the same position. No coordinate is reprojected, no datum is assumed, and no unit is converted.</p>
+            <p>Peforma reads a delimited table with a latitude column and a longitude column, then writes the same table with the pair rewritten in the notation you choose. Only the written form changes: 51.5074, 51°30′26.64″N, and 51°30.4440′N name the same position. No coordinate is reprojected, no datum is assumed, and no unit is converted.</p>
 
             <Sub id="coords-reading" title="Reading notations">
               <Table
@@ -805,9 +805,9 @@ roads.cpg   text encoding, when present`} />
           <section className="docs-section" id="units">
             <div className="section-head">
               <span className="section-glyph"><Ruler size={20} aria-hidden="true" /></span>
-              <div><h2>Units</h2><p className="section-sub">Ten engineering categories · Peforma Units</p></div>
+              <div><h2>Units</h2><p className="section-sub">Ten engineering categories · Peforma</p></div>
             </div>
-            <p>Peforma Units converts ten categories using exact, fixed factors. Each linear unit stores its size in the category's base unit; temperature uses explicit offset formulas instead of a multiplier.</p>
+            <p>Peforma converts ten categories using exact, fixed factors. Each linear unit stores its size in the category's base unit; temperature uses explicit offset formulas instead of a multiplier.</p>
 
             <Sub id="units-factors" title="Exact factors">
               <Table

@@ -1,4 +1,4 @@
-# Peforma Horizon/Grid — Product Requirements
+# Peforma — Product Requirements
 
 This chapter is part of the [Peforma product requirements](../PRD.md) and is scoped to grid conversion.
 

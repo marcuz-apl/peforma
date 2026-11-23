@@ -67,14 +67,23 @@ export function LinkedinIcon({ size = 16 }) {
   );
 }
 
+// X's brand mark is kept monochrome to match the other footer links.
+export function XIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M18.901 1.153h3.68L14.54 10.8 24 22.847h-7.406l-5.8-7.584-6.64 7.584H.473L9.05 13.22 0 1.153h7.594l5.243 6.932zm-1.29 19.577h2.039L6.497 3.16H4.309z" />
+    </svg>
+  );
+}
+
 export function AppFooter({ onAbout, onDisclaimer, onPrivacy, aboutRef, disclaimerRef, privacyRef }) {
   return (
     <footer className="site-footer">
       <div className="footer-legal">
         <div className="footer-legal-links">
-          <button ref={aboutRef} type="button" onClick={onAbout}>About</button>
           <button ref={disclaimerRef} type="button" onClick={onDisclaimer}>Disclaimer</button>
           <button ref={privacyRef} type="button" onClick={onPrivacy}>Privacy</button>
+          <button ref={aboutRef} type="button" onClick={onAbout}>About</button>
         </div>
         <div className="footer-legal-copy">© 2026 Peforma, an Alfazen product. All rights reserved.</div>
         <div className="footer-social">
@@ -86,6 +95,9 @@ export function AppFooter({ onAbout, onDisclaimer, onPrivacy, aboutRef, disclaim
           </a>
           <a href="https://www.linkedin.com/in/marcuszou" target="_blank" rel="noreferrer" aria-label="Alfazen on LinkedIn">
             <LinkedinIcon size={16} />
+          </a>
+          <a href="https://x.com/marcuszou" target="_blank" rel="noreferrer" aria-label="Marcus Zou on X">
+            <XIcon size={16} />
           </a>
         </div>
       </div>

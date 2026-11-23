@@ -24,32 +24,32 @@ const NULLS = { cps3: 1e30, irap: 9999900, zmap: 1e30, earthvision: 1e31 };
 // Product-family navigation. Only the grid suite is live; the rest are labelled
 // placeholders so the rail never offers a link that does nothing.
 const SUITES = [
-  { key: 'grid', name: 'Peforma Horizon/Grid', tool: 'Time-Horizon/Depth-Grid', href: '#grid', icon: Grid3x3, live: true },
+  { key: 'grid', name: 'Grid surfaces', tool: 'Time-Horizon/Depth-Grid', href: '#grid', icon: Grid3x3, live: true },
   {
-    key: 'culture', name: 'Peforma Culture', icon: Waypoints,
+    key: 'culture', name: 'Vectors', icon: Waypoints,
     children: [
       { key: 'culture', name: 'Lines/Points/Fault-sticks', href: '#culture', live: true },
       { key: 'culture-polygon', name: 'Polygon', href: '#culture-polygon', live: true },
     ],
   },
-  { key: 'shapefile', name: 'Peforma Shapefile', tool: 'Shapefile bundle', href: '#shapefile', icon: Files, live: true },
+  { key: 'shapefile', name: 'Shapefile', tool: 'Shapefile bundle', href: '#shapefile', icon: Files, live: true },
   {
-    key: '3d', name: 'Peforma 3D', icon: Box,
+    key: '3d', name: '3D meshes', icon: Box,
     children: [
       { key: '3d-surfaces', name: 'Fault planes & horizons', href: '#3d-surfaces', live: true },
       { key: '3d-solids', name: 'Geobodies & solids', href: '#3d-solids', live: true },
     ],
   },
   {
-    key: 'seismic', name: 'Peforma Seismic', icon: AudioWaveform,
+    key: 'seismic', name: 'Seismic', icon: AudioWaveform,
     children: [
       { key: 'seismic-navigation', name: 'Navigation', href: '#seismic-navigation', live: true },
       { key: 'seismic-2d', name: '2D lines', href: '#seismic-2d', live: true },
       { key: 'seismic-3d', name: '3D cube', href: '#seismic-3d', live: true },
     ],
   },
-  { key: 'coordinates', name: 'Peforma Coordinates', tool: 'Notation converter', href: '#coordinates', icon: Globe2, reference: true, live: true },
-  { key: 'units', name: 'Peforma Units', tool: 'Unit converter', href: '#units', icon: Ruler, reference: true, live: true },
+  { key: 'coordinates', name: 'Coordinates', tool: 'Notation converter', href: '#coordinates', icon: Globe2, reference: true, live: true },
+  { key: 'units', name: 'Units', tool: 'Unit converter', href: '#units', icon: Ruler, reference: true, live: true },
 ];
 const SUITE_GROUPS = [
   { label: 'Data converters', items: SUITES.filter(s => !s.reference) },
@@ -237,8 +237,8 @@ function exportGrid(g, fmt) {
   if (fmt === 'zmap') {
     // Matches the ZIMS/Kingdom layout: rows then columns, real increments after the
     // rotation, and nodes ordered column by column from the north-west corner.
-    return `! Peforma Horizon/Grid ZMAP+ ASCII
-! Converted with Peforma toolbox of Alfazen Inc.
+    return `! Peforma conversion, ZMAP+ ASCII
+! Converted with Peforma of Alfazen Inc.
 @GRID FILE, GRID, 10
 15, 0.1000000E+31, , 7, 1
 ${ny}, ${nx}, ${g.xmin}, ${g.xmax}, ${g.ymin}, ${g.ymax}
@@ -253,7 +253,7 @@ ${g.xmin} ${g.xmax} ${g.ymin} ${g.ymax}
 ${nx} 0.000000 ${g.xmin} ${g.ymin}
 0 0 0 0 0 0 0
 ${formatFlat(values, g.nodata, '9999900.000000', nx)}
-! Converted with Peforma toolbox of Alfazen Inc.
+! Converted with Peforma of Alfazen Inc.
 `;
   }
   if (fmt === 'cps3') {
@@ -265,11 +265,11 @@ FSNROW ${ny} ${nx}
 FSXINC ${g.dx} ${g.dy}
 ->MSMODL: Converted grid
 ${formatFlat(toColumnMajor(values, nx, ny), g.nodata, '0.1E+31', nx)}
-! Converted with Peforma toolbox of Alfazen Inc.
+! Converted with Peforma of Alfazen Inc.
 `;
   }
   if (fmt === 'earthvision') {
-    const out = [`# Type: scattered data`, `# Version: 6`, `# Description: Converted by Peforma Horizon/Grid\n# Converted with Peforma toolbox of Alfazen Inc.`, `# Format: free`, `# Field: 1 x`, `# Field: 2 y`, `# Field: 3 z ${g.units || 'unknown'}`, `# Field: 4 column`, `# Field: 5 row`, `# Projection: ${g.projection || 'Unknown'}`, `# Units: Unknown`, `# End:`, `# Information from grid:`, `# Grid_size: ${nx} x ${ny}`, `# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`, `# Z_units: ${g.units || 'unknown'}`];
+    const out = [`# Type: scattered data`, `# Version: 6`, `# Description: Converted by Peforma\n# Converted with Peforma of Alfazen Inc.`, `# Format: free`, `# Field: 1 x`, `# Field: 2 y`, `# Field: 3 z ${g.units || 'unknown'}`, `# Field: 4 column`, `# Field: 5 row`, `# Projection: ${g.projection || 'Unknown'}`, `# Units: Unknown`, `# End:`, `# Information from grid:`, `# Grid_size: ${nx} x ${ny}`, `# Grid_space: ${g.xmin},${g.xmax},${g.ymin},${g.ymax}`, `# Z_units: ${g.units || 'unknown'}`];
     for (let r = 0; r < ny; r++) for (let c = 0; c < nx; c++) {
       const v = values[r * nx + c];
       if (v !== g.nodata) out.push(`${(g.xmin + c * g.dx).toFixed(6)} ${(g.ymin + r * g.dy).toFixed(6)} ${Number(v).toPrecision(10)} ${c + 1} ${r + 1}`);
@@ -845,28 +845,28 @@ function App() {
     document.title = route === 'home'
       ? 'Peforma — Subsurface Data Exchange Toolbox'
       : route === 'units'
-        ? 'Peforma Units — Engineering Unit Converter'
+        ? 'Peforma — Engineering Unit Converter'
         : route === 'coordinates'
-          ? 'Peforma Coordinates — Coordinate Notation Converter'
+          ? 'Peforma — Coordinate Notation Converter'
           : route === 'seismic-navigation'
-          ? 'Peforma Seismic Navigation — P1/90, P1/11, P6/11'
+          ? 'Peforma — Navigation Records (P1/90, P1/11, P6/11)'
           : route === 'seismic-2d'
-            ? 'Peforma Seismic 2D — Seismic Line Converter'
+            ? 'Peforma — 2D Seismic Line Converter'
             : route === 'seismic-3d'
-              ? 'Peforma Seismic 3D — Seismic Cube Converter'
+              ? 'Peforma — Seismic Cube Converter'
               : route === 'culture'
-          ? 'Peforma Culture — Vector Data Converter'
+          ? 'Peforma — Vector Data Converter'
           : route === 'culture-polygon'
-            ? 'Peforma Culture Polygon — Closed-Ring Converter'
+            ? 'Peforma — Closed-Ring Converter'
             : route === '3d-surfaces'
-              ? 'Peforma 3D Surfaces — Move your surfaces'
+              ? 'Peforma — 3D Surfaces'
               : route === '3d-solids'
-                ? 'Peforma 3D Solids — Move your geobodies'
+                ? 'Peforma — Geobody Solids'
                 : route === 'shapefile'
-                  ? 'Peforma Shapefile — Esri Shapefile Bundle Converter'
+                  ? 'Peforma — Esri Shapefile Bundle Converter'
                   : route === 'docs'
-                    ? 'Peforma Docs — Format Reference & Guides'
-                    : 'Peforma Horizon/Grid — Subsurface Grid Converter';
+                    ? 'Peforma — Format Reference & Guides'
+                    : 'Peforma — Subsurface Grid Converter';
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [route]);
 
@@ -986,7 +986,7 @@ function App() {
                       <p>Convert polygon geometry between GeoJSON and GOCAD ASCII closed curves.</p>
                     </>
                   )}
-                  <nav className="culture-tabs" aria-label="Peforma Culture tools">
+                  <nav className="culture-tabs" aria-label="Vector conversion modes">
                     <a className={`culture-tab${route === 'culture' ? ' active' : ''}`} href="#culture" aria-current={route === 'culture' ? 'page' : undefined}>Lines/Points/Fault-sticks</a>
                     <a className={`culture-tab${route === 'culture-polygon' ? ' active' : ''}`} href="#culture-polygon" aria-current={route === 'culture-polygon' ? 'page' : undefined}>Polygon</a>
                   </nav>
@@ -997,7 +997,7 @@ function App() {
                     <div className="info-icon"><Info size={17} /></div>
                     <div>
                       <b>Format and geometry integrity</b>
-                      <p>CSV, GeoJSON, and GOCAD PLINE/VSET are recognised from contents. Vertex order, attributes, missing-Z distinctions, and CRS/units labels are preserved exactly. Delimited files without a header require an explicit column mapping. Polygon geometry belongs to the Polygon tab; shapefile interchange is handled by Peforma Shapefile.</p>
+                      <p>CSV, GeoJSON, and GOCAD PLINE/VSET are recognised from contents. Vertex order, attributes, missing-Z distinctions, and CRS/units labels are preserved exactly. Delimited files without a header require an explicit column mapping. Polygon geometry belongs to the Polygon tab; shapefile interchange is handled by Peforma.</p>
                     </div>
                   </section>
                 ) : (
@@ -1048,7 +1048,7 @@ function App() {
                       <p>Read SEG-Y rev 0, 1, 2.0, and 2.1 cubes, inspect the grid, and write a normalised rev 2.0 file.</p>
                     </>
                   )}
-                  <nav className="seismic-tabs" aria-label="Peforma Seismic tools">
+                  <nav className="seismic-tabs" aria-label="Seismic data modes">
                     <a
                       className={`seismic-tab${route === 'seismic-navigation' ? ' active' : ''}`}
                       href="#seismic-navigation"
@@ -1107,7 +1107,7 @@ function App() {
                       <p>Convert geobodies, salt bodies, and closed tetrahedral surfaces between STL, OBJ, PLY, and GOCAD TSurf.</p>
                     </>
                   )}
-                  <nav className="mesh-tabs" aria-label="Peforma 3D tools">
+                  <nav className="mesh-tabs" aria-label="3D mesh modes">
                     <a
                       className={`mesh-tab${route === '3d-surfaces' ? ' active' : ''}`}
                       href="#3d-surfaces"
@@ -1145,7 +1145,7 @@ function App() {
             ) : (
               <>
                 <section className="content-head">
-                  <div className="eyebrow"><span /> PEFORMA / HORIZON-GRID</div>
+                  <div className="eyebrow"><span /> PEFORMA / GRID CONVERTER</div>
                   <h1>Move your grids.<br /><em>Keep your data.</em></h1>
                   <p>Convert depth or time grid surfaces between four subsurface formats.</p>
                 </section>

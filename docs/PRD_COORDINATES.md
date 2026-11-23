@@ -1,10 +1,10 @@
-# Peforma Coordinates — Coordinate Notation Conversion
+# Peforma — Coordinate Notation Conversion
 
 This chapter is part of the [Peforma product requirements](../PRD.md).
 
 Status: shipped Tier 1. This chapter describes what the tool does today.
 
-Peforma Coordinates rewrites latitude and longitude between written notations — decimal degrees, degrees minutes seconds (DMS), and degrees decimal minutes (DDM) — without changing the position a value names. It is a reference tool in the Peforma family, alongside Peforma Units.
+Peforma includes a reference converter for rewriting latitude and longitude between decimal degrees, degrees minutes seconds (DMS), and degrees decimal minutes (DDM), without changing the position a value names. It sits alongside the engineering unit converter.
 
 ## Problem
 
@@ -31,8 +31,8 @@ The same position arrives written many ways: `51.5074`, `51°30′26.4″N`, `51
 
 - Reprojection, datum shifts, and geodetic transformation. A notation is not a reference frame; the tool cannot tell which datum a value belongs to.
 - UTM and other projected grid coordinates. Converting those to geographic coordinates requires a projection and a datum, which this tool does not assume.
-- Geometry files (GeoJSON, shapefile, GOCAD). Those belong to Peforma Culture and Peforma Shapefile.
-- Navigation records (P1/90, P1/11, P6/11). Those belong to Peforma Seismic.
+- Geometry files (GeoJSON, shapefile, GOCAD). Those belong to vector and shapefile conversion.
+- Navigation records (P1/90, P1/11, P6/11). Those belong to seismic conversion.
 
 ## Acceptance criteria
 

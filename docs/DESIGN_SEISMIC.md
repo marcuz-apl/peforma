@@ -1,13 +1,13 @@
-# Peforma Seismic Design
+# Peforma — Seismic Design
 
 **Status:** approved for implementation (four decisions recorded below)
 
-**Goal:** Ship one Peforma Seismic tool with three tabs — Navigation, 2D Lines, and 3D Cube — that reads and writes SEG-Y revisions 0, 1, and 2.x in the browser and exchanges IOGP navigation sidecars without guessing.
+**Goal:** Ship one Peforma tool with three tabs — Navigation, 2D Lines, and 3D Cube — that reads and writes SEG-Y revisions 0, 1, and 2.x in the browser and exchanges IOGP navigation sidecars without guessing.
 
 ## Recorded decisions
 
 1. **Tier-1 anchor: SEG-Y plus navigation, no WASM.** SEG-Y revisions 0, 1, and 2.x are read; SEG-Y revision 2.0 is written as a normalized, header-faithful copy. IOGP P1/90, P1/11, and P6/11 text files are read. No ZGY, no OpenVDS, no streaming, no worker/WASM.
-2. **One tool, three tabs.** A single `Peforma Seismic` rail entry opens `#seismic-navigation`, `#seismic-2d`, and `#seismic-3d` with a shared tab bar.
+2. **One tool, three tabs.** A single `Peforma` rail entry opens `#seismic-navigation`, `#seismic-2d`, and `#seismic-3d` with a shared tab bar.
 3. **Conversion contract: header-faithful rewrite.** No sample is decoded, rescaled, resampled, or interpolated. Sample bytes are copied verbatim in their source byte order. The binary header is normalized (revision 2.0, fixed-length flag, sample count, sample interval, extended-header count, endian marker). Trace headers are copied verbatim except that a zero sample count or sample interval is filled from the binary header. An optional inline-major reorder is offered for 3D and is reported.
 4. **Result view: header and geometry summary.** No amplitude rendering, slice viewer, or colour map. The UI shows counts, ranges, populated header fields, geometry gaps, and any record that the target cannot carry.
 

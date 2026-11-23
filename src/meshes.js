@@ -1,4 +1,4 @@
-// Peforma 3D — triangulated surface and geobody exchange for the tier-1 open
+// Peforma — triangulated surface and geobody exchange for the tier-1 open
 // formats. Vertex order, face order, connectivity, groups, and normals are
 // preserved. Closure and normal consistency are reported, never repaired.
 
@@ -57,7 +57,7 @@ export function detectMeshFormat(bytes) {
     if (format[1] === 'ascii') return 'ply-ascii';
     if (format[1] === 'binary_little_endian') return 'ply-binary';
     if (format[1] === 'binary_big_endian') {
-      throw Error(`This PLY declares binary_big_endian ${format[2]}; Peforma 3D reads little-endian binary PLY only.`);
+      throw Error(`This PLY declares binary_big_endian ${format[2]}; Peforma reads little-endian binary PLY only.`);
     }
     throw Error(`This PLY declares an unknown format, "${format[1]} ${format[2]}".`);
   }
@@ -67,12 +67,12 @@ export function detectMeshFormat(bytes) {
     const type = first.split(/\s+/)[1] || '';
     if (/^TSurf$/i.test(type)) return 'tsurf';
     if (/^TSolid$/i.test(type)) {
-      throw Error('This is a GOCAD TSolid. Tetrahedral solids arrive in tier 2; Peforma 3D reads GOCAD TSurf today.');
+      throw Error('This is a GOCAD TSolid. Tetrahedral solids arrive in tier 2; Peforma reads GOCAD TSurf today.');
     }
     if (/^(PLINE|VSet)$/i.test(type)) {
-      throw Error(`This is GOCAD ${type}; open lines and points belong to Peforma Culture Lines/Points.`);
+      throw Error(`This is GOCAD ${type}; open lines and points belong to Peforma — Lines/Points.`);
     }
-    throw Error(`GOCAD ${type || 'file'} is not a supported mesh type. Peforma 3D reads GOCAD TSurf.`);
+    throw Error(`GOCAD ${type || 'file'} is not a supported mesh type. Peforma reads GOCAD TSurf.`);
   }
 
   if (bytes.byteLength >= 84) {
@@ -90,13 +90,13 @@ export function detectMeshFormat(bytes) {
   if (/^\s*solid\b/i.test(head) && /facet\s+normal/i.test(head) && /endfacet/i.test(head)) return 'stl-ascii';
   if (/^\s*v\s+\S+\s+\S+\s+\S+/m.test(head) && /^\s*f\s+\S+/m.test(head)) return 'obj';
 
-  throw Error('Unrecognised mesh file. Peforma 3D reads STL, OBJ, PLY, and GOCAD TSurf.');
+  throw Error('Unrecognised mesh file. Peforma reads STL, OBJ, PLY, and GOCAD TSurf.');
 }
 
 export function loadMeshFile(bytes, fileName) {
   if (!bytes || bytes.byteLength === 0) throw Error('This file is empty.');
   if (bytes.byteLength > MAX_MESH_BYTES) {
-    throw Error(`${fileName} is ${(bytes.byteLength / 1048576).toFixed(1)} MB; Peforma 3D reads mesh files up to 64 MB.`);
+    throw Error(`${fileName} is ${(bytes.byteLength / 1048576).toFixed(1)} MB; Peforma reads mesh files up to 64 MB.`);
   }
   const format = detectMeshFormat(bytes);
   if (format === 'stl-ascii') return parseStlAscii(bytes, fileName);
@@ -252,7 +252,7 @@ function stlWarnings(model) {
 }
 
 function stlSolidName(model) {
-  return model.name || 'Peforma 3D mesh';
+  return model.name || 'Peforma mesh';
 }
 
 function writeStlAscii(model) {
@@ -517,7 +517,7 @@ function parseObj(bytes, fileName) {
       const faceNumber = faces.length / 3 + 1;
       const tokens = parts.slice(1);
       if (tokens.length !== 3) {
-        throw Error(`Face ${faceNumber} has ${tokens.length} vertices; Peforma 3D reads triangular meshes only.`);
+        throw Error(`Face ${faceNumber} has ${tokens.length} vertices; Peforma reads triangular meshes only.`);
       }
       const references = tokens.map(token => {
         const fields = token.split('/');
@@ -594,7 +594,7 @@ function objWarnings(model) {
 }
 
 function writeObj(model) {
-  const out = ['# Created by Peforma 3D'];
+  const out = ['# Created by Peforma'];
   const vertexCount = model.positions.length / 3;
 
   for (let v = 0; v < vertexCount; v++) {
@@ -789,7 +789,7 @@ function parsePly(bytes, fileName, format) {
         const list = record[indexProperty.name];
         const faceNumber = faceIndex + 1;
         if (list.length !== 3) {
-          throw Error(`Face ${faceNumber} has ${list.length} vertices; Peforma 3D reads triangular meshes only.`);
+          throw Error(`Face ${faceNumber} has ${list.length} vertices; Peforma reads triangular meshes only.`);
         }
         for (const index of list) {
           if (!Number.isInteger(index) || index < 0 || index >= vertexElement.count) {
@@ -849,7 +849,7 @@ function writePly(model, target) {
   const header = [
     'ply',
     ascii ? 'format ascii 1.0' : 'format binary_little_endian 1.0',
-    'comment Created by Peforma 3D',
+    'comment Created by Peforma',
     `element vertex ${vertexCount}`,
     'property double x',
     'property double y',

@@ -1,10 +1,10 @@
-# Peforma Shapefile — Esri Shapefile Bundle Exchange
+# Peforma — Esri Shapefile Bundle Exchange
 
 This chapter is part of the [Peforma product requirements](../PRD.md).
 
 Status: implemented at `#shapefile`. The tool reads Esri Shapefile sets (`.shp`, `.shx`, `.dbf`, `.prj`, `.cpg`) and GeoJSON, then writes either a GeoJSON FeatureCollection or a shapefile ZIP. Multi-file bundle download, per-record geometry, DBF attributes, Z values, CRS text, and ring conventions are handled; no reprojection, unit conversion, topology repair, or shapefile compression is performed.
 
-Peforma Shapefile is the suite member for the Esri Shapefile container. It is separate from Peforma Culture: Culture converts vector geometry between open formats, while Shapefile owns the bundle itself — the `.shp` records, the `.shx` index, the `.dbf` attribute table, and the `.prj` definition. The Culture Polygon converter is implemented and does not read or write shapefiles.
+This chapter covers exchange of the Esri Shapefile container. Vector conversion moves geometry between open formats; shapefile exchange handles the full bundle — `.shp` records, the `.shx` index, the `.dbf` attribute table, and the `.prj` definition. The polygon converter is implemented separately and does not read or write shapefiles.
 
 ## Problem
 
